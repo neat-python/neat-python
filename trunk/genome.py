@@ -81,6 +81,11 @@ class Chromosome(object):
         self.__mutate_add_node()
         return self
     
+    def crossover(self, other):
+        ''' Applies the crossover operator. Returns a child '''
+        child = Chromosome() # TODO: self.__crossover(other)
+        return child.mutate()
+    
     def __mutate_add_node(self):
         # Choose a random connection to split
         try:
