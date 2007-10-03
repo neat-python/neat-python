@@ -3,10 +3,11 @@ import random
 import math
 
 class NodeGene(object):
-    def __init__(self, id, nodetype):
+    def __init__(self, id, nodetype, bias = 0):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
         self.__type = nodetype
+        self.__bias = bias
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
@@ -29,6 +30,9 @@ class ConnectionGene(object):
         except KeyError:
             self.__innov_number = self.__get_new_innov_number()
             self.__innovations[self.key] = self.__innov_number
+    
+    def enable(self):
+        self.__enabled = True
     
     @classmethod
     def __get_new_innov_number(cls):
@@ -57,8 +61,6 @@ class ConnectionGene(object):
     key = property(lambda self: (self.__in, self.__out))
 
 class Chromosome(object):
-    """ Testing chromosome - in the future it will be a list
-        of node and link genes plus a fitness value """
     id = 1
     def __init__(self):
         self.__connection_genes = {} # dictionary of connection genes
@@ -100,7 +102,7 @@ class Chromosome(object):
         remaining_conns = total_possible_conns - len(self.__connection_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
-            n = random.choice(range(0, remaining_conns))
+            n = random.randint(0, remaining_conns - 1)
             count = 0
             # Count connections
             for in_node in self.__node_genes:
@@ -126,6 +128,7 @@ class Chromosome(object):
     @staticmethod
     def create_fully_connected(num_input, num_output):
         '''
+        Factory method
         Creates a chromosome for a fully connected network with no hidden nodes.
         '''
         c = Chromosome()
