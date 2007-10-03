@@ -67,9 +67,9 @@ class Chromosome(object):
         self.__node_genes = [] # list of node genes
         self.__input_nodes = 0 # number of input nodes
         # Temporary, to calculate distance
-        genes = [random.randrange(-5,5) for i in xrange(20)]
-        self.sum_genes = sum(genes)
-        self.fitness = max(genes) # stupid fitness function
+        self.genes = [random.randrange(-5,5) for i in xrange(20)]
+        self.sum_genes = sum(self.genes)
+        self.fitness = None # now we have an evaluation method in the Population class
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
