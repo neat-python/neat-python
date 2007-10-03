@@ -53,13 +53,12 @@ class Species: # extend list?
         return Chromosome() # returning a dummy chromo
     
     def average_fitness(self):
-        """ Returns the average fitness for this species """
-        sum = 0
+        """ Returns the raw average fitness for this species """
+        sum = 0.0
         for c in self.__chromosomes:
             sum += c.fitness
             
-        #return sum/len(self.__chromosomes)
-        return sum
+        return sum/len(self.__chromosomes)
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
@@ -104,121 +103,119 @@ class Species: # extend list?
         
         return offspring
       
+class Population:
+    ''' Manages all the species  '''
+    def __init__(self, popsize):
+        self.__popsize = popsize
+        self.__population = [Chromosome() for i in xrange(popsize)]
+        self.__bestchromo = max(self.__population)
+        self.__species = []
+    
+    def __len__(self):
+        return len(self.__population)
+    
+    def __iter__(self):
+        return iter(self.__population)
         
-# should this method return the number of alloted offspring for each species
-# or set an attribute in each species?
-def compute_spawn_levels(species, pop_size): # is it passed by reference? I think so!
-    """ Compute each species' spawn amount (Stanley, p. 40) """
-    
-    # 1. boost if young and penalize if old
-    # 2. Share fitness
-    # 3. Compute spawn
-    
-    # the FAQ says that for fitness sharing to work all fitnesses must be > 0
-    # I don't know why (yet!)
-    
-    # Sharing the fitness is only meaningful here   
-    total_average = 0
-    for s in species:
-        for c in s:
-            c.fitness = c.fitness/len(s)
-            total_average += c.fitness
-  
-    # average_fitness is being computed twice! optimize!
-    
-    for s in species:
-        # is it the best way to round?
-        s.spawn_amount = int(round((s.average_fitness()*pop_size/total_average)))
-        # there's a problem with rounding! Over or underflow of individuals may occur!
-        # some species will spawn zero offspring - remove species?
+    def __speciate(self):
+        """ Group chromosomes into species by similarity """
         
-# More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
-
-# speciate population
-def speciate(population):
-    """ A method from some still to come class ... """
-    # creates the first species and add the first chromosome from population 
-    #species = [Species(population[0])] - I can do this inside the loop!
-    
-    species = []
-    
-    for chromo in population:
-        found = False
-        for s in species:
-            if chromo.dist(s.representative):
-                chromo.species_id = s.id # the species chromo belongs to
-                s.add(chromo)                
-                #print 'chromo %s added to species %s' %(chromo.id, s.id)
-                found = True
-                break # we found a compatible species, so let's skip to the next
-            
-        if not found: # create a new species for this lone chromosome
-            species.append(Species(chromo)) 
-            chromo.species_id = species[-1].id
-            print 'Creating new species %s and adding chromo %s' %(species[-1].id, chromo.id)
+        for c in self:
+            found = False
+            for s in self.__species:
+                if c.dist(s.representative):
+                    c.species_id = s.id # the species chromo belongs to
+                    s.add(c)                
+                    #print 'chromo %s added to species %s' %(chromo.id, s.id)
+                    found = True
+                    break # we found a compatible species, so let's skip to the next
                 
-    return species
-
-def epoch(population):
-    """ Receives the current population and returns the next generation. All the speciation methods
-        are handled here """
-    # let us speciate the population
-    species = speciate(population)  
-    
-    # print some "debugging" information
-    print 'Species length:', len(species)
-    print [len(s) for s in species]
-
-    # Fitness sharing is now handled inside compute_spawn_levels function
-    #for s in species:
-    #    s.shareFitness() 
-        
-    compute_spawn_levels(species, len(population)) # compute spawn levels for each species
-    
-    tmp = [s.spawn_amount for s in species]
-    print tmp, sum(tmp)
-    
-    # weird behavior
-    # [26, 20, 5, 10, 7,  3, 25, 7, 7, 21, 14,  2,  2,  1]
-    # [ 2,  2, 8,  5, 6, 16,  2, 7, 7,  2,  3, 24, 22, 44] 150
-    # the last species which contains 1 individual will spawn 44 !
-    
-    new_pop = [] # next generation's population
-    
-    # spawning new population
-    for s in species:
-        if len(new_pop) < len(population):
-            new_pop += s.reproduce() # add a certain amount of individuals to the new pop
+            if not found: # create a new species for this lone chromosome
+                self.__species.append(Species(c)) 
+                c.species_id = self.__species[-1].id
+                print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
+                
+    def average_fitness(self):
+        ''' Returns the average raw fitness of population '''
+        sum = 0.0
+        for c in self:
+            sum += c.fitness
             
-    # an overflow will never occour!
-    # if there was an underflow of new individuals we need to fill up new_pop
-    fill = len(population) - len(new_pop)
-    if fill > 0:
-        print 'Selecting %d more individual(s) to fill up the new population' %fill
-        # apply tournament selection in the whole population (allow inter-species mating?)
-        # or select a random species to reproduce?
-        for i in range(fill):
-            new_pop.append(Chromosome()); # just a temporary hack!
-    
-    return new_pop
+        return sum/len(self)
 
-
+    def __compute_spawn_levels(self):
+        """ Compute each species' spawn amount (Stanley, p. 40) """
+        
+        # 1. boost if young and penalize if old (on raw fitness!)
+        # 2. Share fitness
+        # 3. Compute spawn
+        # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
+        
+        # the FAQ says that for fitness sharing to work all fitnesses must be > 0
+        # I don't know why (yet!)
+        
+        # Sharing the fitness is only meaningful here  
+        # we don't have to change each individual's fitness 
+        total_average = 0.0
+        for s in self.__species:
+                total_average += s.average_fitness()
+      
+        # average_fitness is being computed twice! optimize!        
+        for s in self.__species:
+            # is it the best way to round?
+            s.spawn_amount = int(round((s.average_fitness()*len(self)/total_average)))
+                    
+    def epoch(self, n):
+        ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
+        
+        for generation in xrange(n):
+            print 'Running generation',generation
+            
+            self.__speciate() # speciates the population
+            self.__compute_spawn_levels() # compute spawn levels for each species
+            
+            # print some "debugging" information
+            print 'Species length:', len(self.__species)
+            print 'Species size:', [len(s) for s in self.__species]
+            print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
+            print 'Species age:',[s.age for s in self.__species]
+            
+            # weird behavior - now fixed!
+            # [26, 20, 5, 10, 7,  3, 25, 7, 7, 21, 14,  2,  2,  1]
+            # [ 2,  2, 8,  5, 6, 16,  2, 7, 7,  2,  3, 24, 22, 44] 150
+            # the last species which contains 1 individual will spawn 44 !
+            
+            new_population = [] # next generation's population
+            
+            # spawning new population
+            for s in self.__species:
+                if len(new_population) < len(self):
+                    new_population += s.reproduce() # add a certain amount of individuals to the new pop
+                    
+            # an overflow will never occour!
+            # if there was an underflow of new individuals we need to fill up new_population
+            fill = len(self) - len(new_population)
+            if fill > 0:
+                print 'Selecting %d more individual(s) to fill up the new population' %fill
+                # apply tournament selection in the whole population (allow inter-species mating?)
+                # or select a random species to reproduce?
+                for i in range(fill):
+                    new_population.append(Chromosome()); # just a temporary hack!
+                    
+            # updates current population
+            self.__population = new_population
+        
 if __name__ ==  '__main__' :
     
-    population = [Chromosome() for i in xrange(50)]  # first population (a list of chromosomes)    
+    pop = Population(300)
+    pop.epoch(20)
+    print pop.average_fitness()
         
-    for i in range(40):
-        new = epoch(population)                          # first epoch
-        population = new
-    
-    assert(len(new) == len(population))
-
 
 # Things left to check:
-# a) the species list must be accessible from the outside of epoch()
-# b) I'm not tracking best member's species yet!
-# c) boost and penalize is done inside Species.shareFitness() method (as in Buckland's code)
-# d) Remove species that shows no improvements after some generations (except if it has the best individual of pop.)
+# a) I'm not tracking best member's species yet!
+# b) boost and penalize is done inside Species.shareFitness() method (as in Buckland's code)
+# c) Remove species that shows no improvements after some generations (except if it has the best individual of pop.)
 
 # Algorithm:
 # 1. Apply fitness sharing in each species
