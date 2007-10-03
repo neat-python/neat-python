@@ -1,5 +1,12 @@
 # -*- coding: UTF-8 -*-
 import random
+import math
+
+class NodeGene(object):
+    def __init__(self, id, nodetype):
+        '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
+        self.__id = id
+        self.__type = nodetype
 
 class ConnectionGene(object):
     __next_innovation_number = 1
@@ -29,13 +36,19 @@ class Chromosome(object):
         self.id = Chromosome.id
         Chromosome.id += 1
         
-    def __iter__(self):
-        return iter(self.__genes)
-    
     def mutate(self):
         """ Mutates this chromosome """
         # this method must be overridden!
         return self
+    
+    # compatibility function (for testing purposes)
+    def dist(self, ind_b):
+        # two chromosomes are similar if the difference between the sum of 
+        # their 'float' genes is less than a compatibility threshold
+        if math.fabs(sum(self.__genes) - sum(ind_b.__genes)) < 3.9: # compatibility threshold
+            return True
+        else:
+            return False
     
     # sort chromosomes by their fitness
     def __ge__(self, other):

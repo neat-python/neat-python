@@ -118,17 +118,6 @@ def compute_spawn_levels(species, pop_size): # is it passed by reference? I thin
         # there's a problem with rounding! Over or underflow of individuals may occur!
         # some species will spawn zero offspring - remove species?
         
-        
-# compatibility function (for testing purposes)
-def dist(ind_a, ind_b):    
-    # two chromosomes are similar if the difference between the sum of 
-    # their 'float' genes is less than a compatibility threshold
-    if math.fabs(sum(ind_a) - sum(ind_b)) < 3.9: # compatibility threshold
-        return True
-    else:
-        return False
-    
-    
 # speciate population
 def speciate(population):
     """ A method from some still to come class ... """
@@ -140,7 +129,7 @@ def speciate(population):
     for chromo in population:
         found = False
         for s in species:
-            if dist(chromo, s.representative):
+            if chromo.dist(s.representative):
                 chromo.species_id = s.id # the species chromo belongs to
                 s.add(chromo)                
                 #print 'chromo %s added to species %s' %(chromo.id, s.id)
