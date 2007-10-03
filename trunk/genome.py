@@ -15,7 +15,7 @@ class NodeGene(object):
     id = property(lambda self: self.__id)
 
 class ConnectionGene(object):
-    __next_innovation_number = 1
+    __global_innov_number = 0
     __innovations = {} # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
     
@@ -25,11 +25,15 @@ class ConnectionGene(object):
         self.__weight = weight
         self.__enabled = enabled
         try:
-            self.__innovation_number = self.__innovations[self.key]
+            self.__innov_number = self.__innovations[self.key]
         except KeyError:
-            self.__innovation_number = self.__next_innovation_number
-            ConnectionGene.__next_innovation_number += 1
-            self.__innovations[self.key] = self.__innovation_number
+            self.__innov_number = self.__get_new_innov_number()
+            self.__innovations[self.key] = self.__innov_number
+    
+    @classmethod
+    def __get_new_innov_number(cls):
+        cls.__global_innov_number += 1
+        return cls.__global_innov_number
     
     def __str__(self):
         s = "In %d, Out %d, Weight %f, " % (self.__in, self.__out, self.__weight)
@@ -37,7 +41,7 @@ class ConnectionGene(object):
             s += "Enabled, "
         else:
             s += "Disabled, "
-        return s + "Innov %d" % (self.__innovation_number,)
+        return s + "Innov %d" % (self.__innov_number,)
             
     key = property(lambda self: (self.__in, self.__out))
 
