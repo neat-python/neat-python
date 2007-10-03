@@ -30,13 +30,12 @@ class Species: # extend list?
     def __repr__(self):
         return repr([c.fitness for c in self.__chromosomes])
     
-    def shareFitness(self):
-        """ Share the fitness among individuals for this species """
-        for c in self.__chromosomes:
-            c.fitness = c.fitness/len(self)
-        # in Mat Buckland's code: (1) boost if young and penalize if old, (2) share fitness!
-        # the FAQ says that for fitness sharing to work all fitnesses must be > 0
-        # I don't understand why (yet!)
+#    def shareFitness(self):
+#        """ Share the fitness among individuals for this species """
+#        for c in self.__chromosomes:
+#            c.fitness = c.fitness/len(self)
+#        # in Mat Buckland's code: (1) boost if young and penalize if old, (2) share fitness!
+#        # the FAQ says that for fitness sharing to work all fitnesses must be > 0
             
     def best(self):
         """ Returns the best individual (the one with highest fitness) for this species """
@@ -59,7 +58,8 @@ class Species: # extend list?
         for c in self.__chromosomes:
             sum += c.fitness
             
-        return sum/len(self.__chromosomes)
+        #return sum/len(self.__chromosomes)
+        return sum
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
@@ -108,11 +108,22 @@ class Species: # extend list?
 # should this method return the number of alloted offspring for each species
 # or set an attribute in each species?
 def compute_spawn_levels(species, pop_size): # is it passed by reference? I think so!
-    """ Compute each species's spawn amount (Stanley, p. 40) """
+    """ Compute each species' spawn amount (Stanley, p. 40) """
+    
+    # 1. boost if young and penalize if old
+    # 2. Share fitness
+    # 3. Compute spawn
+    
+    # the FAQ says that for fitness sharing to work all fitnesses must be > 0
+    # I don't know why (yet!)
+    
+    # Sharing the fitness is only meaningful here   
     total_average = 0
     for s in species:
-        total_average += s.average_fitness()     
-    
+        for c in s:
+            c.fitness = c.fitness/len(s)
+            total_average += c.fitness
+  
     # average_fitness is being computed twice! optimize!
     
     for s in species:
@@ -121,6 +132,8 @@ def compute_spawn_levels(species, pop_size): # is it passed by reference? I thin
         # there's a problem with rounding! Over or underflow of individuals may occur!
         # some species will spawn zero offspring - remove species?
         
+# More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
+
 # speciate population
 def speciate(population):
     """ A method from some still to come class ... """
@@ -156,8 +169,9 @@ def epoch(population):
     print 'Species length:', len(species)
     print [len(s) for s in species]
 
-    for s in species:
-        s.shareFitness() 
+    # Fitness sharing is now handled inside compute_spawn_levels function
+    #for s in species:
+    #    s.shareFitness() 
         
     compute_spawn_levels(species, len(population)) # compute spawn levels for each species
     
@@ -183,15 +197,21 @@ def epoch(population):
         print 'Selecting %d more individual(s) to fill up the new population' %fill
         # apply tournament selection in the whole population (allow inter-species mating?)
         # or select a random species to reproduce?
+        for i in range(fill):
+            new_pop.append(Chromosome()); # just a temporary hack!
     
     return new_pop
 
 
 if __name__ ==  '__main__' :
     
-    population = [Chromosome() for i in xrange(50)]  # current population (a list of chromosomes)    
-    new = epoch(population)                          # first epoch
-    print len(new)
+    population = [Chromosome() for i in xrange(50)]  # first population (a list of chromosomes)    
+        
+    for i in range(40):
+        new = epoch(population)                          # first epoch
+        population = new
+    
+    assert(len(new) == len(population))
 
 
 # Things left to check:
