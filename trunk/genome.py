@@ -19,9 +19,9 @@ class ConnectionGene(object):
     __innovations = {} # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
     
-    def __init__(self, innode, outnode, weight, enabled):
-        self.__in = innode
-        self.__out = outnode
+    def __init__(self, innodeid, outnodeid, weight, enabled):
+        self.__in = innodeid
+        self.__out = outnodeid
         self.__weight = weight
         self.__enabled = enabled
         try:
@@ -42,7 +42,18 @@ class ConnectionGene(object):
         else:
             s += "Disabled, "
         return s + "Innov %d" % (self.__innov_number,)
-            
+    
+    def __cmp__(self, other):
+        return cmp(self.__innov_number, other.__innov_number)
+    
+    def split(self, node_id):
+        """Splits a connection, creating two new connections and disabling this one"""
+        self.__enabled = False
+        new_conn1 = ConnectionGene(self.__in, node_id, 1, True)
+        new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
+        return new_conn1, new_conn2
+    
+    # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.__in, self.__out))
 
 class Chromosome(object):
@@ -52,23 +63,62 @@ class Chromosome(object):
     def __init__(self):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
+        self.__input_nodes = 0 # number of input nodes
         # Temporary, to calculate distance
-        self.__genes = [random.randrange(-5,5) for i in xrange(20)]
-        self.fitness = max(self.__genes) # stupid fitness function
+        genes = [random.randrange(-5,5) for i in xrange(20)]
+        self.sum_genes = sum(genes)
+        self.fitness = max(genes) # stupid fitness function
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
         
     def mutate(self):
         """ Mutates this chromosome """
-        # this method must be overridden!
+        # TODO: mutate with a probability
+        self.__mutate_add_connection()
+        self.__mutate_add_node()
         return self
+    
+    def __mutate_add_node(self):
+        # Choose a random connection to split
+        try:
+            conn_to_split = random.choice(self.__connection_genes.values())
+        except IndexError: # Empty list of genes
+            # TODO: this can't happen, do not fail silently
+            return
+        ng = NodeGene(len(self.__node_genes) + 1, 'HIDDEN')
+        self.__node_genes.append(ng)
+        new_conn1, new_conn2 = conn_to_split.split(ng.id)
+        self.__connection_genes[new_conn1.key] = new_conn1
+        self.__connection_genes[new_conn2.key] = new_conn2
+    
+    def __mutate_add_connection(self):
+        # Only for recurrent networks
+        # TODO: add support for feedforwad networks
+        total_possible_conns = (len(self.__node_genes) - self.__input_nodes) \
+            * len(self.__node_genes)
+        remaining_conns = total_possible_conns - len(self.__connection_genes)
+        # Check if new connection can be added:
+        if remaining_conns > 0:
+            n = random.choice(range(0, remaining_conns))
+            count = 0
+            # Count connections
+            for in_node in self.__node_genes:
+                for out_node in self.__node_genes[self.__input_nodes:]:
+                    if (in_node.id, out_node.id) not in self.__connection_genes.keys():
+                        # Free connection
+                        if count == n: # Connection to create
+                            cg = ConnectionGene(in_node.id, out_node.id, 0, True)
+                            self.__connection_genes[cg.key] = cg
+                            return
+                        else:
+                            count += 1
     
     # compatibility function (for testing purposes)
     def dist(self, ind_b):
         # two chromosomes are similar if the difference between the sum of 
         # their 'float' genes is less than a compatibility threshold
-        if math.fabs(sum(self.__genes) - sum(ind_b.__genes)) < 3.9: # compatibility threshold
+        if math.fabs(self.sum_genes - ind_b.sum_genes) < 3.9: # compatibility threshold
             return True
         else:
             return False
@@ -84,13 +134,15 @@ class Chromosome(object):
         for i in range(num_input):
             c.__node_genes.append(NodeGene(id, 'INPUT'))
             id += 1
+        c.__input_nodes += num_input
         for i in range(num_output):
-            c.__node_genes.append(NodeGene(id, 'OUTPUT'))
+            node_gene = NodeGene(id, 'OUTPUT')
+            c.__node_genes.append(node_gene)
+            id += 1
             # Connect it to all input nodes
             for input_node in c.__node_genes[:num_input]:
-                cg = ConnectionGene(input_node.id, id, 0, True)
+                cg = ConnectionGene(input_node.id, node_gene.id, 0, True)
                 c.__connection_genes[cg.key] = cg
-            id += 1
         return c
     
     # sort chromosomes by their fitness
@@ -111,10 +163,17 @@ class Chromosome(object):
         for ng in self.__node_genes:
             s += "\n\t" + str(ng)
         s += "\nConnections:"
-        for cg in self.__connection_genes.values():
-            s += "\n\t" + str(cg)
+        connections = self.__connection_genes.values()
+        connections.sort()
+        for c in connections:
+            s += "\n\t" + str(c)
         return s
 
-if __name__ ==  '__main__' :
+if __name__ ==  '__main__':
     c = Chromosome.create_fully_connected(3, 2)
+    print "Before mutation:"
+    print c
+    c.mutate()
+    print
+    print "After mutation:"
     print c
