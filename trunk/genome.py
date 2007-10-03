@@ -72,8 +72,7 @@ class Chromosome(object):
     @staticmethod
     def create_fully_connected(num_input, num_output):
         '''
-        Create a chromosome for a fully connected recurrent network with no
-        hidden nodes.
+        Creates a chromosome for a fully connected network with no hidden nodes.
         '''
         c = Chromosome()
         id = 1
