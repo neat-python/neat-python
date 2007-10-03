@@ -73,7 +73,7 @@ class Species: # extend list?
             if kill > 0: # if we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:-kill] # is it pythonic? 
                 
-            print 'Species %d with %d members - %d were killed' %(self.id, len(self), kill)
+            # print 'Species %d with %d members - %d were killed' %(self.id, len(self), kill)
             
             offspring.append(self.best()) # copy best chromo
             # the best individual is in the first position, so we don't really need to use best()
@@ -98,6 +98,7 @@ class Species: # extend list?
                 
             self.spawn_amount -= 1
         
+        self.__chromosomes = [] # reset species (new members will be added when speciating)
         return offspring
     
 class TournamentSelection:
@@ -128,10 +129,11 @@ class Population:
         return iter(self.__population)
         
     def __speciate(self):
-        """ Group chromosomes into species by similarity """
-        
+        """ Group chromosomes into species by similarity """        
+        print 'Speciating',len(self)
         for c in self:
             found = False
+            # TODO: if c.species_id is not None try this species first                
             for s in self.__species:
                 if c.dist(s.representative):
                     c.species_id = s.id # the species chromo belongs to
@@ -203,8 +205,8 @@ class Population:
             
             # print some "debugging" information
             print 'Species length:', len(self.__species)
-            print 'Species size:', [len(s) for s in self.__species]
-            print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
+            print 'Species size:', [len(s) for s in self.__species],sum([len(s) for s in self.__species])
+            print 'Amount to spawn:',[s.spawn_amount for s in self.__species],sum([s.spawn_amount for s in self.__species])
             print 'Species age:',[s.age for s in self.__species]
             
             # weird behavior - now fixed!
@@ -219,10 +221,11 @@ class Population:
                 if len(new_population) < len(self):
                     new_population += s.reproduce() # add a certain amount of individuals to the new pop
                     
-            # an overflow will never occour!
-            # if there was an underflow of new individuals we need to fill up new_population
+            # controls under or overflow
             fill = len(self) - len(new_population)
-            if fill > 0:
+            if fill < 0: #overflow
+                new_population = new_population[:fill]
+            if fill > 0: #underflow
                 print 'Selecting %d more individual(s) to fill up the new population' %fill
                 select = self.selection(self.__population)
                 # apply tournament selection in the whole population (allow inter-species mating?)
@@ -230,7 +233,7 @@ class Population:
                 for i in range(fill):
                     parent_1 = select()
                     parent_2 = select()
-                    # I need a crossover method here!
+                    # I need a crossover method here! child = parent_1.crossover(parent_2)
                     child = Species.crossover(parent_1, parent_2)
                     new_population.append(child.mutate()); # just a temporary hack!
                     
@@ -240,7 +243,7 @@ class Population:
         
 if __name__ ==  '__main__' :
     
-    pop = Population(300)
+    pop = Population(1000)
     pop.epoch(10)       
 
 # Things left to check:
