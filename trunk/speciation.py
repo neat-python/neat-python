@@ -1,33 +1,34 @@
 # -*- coding: UTF-8 -*-
 import random, math
+from genome import Chromosome
 
-class Specie: # extend list?
+class Species: # extend list?
     """ A subpopulation containing similar individiduals """
-    id = 1 # specie id
+    id = 1 # species id
     
     def __init__(self, first_chromo):
-        """ A specie requires at least one individual to come to existence """
-        self.id = Specie.id                         # specie's id 
-        self.age = 0                                # specie's age
-        self.__chromosomes = [first_chromo]         # specie's individuals
-        self.representative = self.__chromosomes[0] # specie's representative - random or first member?
-        self.hasBest = False                        # Does this specie has the best individual of the population?
+        """ A species requires at least one individual to come to existence """
+        self.id = Species.id                         # species's id 
+        self.age = 0                                # species's age
+        self.__chromosomes = [first_chromo]         # species's individuals
+        self.representative = self.__chromosomes[0] # species's representative - random or first member?
+        self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = None
-        Specie.id += 1
+        Species.id += 1
         
     def add(self, ind):
-        """ Add a new individual to the specie """
+        """ Add a new individual to the species """
         self.__chromosomes.append(ind)
         
     def __len__(self):
-        """ Returns the total number of individuals in this specie """
+        """ Returns the total number of individuals in this species """
         return len(self.__chromosomes)
     
     def __repr__(self):
         return repr([c.fitness for c in self.__chromosomes])
     
     def shareFitness(self):
-        """ Share the fitness among individuals for this specie """
+        """ Share the fitness among individuals for this species """
         for c in self.__chromosomes:
             c.fitness = c.fitness/len(self)
         # in Mat Buckland's code: (1) boost if young and penalize if old, (2) share fitness!
@@ -35,7 +36,7 @@ class Specie: # extend list?
         # I don't understand why (yet!)
             
     def best(self):
-        """ Returns the best individual (the one with highest fitness) for this specie """
+        """ Returns the best individual (the one with highest fitness) for this species """
         return max(self.__chromosomes)
     
     def keeBest(self):
@@ -44,13 +45,13 @@ class Specie: # extend list?
         pass 
     
     def crossover(self):
-        """ Selects two parents from the remaining specie and produces a single individual """
+        """ Selects two parents from the remaining species and produces a single individual """
         # NEAT uses a random selection method: pick up two different parents - we could use tournament selection...
         # apply crossover operator (this method must be overridden!)
         return Chromosome() # returning a dummy chromo
     
     def average_fitness(self):
-        """ Returns the average fitness for this specie """
+        """ Returns the average fitness for this species """
         sum = 0
         for c in self.__chromosomes:
             sum += c.fitness
@@ -60,16 +61,16 @@ class Specie: # extend list?
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
         
-        self.__chromosomes.sort()     # sort specie's members by their fitness
+        self.__chromosomes.sort()     # sort species's members by their fitness
         self.__chromosomes.reverse()  # best members first
 
-        offspring = [] # new babies for this specie
+        offspring = [] # new babies for this species
         
-        self.age += 1 # increment specie's age
+        self.age += 1 # increment species's age
         
         if self.spawn_amount == 0:
-            print 'Specie %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
-            # mark this specie to be removed
+            print 'Species %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
+            # mark this species to be removed
         
         if self.spawn_amount > 0: 
             # couldn't come up with a better name! Ain't we killing them anyway?
@@ -79,14 +80,14 @@ class Specie: # extend list?
             if kill > 0: # if we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:-kill] # is it pythonic? 
                 
-            print 'Specie %d with %d members - %d were killed' %(self.id,len(self.__chromosomes),kill)
+            print 'Species %d with %d members - %d were killed' %(self.id,len(self.__chromosomes),kill)
             
             offspring.append(self.best()) # copy best chromo
             # the best individual is in the first position, so we don't really need to use best()
         
         while(self.spawn_amount-1 > 0):          
             
-            # make sure our offspring will have the same parent's specie_id number
+            # make sure our offspring will have the same parent's species_id number
             # this is going to help us when speciating again
             if(len(self) == 1):
                 baby = self.__chromosomes[0] # is it really copying or just referencing?
@@ -101,42 +102,10 @@ class Specie: # extend list?
         return offspring
       
         
-class Chromosome:
-    """ Testing chromosome - in the future it will be a list
-        of node and link genes plus a fitness value """
-    id = 1
-    def __init__(self):
-        self.__genes = [random.randrange(-5,5) for i in xrange(20)]
-        self.fitness = max(self.__genes) # stupid fitness function
-        self.specie_id = None
-        self.id = Chromosome.id
-        Chromosome.id += 1
-        
-    def __iter__(self):
-        return iter(self.__genes)
-    
-    def mutate(self):
-        """ Mutates this chromosome """
-        # this method must be overridden!
-        return self
-    
-    # sort chromosomes by their fitness
-    def __ge__(self, other):
-        return self.fitness >= other.fitness
-    
-    def __gt__(self, other):
-        return self.fitness > other.fitness
-    
-    def __le__(self, other):
-        return self.fitness <= other.fitness
-    
-    def __lt__(self, other):
-        return self.fitness < other.fitness
-
-# should this method return the number of alloted offspring for each specie
-# or set an attribute in each specie?
+# should this method return the number of alloted offspring for each species
+# or set an attribute in each species?
 def compute_spawn_levels(species, pop_size): # is it passed by reference? I think so!
-    """ Compute each specie's spawn amount (Stanley, p. 40) """
+    """ Compute each species's spawn amount (Stanley, p. 40) """
     total_average = 0
     for s in species:
         total_average += s.average_fitness()     
@@ -147,7 +116,7 @@ def compute_spawn_levels(species, pop_size): # is it passed by reference? I thin
         # is it the best way to round?
         s.spawn_amount = int(round((s.average_fitness()*pop_size/total_average)))
         # there's a problem with rounding! Over or underflow of individuals may occur!
-        # some species will spawn zero offspring - remove specie?
+        # some species will spawn zero offspring - remove species?
         
         
 # compatibility function (for testing purposes)
@@ -163,8 +132,8 @@ def dist(ind_a, ind_b):
 # speciate population
 def speciate(population):
     """ A method from some still to come class ... """
-    # creates the first specie and add the first chromosome from population 
-    #species = [Specie(population[0])] - I can do this inside the loop!
+    # creates the first species and add the first chromosome from population 
+    #species = [Species(population[0])] - I can do this inside the loop!
     
     species = []
     
@@ -172,16 +141,16 @@ def speciate(population):
         found = False
         for s in species:
             if dist(chromo, s.representative):
-                chromo.specie_id = s.id # the specie chromo belongs to
+                chromo.species_id = s.id # the species chromo belongs to
                 s.add(chromo)                
-                #print 'chromo %s added to specie %s' %(chromo.id, s.id)
+                #print 'chromo %s added to species %s' %(chromo.id, s.id)
                 found = True
-                break # we found a compatible specie, so let's skip to the next
+                break # we found a compatible species, so let's skip to the next
             
-        if not found: # create a new specie for this lone chromosome
-            species.append(Specie(chromo)) 
-            chromo.specie_id = species[-1].id
-            print 'Creating new specie %s and adding chromo %s' %(species[-1].id, chromo.id)
+        if not found: # create a new species for this lone chromosome
+            species.append(Species(chromo)) 
+            chromo.species_id = species[-1].id
+            print 'Creating new species %s and adding chromo %s' %(species[-1].id, chromo.id)
                 
     return species
 
@@ -198,7 +167,7 @@ def epoch(population):
     for s in species:
         s.shareFitness() 
         
-    compute_spawn_levels(species, len(population)) # compute spawn levels for each specie
+    compute_spawn_levels(species, len(population)) # compute spawn levels for each species
     
     tmp = [s.spawn_amount for s in species]
     print tmp, sum(tmp)
@@ -206,7 +175,7 @@ def epoch(population):
     # weird behavior
     # [26, 20, 5, 10, 7,  3, 25, 7, 7, 21, 14,  2,  2,  1]
     # [ 2,  2, 8,  5, 6, 16,  2, 7, 7,  2,  3, 24, 22, 44] 150
-    # the last specie which contains 1 individual will spawn 44 !
+    # the last species which contains 1 individual will spawn 44 !
     
     new_pop = [] # next generation's population
     
@@ -221,7 +190,7 @@ def epoch(population):
     if fill > 0:
         print 'Selecting %d more individual(s) to fill up the new population' %fill
         # apply tournament selection in the whole population (allow inter-species mating?)
-        # or select a random specie to reproduce?
+        # or select a random species to reproduce?
     
     return new_pop
 
@@ -240,19 +209,19 @@ if __name__ ==  '__main__' :
 # d) Remove species that shows no improvements after some generations (except if it has the best individual of pop.)
 
 # Algorithm:
-# 1. Apply fitness sharing in each specie
-# 2. Compute spawn levels for each specie (need to round up or down to an integer value)
-# 3. Keep the best performing individual of each species (per specie elitism) - if spawn amount >= 1
-# 4. Reserve some % members of each specie to produce next gen.
+# 1. Apply fitness sharing in each species
+# 2. Compute spawn levels for each species (need to round up or down to an integer value)
+# 3. Keep the best performing individual of each species (per species elitism) - if spawn amount >= 1
+# 4. Reserve some % members of each species to produce next gen.
 #    4.1 Parents are chosen randomly (uniform distribuition with replacement) - this is much like tournament selection with k = len(parents_chosen)
-#    4.2 Create offspring based on specie's spawn amount:
-#        a) If the specie has only one member we keep it to the next gen.
-#        b) If the specie has only one member besides the best we only apply mutation
+#    4.2 Create offspring based on species's spawn amount:
+#        a) If the species has only one member we keep it to the next gen.
+#        b) If the species has only one member besides the best we only apply mutation
 #        c) Select two parents from the remaining individuals (make sure we do not select the same individuals to mate!)
 #           Stanley does not apply tournament selection, but we can test this!
 
 # Questions: If a species spawn level is below < 1, what to do? Remove it?
-#            When should a specie be removed? Before fitness sharing?
+#            When should a species be removed? Before fitness sharing?
 
 # FAQ: http://www.cs.ucf.edu/~kstanley/neat.html#neatref
 # A simple ideia to optimize speciation:
