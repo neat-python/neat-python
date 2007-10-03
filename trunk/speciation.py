@@ -8,7 +8,7 @@ class Species: # extend list?
     
     def __init__(self, first_chromo):
         """ A species requires at least one individual to come to existence """
-        self.id = Species.id                         # species's id 
+        self.id = Species.id                        # species's id 
         self.age = 0                                # species's age
         self.__chromosomes = [first_chromo]         # species's individuals
         self.representative = self.__chromosomes[0] # species's representative - random or first member?
@@ -19,6 +19,9 @@ class Species: # extend list?
     def add(self, ind):
         """ Add a new individual to the species """
         self.__chromosomes.append(ind)
+        
+    def __iter__(self):
+        return iter(self.__chromosomes)
         
     def __len__(self):
         """ Returns the total number of individuals in this species """
