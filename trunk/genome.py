@@ -7,13 +7,14 @@ class NodeGene(object):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
         self.__type = nodetype
-        self.__bias = bias
+        self.__bias = bias # 'bias_weight' ?
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
         return "Node %d %s" % (self.__id, self.__type)
     
     id = property(lambda self: self.__id)
+    type = property(lambda self: self.__type)
 
 class ConnectionGene(object):
     __global_innov_number = 0
@@ -30,6 +31,8 @@ class ConnectionGene(object):
         except KeyError:
             self.__innov_number = self.__get_new_innov_number()
             self.__innovations[self.key] = self.__innov_number
+    
+    weight = property(lambda self: self.__weight)
     
     def enable(self):
         self.__enabled = True
@@ -73,6 +76,10 @@ class Chromosome(object):
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
+        
+    # TO CHECK: is it right?
+    node_genes = property(lambda self: self.__node_genes)
+    conn_genes = property(lambda self: self.__connection_genes.values())
         
     def mutate(self):
         """ Mutates this chromosome """
@@ -176,6 +183,16 @@ class Chromosome(object):
         for c in connections:
             s += "\n\t" + str(c)
         return s
+    
+# work in progress
+import nn
+def create_phenotype(chromosome):
+    """ Receives a chromosome and returns its phenotype (a neural network) """
+    neurons_list = [nn.Neuron(ng.type) for ng in chromosome.node_genes]
+    conn_list = [nn.Synapse(cg.weight, 1, 2) for cg in chromosome.conn_genes] 
+    #return nn.Network(neurons_list, conn_list)
+    pass
+        
 
 if __name__ ==  '__main__':
     c = Chromosome.create_fully_connected(3, 2)
@@ -185,3 +202,4 @@ if __name__ ==  '__main__':
     print
     print "After mutation:"
     print c
+    brain = create_phenotype(c)
