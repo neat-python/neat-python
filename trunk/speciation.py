@@ -34,14 +34,6 @@ class Species: # extend list?
     def best(self):
         """ Returns the best individual (the one with highest fitness) for this species """
         return max(self.__chromosomes)
-   
-    @staticmethod
-    def crossover(parent_1, parent_2):
-        """ Selects two parents from the remaining species and produces a single individual """
-        # NEAT uses a random selection method: pick up two different parents - we could use tournament selection...
-        # apply crossover operator (this method must be overridden!)
-               
-        return Chromosome() # dummy chromosome
     
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
@@ -91,10 +83,12 @@ class Species: # extend list?
                 # parent_1 = random.choice(self.__chromosomes)
                 # parent_2 = random.choice(self.__chromosomes)
                 # Instead a shuffle solves the problem:
+                
+                # Selects two parents from the remaining species and produces a single individual 
                 random.shuffle(self.__chromosomes)
-                parent_1, parent_2 = self.__chromosomes[0], self.__chromosomes[1]
-                child = self.crossover(parent_1, parent_2)                          
-                offspring.append(child.mutate())
+                parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
+                child = parent1.crossover(parent2)                          
+                offspring.append(child)
                 
             self.spawn_amount -= 1
         
@@ -130,7 +124,6 @@ class Population:
         
     def __speciate(self):
         """ Group chromosomes into species by similarity """        
-        print 'Speciating',len(self)
         for c in self:
             found = False
             # TODO: if c.species_id is not None try this species first                
@@ -205,14 +198,9 @@ class Population:
             
             # print some "debugging" information
             print 'Species length:', len(self.__species)
-            print 'Species size:', [len(s) for s in self.__species],sum([len(s) for s in self.__species])
-            print 'Amount to spawn:',[s.spawn_amount for s in self.__species],sum([s.spawn_amount for s in self.__species])
+            print 'Species size:', [len(s) for s in self.__species]
+            print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
             print 'Species age:',[s.age for s in self.__species]
-            
-            # weird behavior - now fixed!
-            # [26, 20, 5, 10, 7,  3, 25, 7, 7, 21, 14,  2,  2,  1]
-            # [ 2,  2, 8,  5, 6, 16,  2, 7, 7,  2,  3, 24, 22, 44]
-            # the last species which contains 1 individual will spawn 44 !
             
             new_population = [] # next generation's population
             
@@ -224,26 +212,28 @@ class Population:
             # controls under or overflow
             fill = len(self) - len(new_population)
             if fill < 0: #overflow
-                new_population = new_population[:fill]
+                print 'Removing %d excess individual(s) from the new population' %-fill
+                new_population = new_population[:fill] # remove at random or only the last members?
+                
             if fill > 0: #underflow
                 print 'Selecting %d more individual(s) to fill up the new population' %fill
                 select = self.selection(self.__population)
                 # apply tournament selection in the whole population (allow inter-species mating?)
                 # or select a random species to reproduce?
                 for i in range(fill):
-                    parent_1 = select()
-                    parent_2 = select()
-                    # I need a crossover method here! child = parent_1.crossover(parent_2)
-                    child = Species.crossover(parent_1, parent_2)
-                    new_population.append(child.mutate()); # just a temporary hack!
+                    parent1 = select()
+                    parent2 = select() 
+                    child = parent1.crossover(parent2)
+                    new_population.append(child);
                     
             # updates current population
+            assert len(self) == len(new_population), 'Different population sizes!'
             self.__population = new_population
             # The new pop hasn't been evaluated at this point! Don't call average_fitness() !
         
 if __name__ ==  '__main__' :
     
-    pop = Population(1000)
+    pop = Population(150)
     pop.epoch(10)       
 
 # Things left to check:
@@ -268,11 +258,4 @@ if __name__ ==  '__main__' :
 # Questions: If a species spawn level is below < 1, what to do? Remove it?
 #            When should a species be removed? Before fitness sharing?
 
-# FAQ: http://www.cs.ucf.edu/~kstanley/neat.html#neatref
-# A simple ideia to optimize speciation:
-# "If you add a species hint to your individuals, speciation runs much faster. When a child is created, 
-# copy the species of the mother into the species_hint of the child. When it's time to place the child 
-# in a species, first try the species hint. If the child belongs there, then we're ready. If it doesn't 
-# test all species and pick the first species that's compatible. Since the speciating events are few and 
-# far between, each individual will be tested against 1 species instead of maybe 13-30 species. If the 
-# number of species is great, the saving can be great too." 
+# NEAT FAQ: http://www.cs.ucf.edu/~kstanley/neat.html#neatref
