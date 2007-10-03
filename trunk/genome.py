@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+import random
 
 class ConnectionGene(object):
     __next_innovation_number = 1
@@ -23,7 +24,7 @@ class Chromosome(object):
     id = 1
     def __init__(self):
         self.__genes = [random.randrange(-5,5) for i in xrange(20)]
-        self.__fitness = max(self.__genes) # stupid fitness function
+        self.fitness = max(self.__genes) # stupid fitness function
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
@@ -38,13 +39,13 @@ class Chromosome(object):
     
     # sort chromosomes by their fitness
     def __ge__(self, other):
-        return self.__fitness >= other.__fitness
+        return self.fitness >= other.fitness
     
     def __gt__(self, other):
-        return self.__fitness > other.__fitness
+        return self.fitness > other.fitness
     
     def __le__(self, other):
-        return self.__fitness <= other.__fitness
+        return self.fitness <= other.fitness
     
     def __lt__(self, other):
-        return self.__fitness < other.__fitness
+        return self.fitness < other.fitness
