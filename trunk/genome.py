@@ -2,28 +2,16 @@
 import random
 import math
 
-class NodeGene(object):
-    # Bias mutation parameters
-    BIAS_MUTATION_POWER = 0.1
-    MAX_BIAS = 3.0
-    MIN_BIAS = -3.0
-    
-    def __init__(self, id, nodetype, bias = 0):
+class NodeGene(object):    
+    # Without bias from rev 22.
+    def __init__(self, id, nodetype):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
         self.__type = nodetype
-        self.__bias = bias # 'bias_weight' ?
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s BIAS %f" % (self.__id, self.__type, self.__bias)
-    
-    def mutate_bias(self):
-        self.__bias += random.uniform(-1, 1) * self.BIAS_MUTATION_POWER
-        if self.__bias > self.MAX_BIAS:
-            self.__bias = self.MAX_BIAS
-        elif self.__bias < self.MIN_BIAS:
-            self.__bias = self.MIN_BIAS
+        return "Node %d %s" % (self.__id, self.__type)
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
@@ -38,16 +26,19 @@ class ConnectionGene(object):
     MAX_WEIGHT = 3.0
     MIN_WEIGHT = -3.0
     
-    def __init__(self, innodeid, outnodeid, weight, enabled):
+    def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
         self.__in = innodeid
         self.__out = outnodeid
         self.__weight = weight
         self.__enabled = enabled
-        try:
-            self.__innov_number = self.__innovations[self.key]
-        except KeyError:
-            self.__innov_number = self.__get_new_innov_number()
-            self.__innovations[self.key] = self.__innov_number
+        if innov is None:
+            try:
+                self.__innov_number = self.__innovations[self.key]
+            except KeyError:
+                self.__innov_number = self.__get_new_innov_number()
+                self.__innovations[self.key] = self.__innov_number
+        else:
+            self.__innov_number = innov
     
     weight = property(lambda self: self.__weight)
     
@@ -85,6 +76,13 @@ class ConnectionGene(object):
         elif self.__weight < self.MIN_WEIGHT:
             self.__weight = self.MIN_WEIGHT
     
+    def copy(self):
+        return ConnectionGene(self.__in, self.__out, self.__weight,
+                              self.__enabled, self.__innov_number)
+    
+    def is_same_innov(self, cg):
+        return self.__innov_number == cg.__innov_number
+    
     # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.__in, self.__out))
 
@@ -109,8 +107,6 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
         # TODO: mutate with a probability
-        for ng in self.__node_genes:
-            ng.mutate_bias()
         for cg in self.__connection_genes.values():
             cg.mutate_weight()
             cg.enable()
@@ -121,7 +117,27 @@ class Chromosome(object):
     def crossover(self, other):
         ''' Applies the crossover operator. Returns a child '''
         child = Chromosome() # TODO: self.__crossover(other)
-        return child.mutate()
+        if self.fitness > other.fitness:
+            parent1 = self
+            parent2 = other
+        else:
+            parent1 = other
+            parent2 = self
+        # Crossover node genes
+        child.__node_genes = parent1.__node_genes[:]
+        # Crossover connection genes
+        for cg1 in parent1.__connection_genes.values():
+            try:
+                cg2 = parent2.__connection_genes[cg.key]
+            except KeyError:
+                child.__connection_genes[cg.key] = cg1.copy()
+            else:
+                if cg2.is_same_innov(cg2):
+                    child.__connection_genes[cg.key] = random.choice((cg1, cg2)).copy()
+                else:
+                    child.__connection_genes[cg.key] = cg1.copy()
+        child.mutate()
+        return child
     
     def __mutate_add_node(self):
         # Choose a random connection to split
