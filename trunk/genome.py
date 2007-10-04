@@ -3,6 +3,11 @@ import random
 import math
 
 class NodeGene(object):
+    # Bias mutation parameters
+    BIAS_MUTATION_POWER = 0.1
+    MAX_BIAS = 3.0
+    MIN_BIAS = -3.0
+    
     def __init__(self, id, nodetype, bias = 0):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
@@ -11,7 +16,14 @@ class NodeGene(object):
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s" % (self.__id, self.__type)
+        return "Node %d %s BIAS %f" % (self.__id, self.__type, self.__bias)
+    
+    def mutate_bias(self):
+        self.__bias += random.uniform(-1, 1) * self.BIAS_MUTATION_POWER
+        if self.__bias > self.MAX_BIAS:
+            self.__bias = self.MAX_BIAS
+        elif self.__bias < self.MIN_BIAS:
+            self.__bias = self.MIN_BIAS
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
@@ -20,6 +32,11 @@ class ConnectionGene(object):
     __global_innov_number = 0
     __innovations = {} # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
+    
+    # Weight mutation parameters
+    WEIGHT_MUTATION_POWER = 0.1
+    MAX_WEIGHT = 3.0
+    MIN_WEIGHT = -3.0
     
     def __init__(self, innodeid, outnodeid, weight, enabled):
         self.__in = innodeid
@@ -35,6 +52,7 @@ class ConnectionGene(object):
     weight = property(lambda self: self.__weight)
     
     def enable(self):
+        '''For the "enable link" mutation'''
         self.__enabled = True
     
     @classmethod
@@ -60,6 +78,13 @@ class ConnectionGene(object):
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
         return new_conn1, new_conn2
     
+    def mutate_weight(self):
+        self.__weight += random.uniform(-1, 1) * self.WEIGHT_MUTATION_POWER
+        if self.__weight > self.MAX_WEIGHT:
+            self.__weight = self.MAX_WEIGHT
+        elif self.__weight < self.MIN_WEIGHT:
+            self.__weight = self.MIN_WEIGHT
+    
     # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.__in, self.__out))
 
@@ -84,6 +109,11 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
         # TODO: mutate with a probability
+        for ng in self.__node_genes:
+            ng.mutate_bias()
+        for cg in self.__connection_genes.values():
+            cg.mutate_weight()
+            cg.enable()
         self.__mutate_add_connection()
         self.__mutate_add_node()
         return self
