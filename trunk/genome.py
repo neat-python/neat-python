@@ -41,6 +41,9 @@ class ConnectionGene(object):
             self.__innov_number = innov
     
     weight = property(lambda self: self.__weight)
+    innodeid = property(lambda self: self.__in)
+    outnodeid = property(lambda self: self.__out)
+    enabled = property(lambda self: self.__enabled)
     
     def enable(self):
         '''For the "enable link" mutation'''
@@ -234,10 +237,16 @@ class Chromosome(object):
 import nn
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
-    neurons_list = [nn.Neuron(ng.type) for ng in chromosome.node_genes]
-    conn_list = [nn.Synapse(cg.weight, 1, 2) for cg in chromosome.conn_genes] 
-    #return nn.Network(neurons_list, conn_list)
-    pass
+    
+    # bias parameter is missing (default=0)
+    neurons_list = [nn.Neuron(ng.type, ng.id) \
+                    for ng in chromosome.node_genes]
+    
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                 for cg in chromosome.conn_genes if cg.enabled] 
+    
+    return nn.Network(neurons_list, conn_list)
+    
         
 
 if __name__ ==  '__main__':
@@ -249,3 +258,6 @@ if __name__ ==  '__main__':
     print "After mutation:"
     print c
     brain = create_phenotype(c)
+    # needs to verify consistency!
+    print brain.sactivate([0.5, 0.5, 0.5])
+    print brain
