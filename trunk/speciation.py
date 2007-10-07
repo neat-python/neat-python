@@ -14,7 +14,8 @@ class Species: # extend list?
         self.representative = self.__chromosomes[0] # species's representative - random or first member?
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
-        self.no_improvement_age = 0                 # the age this species has shown no improvements on average
+        self.no_improvement_age = 0                 # the age species has shown no improvements on average
+        self.last_avg_fitness = 0
         Species.id += 1
         
     def add(self, ind):
@@ -41,23 +42,32 @@ class Species: # extend list?
         for c in self.__chromosomes:
             sum += c.fitness
             
-        return sum/len(self.__chromosomes)
+        avg_fitness = sum/len(self.__chromosomes)
+            
+        # controls species' no improvement age
+        # if no_improvement_age > threshold, remove it
+        if avg_fitness > self.last_avg_fitness:
+            self.last_avg_fitness = avg_fitness
+            self.no_improvement_age = 0
+        else:
+            self.no_improvement_age += 1 
+            
+        return avg_fitness
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
         
-        self.__chromosomes.sort()     # sort species's members by their fitness
-        self.__chromosomes.reverse()  # best members first
-
-        offspring = [] # new babies for this species
-        
-        self.age += 1 # increment species's age
+        offspring = [] # new babies for this species        
+        self.age += 1  # increment species's age
         
         if self.spawn_amount == 0:
             print 'Species %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
-            # mark this species to be removed?
         
-        if self.spawn_amount > 0: 
+        if self.spawn_amount > 0:
+            
+            self.__chromosomes.sort()     # sort species's members by their fitness
+            self.__chromosomes.reverse()  # best members first
+ 
             # couldn't come up with a better name! Ain't we killing them anyway?
             kill = int(len(self)*0.3) # keep the best 30% individuals - round() or not?       
             # if len(self) = 1, 2 or 3 -> kill = 0
@@ -109,11 +119,12 @@ class TournamentSelection:
 class Population:
     ''' Manages all the species  '''
     selection = TournamentSelection
+    evaluate = None 
     
     def __init__(self, popsize):
         self.__popsize = popsize
         self.__population = [Chromosome() for i in xrange(popsize)]
-        #self.__bestchromo = max(self.__population)
+        self.__bestchromo = max(self.__population)
         self.__species = []
     
     def __len__(self):
@@ -137,10 +148,13 @@ class Population:
                 
             if not found: # create a new species for this lone chromosome
                 self.__species.append(Species(c)) 
-                c.species_id = self.__species[-1].id
+                c.species_id = self.__species[-1].id                
                 print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
                 
-        # finds the best individual in this epoch
+            if c.fitness is self.__bestchromo.fitness:
+                    self.__species[-1].hasBest = True
+                    print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
+          
         # there are two bests: from the current pop and the overall 
                 
     def average_fitness(self):
@@ -191,9 +205,8 @@ class Population:
             self.__speciate() # speciates the population
             # TODO: remove stagnated species
             
-            self.__compute_spawn_levels() # compute spawn levels for each species
-            # TODO: remove species that won't spawn
-            
+            self.__compute_spawn_levels() # compute spawn levels for each species            
+
             #print 'Best belongs to specie', self.__bestchromo.species_id
             
             # print some "debugging" information
@@ -201,6 +214,7 @@ class Population:
             print 'Species size:', [len(s) for s in self.__species]
             print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
             print 'Species age:',[s.age for s in self.__species]
+            print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
             
             new_population = [] # next generation's population
             
@@ -208,6 +222,11 @@ class Population:
             for s in self.__species:
                 if len(new_population) < len(self):
                     new_population += s.reproduce() # add a certain amount of individuals to the new pop
+                    
+            # remove species that won't spawn
+            # what happens if the best chromo is in a non-spawning species?
+            self.__species = [s for s in self.__species if s.spawn_amount > 0] 
+                    
                     
             # controls under or overflow
             fill = len(self) - len(new_population)
@@ -234,7 +253,7 @@ class Population:
 if __name__ ==  '__main__' :
     
     pop = Population(150)
-    pop.epoch(10)       
+    pop.epoch(250)       
 
 # Things left to check:
 # a) I'm not tracking best member's species yet!
