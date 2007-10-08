@@ -151,7 +151,7 @@ class Population:
                 c.species_id = self.__species[-1].id                
                 print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
                 
-            if c.fitness is self.__bestchromo.fitness:
+            if c.fitness == self.__bestchromo.fitness:
                     self.__species[-1].hasBest = True
                     print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
           
