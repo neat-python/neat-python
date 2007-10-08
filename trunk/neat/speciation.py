@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import random, math
 from genome import Chromosome
+from config import Config
 
 class Species: # extend list?
     """ A subpopulation containing similar individiduals """
@@ -69,7 +70,7 @@ class Species: # extend list?
             self.__chromosomes.reverse()  # best members first
  
             # couldn't come up with a better name! Ain't we killing them anyway?
-            kill = int(len(self)*0.3) # keep the best 30% individuals - round() or not?       
+            kill = int(len(self)*Config.survival_threshold) # keep a % of the best individuals - round() or not?       
             # if len(self) = 1, 2 or 3 -> kill = 0
             # if len(self) = 4 -> kill = 1 and so on...    
             if kill > 0: # if we're going to kill, then do it.
@@ -153,7 +154,7 @@ class Population:
                 
             if c.fitness == self.__bestchromo.fitness:
                     self.__species[-1].hasBest = True
-                    print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
+                    #print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
           
         # there are two bests: from the current pop and the overall 
                 
