@@ -5,6 +5,8 @@ def load(file):
         parameters = open('file','r')
     except IOError:
         print 'Error: file %s not found!' %file
+    #else:
+        # set class attributes
         
 
 class Config: # read from file
