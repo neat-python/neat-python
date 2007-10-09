@@ -19,6 +19,6 @@ def eval_fitness(population):
         
             chromosome.fitness = (1.0 - math.sqrt(error/len(OUTPUTS)))
 
-Population.evaluate = eval_fitness
+neat.Population.evaluate = eval_fitness
 pop = neat.Population(30)
 pop.epoch(3)
