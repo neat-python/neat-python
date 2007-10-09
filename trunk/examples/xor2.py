@@ -3,8 +3,6 @@ import neat
 
 #config.load('parameters') 
 
-# why tuples and not lists?
-# It works either way.
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
@@ -17,7 +15,7 @@ def eval_fitness(population):
             output = brain.sactivate(input) # serial activation
             error += (output - OUTPUTS[i])**2
         
-            chromosome.fitness = (1.0 - math.sqrt(error/len(OUTPUTS)))
+        chromosome.fitness = (1.0 - math.sqrt(error/len(OUTPUTS)))
 
 neat.Population.evaluate = eval_fitness
 pop = neat.Population(30)
