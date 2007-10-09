@@ -16,7 +16,7 @@ class Species: # extend list?
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
         self.no_improvement_age = 0                 # the age species has shown no improvements on average
-        self.last_avg_fitness = 0
+        self.last_avg_fitness = 0        
         Species.id += 1
         
     def add(self, ind):
@@ -129,6 +129,7 @@ class Population:
                              for i in xrange(Config.pop_size)]
         self.__bestchromo = max(self.__population)
         self.__species = []
+        self.compatibility_threshold = Config.compatibility_threshold
     
     def __len__(self):
         return len(self.__population)
@@ -142,7 +143,7 @@ class Population:
             found = False
             # TODO: if c.species_id is not None try this species first                
             for s in self.__species:
-                if c.dist(s.representative):
+                if c.distance(s.representative) < self.compatibility_threshold:
                     c.species_id = s.id # the species chromo belongs to
                     s.add(c)                
                     #print 'chromo %s added to species %s' %(chromo.id, s.id)
@@ -154,11 +155,21 @@ class Population:
                 c.species_id = self.__species[-1].id                
                 print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
                 
+            # TODO: requires some fixing!
             if c.fitness == self.__bestchromo.fitness:
                     self.__species[-1].hasBest = True
                     #print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
-          
-        # there are two bests: from the current pop and the overall 
+        
+        # controls compatibility threshold
+        if len(self.__species) > Config.species_size:
+            self.compatibility_threshold += Config.compatibility_change
+        elif len(self.__species) < Config.species_size:
+            if self.compatibility_threshold > Config.compatibility_change:
+                self.compatibility_threshold -= Config.compatibility_change
+            else:
+                print 'Compatibility threshold cannot be changed (minimum value has been reached)'
+                
+        # there are two bests: from the current pop and the overall            
                 
     def average_fitness(self):
         ''' Returns the average raw fitness of population '''

@@ -135,7 +135,7 @@ class Chromosome(object):
             except KeyError:
                 child.__connection_genes[cg.key] = cg1.copy()
             else:
-                if cg2.is_same_innov(cg2):
+                if cg2.is_same_innov(cg2): # cg2.is_same_innov(cg1) ?
                     child.__connection_genes[cg.key] = random.choice((cg1, cg2)).copy()
                 else:
                     child.__connection_genes[cg.key] = cg1.copy()
@@ -177,14 +177,13 @@ class Chromosome(object):
                         else:
                             count += 1
     
-    # compatibility function (for testing purposes)
-    def dist(self, ind_b):
-        # two chromosomes are similar if the difference between the sum of 
-        # their 'float' genes is less than a compatibility threshold
-        if math.fabs(self.sum_genes - ind_b.sum_genes) < 3.9: # compatibility threshold
-            return True
-        else:
-            return False
+    # compatibility function        
+    def distance(self, other):
+        ''' Returns the distance between this chromosome and the other '''
+        for cg1 in self.__connection_genes.values():
+            pass
+        
+        return
     
     @staticmethod
     def create_fully_connected(num_input, num_output):
@@ -233,8 +232,8 @@ class Chromosome(object):
             s += "\n\t" + str(c)
         return s
     
-# work in progress
 import nn
+# TODO: verify consistency!
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
@@ -245,9 +244,7 @@ def create_phenotype(chromosome):
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromosome.conn_genes if cg.enabled] 
     
-    return nn.Network(neurons_list, conn_list)
-    
-        
+    return nn.Network(neurons_list, conn_list)        
 
 if __name__ ==  '__main__':
     c = Chromosome.create_fully_connected(3, 2)
@@ -258,6 +255,5 @@ if __name__ ==  '__main__':
     print "After mutation:"
     print c
     brain = create_phenotype(c)
-    # needs to verify consistency!
     print brain.sactivate([0.5, 0.5, 0.5])
     print brain
