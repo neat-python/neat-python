@@ -124,7 +124,9 @@ class Population:
     
     def __init__(self, popsize):
         self.__popsize = popsize
-        self.__population = [Chromosome() for i in xrange(popsize)]
+        #self.__population = [Chromosome() for i in xrange(popsize)]
+        self.__population = [Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
+                             for i in xrange(Config.pop_size)]
         self.__bestchromo = max(self.__population)
         self.__species = []
     
