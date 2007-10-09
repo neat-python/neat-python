@@ -255,17 +255,8 @@ class Chromosome(object):
         return c
     
     # sort chromosomes by their fitness
-    def __ge__(self, other):
-        return self.fitness >= other.fitness
-    
-    def __gt__(self, other):
-        return self.fitness > other.fitness
-    
-    def __le__(self, other):
-        return self.fitness <= other.fitness
-    
-    def __lt__(self, other):
-        return self.fitness < other.fitness
+    def __cmp__(self, other):
+        return cmp(self.fitness, other.fitness)
     
     def __str__(self):
         s = "Nodes:"

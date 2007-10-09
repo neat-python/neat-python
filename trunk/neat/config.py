@@ -25,6 +25,7 @@ class Config: # read from file
     prob_mutatebias = 0.3
     prob_togglelink = 0.0
     prob_weightreplaced = 0.0 # not implemented
+    prob_mutate_weight = 0.05
     weight_mutation_power = 0.1
     max_bias_pertubation = 0.1 # not implemented
     
