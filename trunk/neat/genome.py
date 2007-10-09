@@ -7,6 +7,14 @@ excess_coeficient = Config.excess_coeficient
 disjoint_coeficient = Config.disjoint_coeficient
 weight_coeficient = Config.weight_coeficient
 
+prob_mutatebias = Config.prob_mutatebias
+prob_mutate_weight = Config.prob_mutate_weight
+prob_togglelink = Config.prob_togglelink
+prob_addconn = Config.prob_addconn
+prob_addnode = Config.prob_addnode
+
+prob_crossover = Config.prob_crossover # always perform crossing over?
+
 class NodeGene(object):    
     # Without bias from rev 22.
     def __init__(self, id, nodetype):
@@ -112,11 +120,16 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
         # TODO: mutate with a probability
+        r = random.random()
         for cg in self.__connection_genes.values():
-            cg.mutate_weight()
-            cg.enable()
-        self.__mutate_add_connection()
-        self.__mutate_add_node()
+            if r < prob_mutate_weight:
+                cg.mutate_weight()
+            if r < prob_togglelink:
+                cg.enable()
+        if r < prob_addconn:    
+            self.__mutate_add_connection()
+        if r < prob_addnode:
+            self.__mutate_add_node()
         return self
     
     def crossover(self, other):
@@ -195,17 +208,15 @@ class Chromosome(object):
             chromo2 = self
             
         weight_diff = matching = disjoint = excess = 0
-        
-        max_cg_chromo2 = max(chromo2.__connection_genes.values())
             
         for cg1 in chromo1.__connection_genes.values():
             try:
                 cg2 = chromo2.__connection_genes[cg1.key]
             except KeyError:
-                if cg1 > max_cg_chromo2:
-                    excess += 1
-                else:
-                    disjoint += 1
+                # if cg1.innov < max(cg2.innov): disjoint += 1
+                # else: excess += 1
+                excess += 1
+                pass
             else:
                 # Homologous genes
                 weight_diff += (cg1.weight - cg2.weight)
@@ -216,7 +227,7 @@ class Chromosome(object):
                    disjoint_coeficient * disjoint + \
                    weight_coeficient * (weight_diff/matching)
                 
-        return distance  
+        return distance
     
     @staticmethod
     def create_fully_connected(num_input, num_output):
