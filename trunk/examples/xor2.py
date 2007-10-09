@@ -18,4 +18,4 @@ def eval_fitness(population):
 
 neat.Population.evaluate = eval_fitness
 pop = neat.Population(30)
-pop.epoch(3)
+pop.epoch(30)

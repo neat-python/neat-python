@@ -5,6 +5,7 @@ from config import Config
 
 species_size = Config.species_size
 compatibility_change = Config.compatibility_change
+max_stagnation = Config.max_stagnation
 
 class Species: # extend list?
     """ A subpopulation containing similar individiduals """
@@ -46,6 +47,7 @@ class Species: # extend list?
         for c in self.__chromosomes:
             sum += c.fitness
             
+        print 'Species %d with %d member(s) ' %(self.id, len(self.__chromosomes))
         avg_fitness = sum/len(self.__chromosomes)
             
         # controls species' no improvement age
@@ -88,11 +90,11 @@ class Species: # extend list?
             
             # make sure our offspring will have the same parent's species_id number
             # this is going to help us when speciating again
-            if(len(self) == 1):
-                child = self.__chromosomes[0] # is it really copying or just referencing?
+            if(len(self) == 2):
+                child = self.__chromosomes[1] # is it really copying or just referencing?
                 offspring.append(child.mutate())
                 
-            if(len(self) > 1):
+            if(len(self) > 2):
                 # random.choice is a good choice! But we need to assert both parents are not the same 
                 # parent_1 = random.choice(self.__chromosomes)
                 # parent_2 = random.choice(self.__chromosomes)
@@ -220,7 +222,6 @@ class Population:
             self.evaluate()
             
             self.__speciate() # speciates the population
-            # TODO: remove stagnated species
             
             self.__compute_spawn_levels() # compute spawn levels for each species            
 
@@ -243,6 +244,9 @@ class Population:
             # remove species that won't spawn
             # what happens if the best chromo is in a non-spawning species?
             self.__species = [s for s in self.__species if s.spawn_amount > 0] 
+            # remove stagnated species
+            self.__species = [s for s in self.__species if \
+                              s.no_improvement_age > max_stagnation and s.hasBest == False]
                     
                     
             # controls under or overflow

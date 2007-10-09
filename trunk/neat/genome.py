@@ -195,10 +195,7 @@ class Chromosome(object):
             chromo1 = other
             chromo2 = self
             
-        weight_diff = 0
-        matching = 0
-        disjoint = 0
-        excess = 0
+        weight_diff = matching = disjoint = excess = 0
             
         for cg1 in chromo1.__connection_genes.values():
             try:
@@ -206,6 +203,7 @@ class Chromosome(object):
             except KeyError:
                 # if cg1.innov < max(cg2.innov): disjoint += 1
                 # else: excess += 1
+                excess += 1
                 pass
             else:
                 # Homologous genes

@@ -34,7 +34,7 @@ class Config: # read from file
     
     # genotype compatibility 
     compatibility_threshold = 0.5
-    compatibility_change = 0.1
+    compatibility_change = 2.0
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4
@@ -46,7 +46,7 @@ class Config: # read from file
     species_youth_threshold = 10  # not implemented
     species_old_penalty = 1.2     # not implemented
     species_youth_boost = 0.7     # not implemented
-    species_max_fitness = 15      # not implemented
+    max_stagnation = 15
     
     # for a future release
     #ele_event_time = 1000
