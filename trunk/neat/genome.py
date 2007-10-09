@@ -195,15 +195,17 @@ class Chromosome(object):
             chromo2 = self
             
         weight_diff = matching = disjoint = excess = 0
+        
+        max_cg_chromo2 = max(chromo2.__connection_genes.values())
             
         for cg1 in chromo1.__connection_genes.values():
             try:
                 cg2 = chromo2.__connection_genes[cg1.key]
             except KeyError:
-                # if cg1.innov < max(cg2.innov): disjoint += 1
-                # else: excess += 1
-                excess += 1
-                pass
+                if cg1 > max_cg_chromo2:
+                    excess += 1
+                else:
+                    disjoint += 1
             else:
                 # Homologous genes
                 weight_diff += (cg1.weight - cg2.weight)
@@ -214,7 +216,7 @@ class Chromosome(object):
                    disjoint_coeficient * disjoint + \
                    weight_coeficient * (weight_diff/matching)
                 
-        return distance
+        return distance  
     
     @staticmethod
     def create_fully_connected(num_input, num_output):
