@@ -131,9 +131,9 @@ class Chromosome(object):
         # Crossover connection genes
         for cg1 in parent1.__connection_genes.values():
             try:
-                cg2 = parent2.__connection_genes[cg.key]
+                cg2 = parent2.__connection_genes[cg1.key]
             except KeyError:
-                child.__connection_genes[cg.key] = cg1.copy()
+                child.__connection_genes[cg1.key] = cg1.copy()
             else:
                 if cg2.is_same_innov(cg1):
                     child.__connection_genes[cg1.key] = random.choice((cg1, cg2)).copy()
