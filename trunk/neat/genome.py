@@ -135,10 +135,10 @@ class Chromosome(object):
             except KeyError:
                 child.__connection_genes[cg.key] = cg1.copy()
             else:
-                if cg2.is_same_innov(cg2): # cg2.is_same_innov(cg1) ?
-                    child.__connection_genes[cg.key] = random.choice((cg1, cg2)).copy()
+                if cg2.is_same_innov(cg1):
+                    child.__connection_genes[cg1.key] = random.choice((cg1, cg2)).copy()
                 else:
-                    child.__connection_genes[cg.key] = cg1.copy()
+                    child.__connection_genes[cg1.key] = cg1.copy()
         child.mutate()
         return child
     
