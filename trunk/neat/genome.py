@@ -13,7 +13,12 @@ prob_togglelink = Config.prob_togglelink
 prob_addconn = Config.prob_addconn
 prob_addnode = Config.prob_addnode
 
-prob_crossover = Config.prob_crossover # always perform crossing over?
+prob_crossover = Config.prob_crossover # always perform crossingover?
+
+# Weight mutation parameters
+weight_mutation_power = Config.weight_mutation_power
+max_weight = Config.max_weight
+min_weight = Config.min_weight
 
 class NodeGene(object):    
     # Without bias from rev 22.
@@ -33,11 +38,6 @@ class ConnectionGene(object):
     __global_innov_number = 0
     __innovations = {} # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
-    
-    # Weight mutation parameters
-    WEIGHT_MUTATION_POWER = Config.weight_mutation_power
-    MAX_WEIGHT = Config.max_weight
-    MIN_WEIGHT = Config.min_weight
     
     def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
         self.__in = innodeid
@@ -87,11 +87,11 @@ class ConnectionGene(object):
         return new_conn1, new_conn2
     
     def mutate_weight(self):
-        self.__weight += random.uniform(-1, 1) * self.WEIGHT_MUTATION_POWER
-        if self.__weight > self.MAX_WEIGHT:
-            self.__weight = self.MAX_WEIGHT
-        elif self.__weight < self.MIN_WEIGHT:
-            self.__weight = self.MIN_WEIGHT
+        self.__weight += random.uniform(-1, 1) * weight_mutation_power
+        if self.__weight > max_weight:
+            self.__weight = max_weight
+        elif self.__weight < min_weight:
+            self.__weight = min_weight
     
     def copy(self):
         return ConnectionGene(self.__in, self.__out, self.__weight,
