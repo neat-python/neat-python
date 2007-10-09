@@ -197,7 +197,7 @@ class Chromosome(object):
                         else:
                             count += 1
     
-    # compatibility function        
+# compatibility function        
     def distance(self, other):
         ''' Returns the distance between this chromosome and the other '''
         if len(self.__connection_genes) > len(other.__connection_genes):
@@ -208,15 +208,17 @@ class Chromosome(object):
             chromo2 = self
             
         weight_diff = matching = disjoint = excess = 0
+        
+        max_cg_chromo2 = max(chromo2.__connection_genes.values())
             
         for cg1 in chromo1.__connection_genes.values():
             try:
                 cg2 = chromo2.__connection_genes[cg1.key]
             except KeyError:
-                # if cg1.innov < max(cg2.innov): disjoint += 1
-                # else: excess += 1
-                excess += 1
-                pass
+                if cg1 > max_cg_chromo2:
+                    excess += 1
+                else:
+                    disjoint += 1
             else:
                 # Homologous genes
                 weight_diff += (cg1.weight - cg2.weight)
