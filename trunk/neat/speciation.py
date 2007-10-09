@@ -3,6 +3,9 @@ import random, math
 from genome import Chromosome
 from config import Config
 
+species_size = Config.species_size
+compatibility_change = Config.compatibility_change
+
 class Species: # extend list?
     """ A subpopulation containing similar individiduals """
     id = 1 # species id
@@ -161,11 +164,11 @@ class Population:
                     #print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
         
         # controls compatibility threshold
-        if len(self.__species) > Config.species_size:
-            self.compatibility_threshold += Config.compatibility_change
-        elif len(self.__species) < Config.species_size:
-            if self.compatibility_threshold > Config.compatibility_change:
-                self.compatibility_threshold -= Config.compatibility_change
+        if len(self.__species) > species_size:
+            self.compatibility_threshold += compatibility_change
+        elif len(self.__species) < species_size:
+            if self.compatibility_threshold > compatibility_change:
+                self.compatibility_threshold -= compatibility_change
             else:
                 print 'Compatibility threshold cannot be changed (minimum value has been reached)'
                 

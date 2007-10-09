@@ -3,6 +3,10 @@ import random
 import math
 from config import Config
 
+excess_coeficient = Config.excess_coeficient
+disjoint_coeficient = Config.disjoint_coeficient
+weight_coeficient = Config.weight_coeficient
+
 class NodeGene(object):    
     # Without bias from rev 22.
     def __init__(self, id, nodetype):
@@ -100,7 +104,7 @@ class Chromosome(object):
         # Temporary, to calculate distance
         #self.genes = [random.randrange(-5,5) for i in xrange(20)]
         #self.sum_genes = sum(self.genes)
-        self.fitness = None # now we have an evaluation method in the Population class
+        self.fitness = None
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
@@ -184,10 +188,36 @@ class Chromosome(object):
     # compatibility function        
     def distance(self, other):
         ''' Returns the distance between this chromosome and the other '''
-        for cg1 in self.__connection_genes.values():
-            pass
+        if len(self.__connection_genes) > len(other.__connection_genes):
+            chromo1 = self
+            chromo2 = other
+        else:
+            chromo1 = other
+            chromo2 = self
+            
+        weight_diff = 0
+        matching = 0
+        disjoint = 0
+        excess = 0
+            
+        for cg1 in chromo1.__connection_genes.values():
+            try:
+                cg2 = chromo2.__connection_genes[cg1.key]
+            except KeyError:
+                # if cg1.innov < max(cg2.innov): disjoint += 1
+                # else: excess += 1
+                pass
+            else:
+                # Homologous genes
+                weight_diff += (cg1.weight - cg2.weight)
+                matching += 1
         
-        return
+        assert(matching > 0) # this can't happen
+        distance = excess_coeficient * excess + \
+                   disjoint_coeficient * disjoint + \
+                   weight_coeficient * (weight_diff/matching)
+                
+        return distance
     
     @staticmethod
     def create_fully_connected(num_input, num_output):
