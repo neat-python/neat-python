@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import random
 import math
+from config import Config
 
 class NodeGene(object):    
     # Without bias from rev 22.
@@ -22,9 +23,9 @@ class ConnectionGene(object):
     # Should it be global? Reset at every generation? Who knows?
     
     # Weight mutation parameters
-    WEIGHT_MUTATION_POWER = 0.1
-    MAX_WEIGHT = 3.0
-    MIN_WEIGHT = -3.0
+    WEIGHT_MUTATION_POWER = Config.weight_mutation_power
+    MAX_WEIGHT = Config.max_weight
+    MIN_WEIGHT = Config.min_weight
     
     def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
         self.__in = innodeid
@@ -68,6 +69,7 @@ class ConnectionGene(object):
     def split(self, node_id):
         """Splits a connection, creating two new connections and disabling this one"""
         self.__enabled = False
+        #TODO: new_conn1 receives a random weight
         new_conn1 = ConnectionGene(self.__in, node_id, 1, True)
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
         return new_conn1, new_conn2
@@ -96,14 +98,13 @@ class Chromosome(object):
         self.__node_genes = [] # list of node genes
         self.__input_nodes = 0 # number of input nodes
         # Temporary, to calculate distance
-        self.genes = [random.randrange(-5,5) for i in xrange(20)]
-        self.sum_genes = sum(self.genes)
+        #self.genes = [random.randrange(-5,5) for i in xrange(20)]
+        #self.sum_genes = sum(self.genes)
         self.fitness = None # now we have an evaluation method in the Population class
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
         
-    # TO CHECK: is it right?
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
         
@@ -132,10 +133,13 @@ class Chromosome(object):
         for cg1 in parent1.__connection_genes.values():
             try:
                 cg2 = parent2.__connection_genes[cg1.key]
-            except KeyError:
+            except KeyError: 
+                # Copy excess or disjoint genes from the fitest parent
                 child.__connection_genes[cg1.key] = cg1.copy()
             else:
-                if cg2.is_same_innov(cg1):
+                if cg2.is_same_innov(cg1): # isn't it always true (for global INs)?
+                    # Homologous gene found
+                    # TODO: average both weights (Stanley, p. 38)
                     child.__connection_genes[cg1.key] = random.choice((cg1, cg2)).copy()
                 else:
                     child.__connection_genes[cg1.key] = cg1.copy()
