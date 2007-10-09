@@ -101,9 +101,6 @@ class Chromosome(object):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
         self.__input_nodes = 0 # number of input nodes
-        # Temporary, to calculate distance
-        #self.genes = [random.randrange(-5,5) for i in xrange(20)]
-        #self.sum_genes = sum(self.genes)
         self.fitness = None
         self.species_id = None
         self.id = Chromosome.id
@@ -138,16 +135,18 @@ class Chromosome(object):
             try:
                 cg2 = parent2.__connection_genes[cg1.key]
             except KeyError: 
-                # Copy excess or disjoint genes from the fitest parent
+                # Copy excess or disjoint genes from the fittest parent
                 child.__connection_genes[cg1.key] = cg1.copy()
             else:
-                if cg2.is_same_innov(cg1): # isn't it always true (for global INs)?
+                if cg2.is_same_innov(cg1): # Always true for *global* INs
                     # Homologous gene found
                     # TODO: average both weights (Stanley, p. 38)
-                    child.__connection_genes[cg1.key] = random.choice((cg1, cg2)).copy()
+                    new_gene = random.choice((cg1, cg2)).copy()
                 else:
-                    child.__connection_genes[cg1.key] = cg1.copy()
-        child.mutate()
+                    new_gene = child.__connection_genes[cg1.key] = cg1.copy()
+                child.__connection_genes[cg1.key] = new_gene
+        #child.mutate()
+        #mutate the child later
         return child
     
     def __mutate_add_node(self):
@@ -279,13 +278,23 @@ def create_phenotype(chromosome):
     return nn.Network(neurons_list, conn_list)        
 
 if __name__ ==  '__main__':
-    c = Chromosome.create_fully_connected(3, 2)
-    print "Before mutation:"
-    print c
-    c.mutate()
+    c1 = Chromosome.create_fully_connected(3, 2)
+    print "Before mutation"
+    print c1
     print
-    print "After mutation:"
-    print c
-    brain = create_phenotype(c)
+    c1.mutate()
+    print "After mutation"
+    print c1
+    print
+    c2 = Chromosome.create_fully_connected(3, 2)
+    c2.mutate()
+    print "A second chromosome"
+    print c2
+    print
+    child = c2.crossover(c1)
+    print "Child"
+    print child
+    print
+    brain = create_phenotype(c1)
     print brain.sactivate([0.5, 0.5, 0.5])
     print brain
