@@ -13,18 +13,20 @@ class Config: # read from file
     # phenotype config
     input_nodes = 2
     output_nodes = 1
-    allow_recurrent = False
+    allow_recurrent = False # not implemented
+    max_weight = 5
+    min_weight = -5
     
     # mutation probabilities
     prob_crossover = 0.7
-    prob_mutation = 0.25
-    prob_addlink = 0.05
+    prob_mutation = 0.25  # dynamic mutation rate (future release)
+    prob_addconn = 0.05
     prob_addnode = 0.03
     prob_mutatebias = 0.3
     prob_togglelink = 0.0
-    prob_weightreplaced = 0.0
-    max_pertubation = 0.5
-    max_bias_pertubation = 0.1
+    prob_weightreplaced = 0.0 # not implemented
+    weight_mutation_power = 0.1
+    max_bias_pertubation = 0.1 # not implemented
     
     # genetic algorithm parameters
     pop_size = 50
@@ -40,13 +42,13 @@ class Config: # read from file
     # species
     species_size = 3
     survival_threshold = 0.2
-    species_age_threshold = 80
-    species_youth_threshold = 10
-    species_old_penalty = 1.2
-    species_youth_boost = 0.7
-    species_max_fitness = 15
+    species_age_threshold = 80    # not implemented
+    species_youth_threshold = 10  # not implemented
+    species_old_penalty = 1.2     # not implemented
+    species_youth_boost = 0.7     # not implemented
+    species_max_fitness = 15      # not implemented
     
-    # for future release
+    # for a future release
     #ele_event_time = 1000
     #ele_events = False            
                 
