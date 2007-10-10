@@ -47,7 +47,6 @@ class Species: # extend list?
         for c in self.__chromosomes:
             sum += c.fitness
             
-        print 'Species %d with %d member(s) ' %(self.id, len(self.__chromosomes))
         avg_fitness = sum/len(self.__chromosomes)
             
         # controls species' no improvement age
@@ -86,7 +85,7 @@ class Species: # extend list?
             offspring.append(self.best()) # copy best chromo
             # the best individual is in the first position, so we don't really need to use best()
         
-        while(self.spawn_amount-1 > 0):          
+        while(self.spawn_amount > 1):          
             
             # make sure our offspring will have the same parent's species_id number
             # this is going to help us when speciating again
@@ -104,7 +103,7 @@ class Species: # extend list?
                 random.shuffle(self.__chromosomes)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
                 child = parent1.crossover(parent2)                          
-                offspring.append(child)
+                offspring.append(child.mutate())
                 
             self.spawn_amount -= 1
         
@@ -125,13 +124,14 @@ class TournamentSelection:
 class Population:
     ''' Manages all the species  '''
     selection = TournamentSelection
-    evaluate = None 
+    evaluate = None # Evaluates the entire population. You need to override 
+                    # this method in your experiments
     
     def __init__(self, popsize):
         self.__popsize = popsize
         #self.__population = [Chromosome() for i in xrange(popsize)]
         self.__population = [Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                             for i in xrange(Config.pop_size)]
+                             for i in xrange(self.__popsize)]
         self.__bestchromo = max(self.__population)
         self.__species = []
         self.compatibility_threshold = Config.compatibility_threshold
@@ -161,8 +161,8 @@ class Population:
                 print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
                 
             # TODO: requires some fixing!
-            if c.fitness == self.__bestchromo.fitness:
-                    self.__species[-1].hasBest = True
+            #if c.fitness == self.__bestchromo.fitness:
+            #        self.__species[-1].hasBest = True
                     #print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
         
         # controls compatibility threshold
@@ -184,12 +184,6 @@ class Population:
             
         return sum/len(self)
     
-    def evaluate(self):
-        ''' Evaluates the entire population. You need to override this method
-            in your experiments '''            
-        for c in self:
-            c.fitness = max(c.genes)
-
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
@@ -266,6 +260,9 @@ class Population:
                     child = parent1.crossover(parent2)
                     new_population.append(child);
                     
+            print 'Best: ', max(self.__population)
+            #print 'Population average fitness', self.average_fitness()
+                    
             # updates current population
             assert len(self) == len(new_population), 'Different population sizes!'
             self.__population = new_population
@@ -273,7 +270,17 @@ class Population:
         
 if __name__ ==  '__main__' :
     
+    # sample fitness function
+    def eval_fitness(population):
+        for chromosome in population:
+            chromosome.fitness = 1.0
+            
+    # set fitness function 
+    Population.evaluate = eval_fitness
+    
+    # creates the population
     pop = Population(150)
+    # runs the simulation for 250 epochs
     pop.epoch(250)       
 
 # Things left to check:
