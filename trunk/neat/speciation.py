@@ -16,11 +16,11 @@ class Species: # extend list?
         self.id = Species.id                        # species's id 
         self.age = 0                                # species's age
         self.__chromosomes = [first_chromo]         # species's individuals
-        self.representative = self.__chromosomes[0] # species's representative - random or first member?
+        self.representative = first_chromo          # species's representative (first added member)
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
         self.no_improvement_age = 0                 # the age species has shown no improvements on average
-        self.last_avg_fitness = 0        
+        self.__last_avg_fitness = 0        
         Species.id += 1
         
     def add(self, ind):
@@ -37,6 +37,7 @@ class Species: # extend list?
     def __repr__(self):
         return repr([c.fitness for c in self.__chromosomes])
     
+    # Useless method
     def best(self):
         """ Returns the best individual (the one with highest fitness) for this species """
         return max(self.__chromosomes)
@@ -51,8 +52,8 @@ class Species: # extend list?
             
         # controls species' no improvement age
         # if no_improvement_age > threshold, remove it
-        if avg_fitness > self.last_avg_fitness:
-            self.last_avg_fitness = avg_fitness
+        if avg_fitness > self.__last_avg_fitness:
+            self.__last_avg_fitness = avg_fitness
             self.no_improvement_age = 0
         else:
             self.no_improvement_age += 1 
@@ -66,24 +67,30 @@ class Species: # extend list?
         self.age += 1  # increment species's age
         
         if self.spawn_amount == 0:
+            # TODO: remove useless condition
             print 'Species %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
         
         if self.spawn_amount > 0:
+            # remove condition since we're always reproducing species with spawn_amount > 0
             
             self.__chromosomes.sort()     # sort species's members by their fitness
             self.__chromosomes.reverse()  # best members first
  
-            # couldn't come up with a better name! Ain't we killing them anyway?
+            # Couldn't come up with a better name! Ain't we killing them anyway?
             kill = int(len(self)*Config.survival_threshold) # keep a % of the best individuals - round() or not?       
-            # if len(self) = 1, 2 or 3 -> kill = 0
-            # if len(self) = 4 -> kill = 1 and so on...    
-            if kill > 0: # if we're going to kill, then do it.
+   
+            if kill > 0: # If we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:-kill] # is it pythonic? 
                 
             # print 'Species %d with %d members - %d were killed' %(self.id, len(self), kill)
             
-            offspring.append(self.best()) # copy best chromo
-            # the best individual is in the first position, so we don't really need to use best()
+            # Copy best chromosome (it's in the first position)
+            offspring.append(self.__chromosomes[0])            
+            
+            # updates species representative member
+            self.representative  = self.__chromosomes[0] # Stanley selects a random member from population
+            # na verdade não preciso de representante pq a especie morrerá caso não spawne nada!
+            # checar isto melhor!
         
         while(self.spawn_amount > 1):          
             
@@ -94,11 +101,6 @@ class Species: # extend list?
                 offspring.append(child.mutate())
                 
             if(len(self) > 2):
-                # random.choice is a good choice! But we need to assert both parents are not the same 
-                # parent_1 = random.choice(self.__chromosomes)
-                # parent_2 = random.choice(self.__chromosomes)
-                # Instead a shuffle solves the problem:
-                
                 # Selects two parents from the remaining species and produces a single individual 
                 random.shuffle(self.__chromosomes)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
@@ -106,8 +108,11 @@ class Species: # extend list?
                 offspring.append(child.mutate())
                 
             self.spawn_amount -= 1
-        
-        self.__chromosomes = [] # reset species (new members will be added when speciating)
+            
+
+        # reset species (new members will be added when speciating)
+        self.__chromosomes = [] 
+        #assert len(offspring) > 0
         return offspring
     
 class TournamentSelection:
@@ -126,10 +131,11 @@ class Population:
     selection = TournamentSelection
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments
+                    
+    #file = open('best_avg','w')
     
     def __init__(self, popsize):
         self.__popsize = popsize
-        #self.__population = [Chromosome() for i in xrange(popsize)]
         self.__population = [Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
                              for i in xrange(self.__popsize)]
         self.__bestchromo = max(self.__population)
@@ -144,9 +150,11 @@ class Population:
         
     def __speciate(self):
         """ Group chromosomes into species by similarity """        
+        # PROBLEM: The member representative is not being kept in the species!
+        # that's why new species are being created at each epoch.
         for c in self:
             found = False
-            # TODO: if c.species_id is not None try this species first                
+            # TODO: if c.species_id is not None try this species first      
             for s in self.__species:
                 if c.distance(s.representative) < self.compatibility_threshold:
                     c.species_id = s.id # the species chromo belongs to
@@ -187,13 +195,10 @@ class Population:
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
-        # 1. boost if young and penalize if old (on raw fitness!)
+        # 1. boost if young and penalize if old (on raw fitness!) - on average_raw?
         # 2. Share fitness (only usefull for computing spawn amounts)
         # 3. Compute spawn
         # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
-        
-        # the FAQ says that for fitness sharing to work all fitnesses must be > 0
-        # I don't know why (yet!)
         
         # Sharing the fitness is only meaningful here  
         # we don't really have to change each individual's raw fitness 
@@ -204,7 +209,6 @@ class Population:
         # average_fitness is being computed twice! optimize!        
         for s in self.__species:
             s.spawn_amount = int(round((s.average_fitness()*len(self)/total_average)))
-            #assert(s.spawn_amount > 0) # at least one individual to spawn
                     
     def epoch(self, n):
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
@@ -213,11 +217,17 @@ class Population:
             print 'Running generation',generation
             
             # evaluate individuals
-            self.evaluate()
+            self.evaluate()            
+            # speciates the population
+            self.__speciate()
+            # remove empty species - why does this happen?
+            self.__species = [s for s in self.__species if len(s) > 0]
+            # compute spawn levels for each remaining species
+            self.__compute_spawn_levels()  
             
-            self.__speciate() # speciates the population
-            
-            self.__compute_spawn_levels() # compute spawn levels for each species            
+            # remove species that won't spawn - seems to be very improbable!
+            # what happens if the best chromo is in a non-spawning species?
+            self.__species = [s for s in self.__species if s.spawn_amount > 0]            
 
             #print 'Best belongs to specie', self.__bestchromo.species_id
             
@@ -226,6 +236,7 @@ class Population:
             print 'Species size:', [len(s) for s in self.__species]
             print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
             print 'Species age:',[s.age for s in self.__species]
+            print 'Species ID :',[s.id for s in self.__species]
             print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
             
             new_population = [] # next generation's population
@@ -234,14 +245,11 @@ class Population:
             for s in self.__species:
                 if len(new_population) < len(self):
                     new_population += s.reproduce() # add a certain amount of individuals to the new pop
-                    
-            # remove species that won't spawn
-            # what happens if the best chromo is in a non-spawning species?
-            self.__species = [s for s in self.__species if s.spawn_amount > 0] 
-            # remove stagnated species
+                          
+            # remove stagnated species (except if it has the best chromosome)
             self.__species = [s for s in self.__species if \
-                              s.no_improvement_age > max_stagnation and s.hasBest == False]
-                    
+                              s.no_improvement_age <= max_stagnation or \
+                              s.no_improvement_age > max_stagnation and s.hasBest == True]            
                     
             # controls under or overflow
             fill = len(self) - len(new_population)
@@ -258,10 +266,15 @@ class Population:
                     parent1 = select()
                     parent2 = select() 
                     child = parent1.crossover(parent2)
-                    new_population.append(child);
+                    new_population.append(child.mutate());
                     
-            print 'Best: ', max(self.__population)
-            print 'Population average fitness', self.average_fitness()
+            best_fitness = max(self.__population).fitness
+            best_size = len(max(self.__population).node_genes)
+            avg_pop = self.average_fitness()
+            print 'Best: ', best_fitness, best_size, avg_pop
+            
+            #self.file.write(str(max(self.__population)))
+            #self.file.flush()
                     
             # updates current population
             assert len(self) == len(new_population), 'Different population sizes!'
