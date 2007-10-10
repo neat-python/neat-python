@@ -158,7 +158,7 @@ class Population:
             if not found: # create a new species for this lone chromosome
                 self.__species.append(Species(c)) 
                 c.species_id = self.__species[-1].id                
-                print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
+                #print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
                 
             # TODO: requires some fixing!
             #if c.fitness == self.__bestchromo.fitness:
@@ -261,7 +261,7 @@ class Population:
                     new_population.append(child);
                     
             print 'Best: ', max(self.__population)
-            #print 'Population average fitness', self.average_fitness()
+            print 'Population average fitness', self.average_fitness()
                     
             # updates current population
             assert len(self) == len(new_population), 'Different population sizes!'

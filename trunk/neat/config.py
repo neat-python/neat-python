@@ -41,7 +41,7 @@ class Config: # read from file
     weight_coeficient = 0.4
     
     # species
-    species_size = 3
+    species_size = 10
     survival_threshold = 0.2
     species_age_threshold = 80    # not implemented
     species_youth_threshold = 10  # not implemented

@@ -108,7 +108,7 @@ class Chromosome(object):
     def __init__(self):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
-        self.__input_nodes = 0 # number of input nodes
+        self.__input_nodes = Config.input_nodes
         self.fitness = None
         self.species_id = None
         self.id = Chromosome.id
