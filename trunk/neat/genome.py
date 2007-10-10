@@ -81,8 +81,7 @@ class ConnectionGene(object):
     def split(self, node_id):
         """Splits a connection, creating two new connections and disabling this one"""
         self.__enabled = False
-        #TODO: new_conn1 receives a random weight
-        new_conn1 = ConnectionGene(self.__in, node_id, 1, True)
+        new_conn1 = ConnectionGene(self.__in, node_id, random.random(), True)
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
         return new_conn1, new_conn2
     
@@ -119,7 +118,7 @@ class Chromosome(object):
         
     def mutate(self):
         """ Mutates this chromosome """
-        # TODO: mutate with a probability
+        # TODO: review the probabilities
         r = random.random
         for cg in self.__connection_genes.values():
             if r() < prob_mutate_weight:
@@ -191,7 +190,7 @@ class Chromosome(object):
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys():
                         # Free connection
                         if count == n: # Connection to create
-                            cg = ConnectionGene(in_node.id, out_node.id, 0, True)
+                            cg = ConnectionGene(in_node.id, out_node.id, random.random(), True)
                             self.__connection_genes[cg.key] = cg
                             return
                         else:
