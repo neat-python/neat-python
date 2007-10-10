@@ -14,8 +14,8 @@ class Config: # read from file
     input_nodes = 2
     output_nodes = 1
     allow_recurrent = False # not implemented
-    max_weight = 5
-    min_weight = -5
+    max_weight = 50
+    min_weight = -50
     
     # mutation probabilities
     prob_crossover = 0.7
