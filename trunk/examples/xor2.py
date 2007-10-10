@@ -3,7 +3,7 @@ import neat
 
 #config.load('parameters') 
 
-INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
+INPUTS = ((0, 0, 1), (0, 1, 1), (1, 0, 1), (1, 1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
 def eval_fitness(population):
@@ -11,11 +11,11 @@ def eval_fitness(population):
         brain = neat.create_phenotype(chromosome)
         error = 0.0
         for i, input in enumerate(INPUTS):
-            output = brain.pactivate(input) # serial activation
-            error += (output[0] - OUTPUTS[i])**2
+            output = brain.sactivate(input) # serial activation
+            error += math.fabs(output[0] - OUTPUTS[i])
         
-        chromosome.fitness = (1.0 - math.sqrt(error/len(OUTPUTS)))
+        chromosome.fitness = (4.0 - error)**2 # (Stanley p. 43)
         
 neat.Population.evaluate = eval_fitness
-pop = neat.Population(150)
-pop.epoch(800)
+pop = neat.Population(50)
+pop.epoch(200)
