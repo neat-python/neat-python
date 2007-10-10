@@ -11,7 +11,7 @@ def load(file):
 
 class Config: # read from file
     # phenotype config
-    input_nodes = 2
+    input_nodes = 3
     output_nodes = 1
     allow_recurrent = False # not implemented
     max_weight = 50
