@@ -26,16 +26,16 @@ class Config: # read from file
     prob_togglelink = 0.0
     prob_weightreplaced = 0.0 # not implemented
     prob_mutate_weight = 0.05
-    weight_mutation_power = 0.1
+    weight_mutation_power = 2.5
     max_bias_pertubation = 0.1 # not implemented
     
     # genetic algorithm parameters
-    pop_size = 50
-    number_epochs = 1000
+    pop_size = 50        # set when initializing population
+    number_epochs = 1000 # not implemented
     
     # genotype compatibility 
     compatibility_threshold = 0.5
-    compatibility_change = 2.0
+    compatibility_change = 0.1
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4
