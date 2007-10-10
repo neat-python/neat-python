@@ -250,7 +250,7 @@ class Chromosome(object):
             id += 1
             # Connect it to all input nodes
             for input_node in c.__node_genes[:num_input]:
-                cg = ConnectionGene(input_node.id, node_gene.id, 0, True)
+                cg = ConnectionGene(input_node.id, node_gene.id, random.random(), True)
                 c.__connection_genes[cg.key] = cg
         return c
     
