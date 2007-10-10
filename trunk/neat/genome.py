@@ -120,15 +120,15 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
         # TODO: mutate with a probability
-        r = random.random()
+        r = random.random
         for cg in self.__connection_genes.values():
-            if r < prob_mutate_weight:
+            if r() < prob_mutate_weight:
                 cg.mutate_weight()
-            if r < prob_togglelink:
+            if r() < prob_togglelink:
                 cg.enable()
-        if r < prob_addconn:    
+        if r() < prob_addconn:    
             self.__mutate_add_connection()
-        if r < prob_addnode:
+        if r() < prob_addnode:
             self.__mutate_add_node()
         return self
     

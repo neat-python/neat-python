@@ -15,6 +15,7 @@ prob_togglelink  	 	0.0
 prob_weightreplaced		0.0
 max_pertubation   		0.5
 max_bias_pertubation	0.1
+prob_mutate_weight		0.5
 
 # genetic algorithm parameters
 pop_size  		50
