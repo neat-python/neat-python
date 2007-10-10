@@ -7,7 +7,7 @@ import random
 class Neuron: # using properties without extending object? Is it possible?
     """ A simple artificial neuron """
     __id = 0
-    def __init__(self, neurontype, id=None, bias_weight=0.0, response=1.0):
+    def __init__(self, neurontype, id=None, bias_weight=0.0, response=4.9):
         if id is None:
             self.__id = Neuron.__id
             Neuron.__id += 1            
@@ -19,7 +19,7 @@ class Neuron: # using properties without extending object? Is it possible?
         self.__type = neurontype # input, hidden, output        
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
-        self.__response = response # default = 4.6 (Stanley, p. 146)
+        self.__response = response # default = 4.9 (Stanley, p. 146)
         self.activation = 0.0  # for recurrent networks all neurons must have an "initial state"
     
     type = property(lambda self: self.__type)
@@ -43,7 +43,7 @@ class Neuron: # using properties without extending object? Is it possible?
     # activation function
     @staticmethod
     def f(x, response):
-	return 1.0/(1.0+exp(-x*response)) 
+	return 1.0/(1.0 + exp(-x*response)) 
 
 class Synapse:
     """ A synapse indicates the connection strength between two neurons (or itself) """
