@@ -299,7 +299,7 @@ def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # bias parameter is missing (default=0)
-    neurons_list = [nn.Neuron(ng.type, ng.id) \
+    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
                     for ng in chromosome.node_genes]
     
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
