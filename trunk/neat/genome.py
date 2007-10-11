@@ -29,7 +29,7 @@ class NodeGene(object):
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s" % (self.__id, self.__type)
+        return "Node %d %s, bias %s"% (self.__id, self.__type, self.__bias)
     
     def get_child(self, other):
         assert(self.__id == other.__id)
@@ -142,7 +142,7 @@ class Chromosome(object):
                 cg.mutate_weight()
             if r() < prob_togglelink:
                 cg.enable()
-        for ng in self.__node_genes:
+        for ng in self.__node_genes[self.__input_nodes:]:
             if r() < prob_mutatebias:
                 ng.mutate_bias()
         if r() < prob_addconn:    
@@ -161,7 +161,6 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         # Crossover node genes
-        child.__node_genes = []
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))

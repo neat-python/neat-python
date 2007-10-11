@@ -167,7 +167,6 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         # Crossover node genes
-        # child.__node_genes = [] # child already has this attribute
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
@@ -241,7 +240,7 @@ class Chromosome(object):
             count = 0
             # Count connections
             for in_node in self.__node_genes:
-                for out_node in self.__node_genes:
+                for out_node in self.__node_genes[self.__input_nodes:]:
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys() and \
                         self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
