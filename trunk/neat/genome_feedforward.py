@@ -78,7 +78,7 @@ class ConnectionGene(object):
     def enable(self):
         '''For the "enable link" mutation'''
         self.__enabled = True
-    
+        
     @classmethod
     def __get_new_innov_number(cls):
         cls.__global_innov_number += 1
@@ -327,6 +327,17 @@ class Chromosome(object):
         for c in connections:
             s += "\n\t" + str(c)
         return s
+    
+    def size(self):
+        ''' Defines chromosome 'complexity': number of hidden nodes plus
+            number of enabled connections '''
+           
+        # number of hidden nodes
+        num_hidden = len(self.__node_order)
+        # number of enabled connections
+        conns_enabled = sum([1 for cg in self.__connection_genes.values() if cg.enabled is True])
+        
+        return (num_hidden, conns_enabled)
     
 import nn
 # TODO: verify consistency!
