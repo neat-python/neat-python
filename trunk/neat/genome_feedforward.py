@@ -240,8 +240,8 @@ class Chromosome(object):
             n = random.randint(0, remaining_conns - 1)
             count = 0
             # Count connections
-            for in_node in self.__node_genes[:-num_output]:
-                for out_node in self.__node_genes[self.__input_nodes:]:
+            for in_node in self.__node_genes:
+                for out_node in self.__node_genes:
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys() and \
                         self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
