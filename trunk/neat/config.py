@@ -11,17 +11,17 @@ def load(file):
 
 class Config: # read from file
     # phenotype config
-    input_nodes = 3
+    input_nodes = 2
     output_nodes = 1
     allow_recurrent = False # not implemented
     max_weight = 50
     min_weight = -50
     
     # mutation probabilities
-    prob_crossover = 0.7
+    prob_crossover = 0.7  # not implemented (always apply crossover)
     prob_mutation = 0.25  # dynamic mutation rate (future release)
-    prob_addconn = 0.05
-    prob_addnode = 0.03
+    prob_addconn = 0.005
+    prob_addnode = 0.003
     prob_mutatebias = 0.3
     prob_togglelink = 0.0
     prob_weightreplaced = 0.0 # not implemented
