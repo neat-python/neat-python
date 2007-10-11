@@ -29,7 +29,7 @@ class NodeGene(object):
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s" % (self.__id, self.__type)
+        return "Node %d %s, bias %s"% (self.__id, self.__type, self.__bias)
     
     def get_child(self, other):
         assert(self.__id == other.__id)
@@ -138,14 +138,18 @@ class Chromosome(object):
         """ Mutates this chromosome """
         # TODO: review the probabilities
         r = random.random
+        # Mutate weights and/or toggle connection genes
         for cg in self.__connection_genes.values():
             if r() < prob_mutate_weight:
                 cg.mutate_weight()
             if r() < prob_togglelink:
                 cg.enable()
-        for ng in self.__node_genes:
+        # Mutate bias (disabled by default)
+        for ng in self.__node_genes[self.__input_nodes:]:
             if r() < prob_mutatebias:
                 ng.mutate_bias()
+                
+        # Mutate adding nodes and/or connection genes
         if r() < prob_addconn:    
             self.__mutate_add_connection()
         if r() < prob_addnode:
@@ -162,7 +166,7 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         # Crossover node genes
-        child.__node_genes = [] # child already has this attribute
+        # child.__node_genes = [] # child already has this attribute
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
