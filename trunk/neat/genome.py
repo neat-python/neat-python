@@ -124,7 +124,7 @@ class Chromosome(object):
     def __init__(self):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
-        self.__input_nodes = Config.input_nodes
+        self.__input_nodes = 0
         self.fitness = None
         self.species_id = None
         self.id = Chromosome.id
@@ -167,6 +167,7 @@ class Chromosome(object):
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
             except IndexError:
                 child.__node_genes.append(ng1.copy())
+        child.__input_nodes = parent1.__input_nodes
         # Crossover connection genes
         for cg1 in parent1.__connection_genes.values():
             try:
