@@ -348,21 +348,19 @@ import nn
 def create_phenotype_feedforward(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
-    # bias parameter is missing (default=0)
-    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
-                    for ng in chromosome.node_genes]
+    # first create inputs
+    neurons_list = []
+    neurons_list.extend(nn.Neuron('INPUT', i.id, 0) \
+                        for i in chromosome.node_genes if i.type == 'INPUT')
     
-#    # first create inputs
-#    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
-#                    for ng in chromosome.node_genes if ng.type == 'INPUT']
-#    
-#    # Add hidden nodes in the right order
-#    for h in chromosome.node_order:
-#        neurons_list.append(nn.Neuron(h.type, h.id, h.bias))
-#        
-#    # finally the output
-#    neurons_list.extend([nn.Neuron(ng.type, ng.id, ng.bias) \
-#                    for ng in chromosome.node_genes if ng.type == 'OUTPUT'])
+    # Add hidden nodes in the right order
+    for id in chromosome.node_order:
+        neurons_list.extend(nn.Neuron('HIDDEN', n.id, n.bias) \
+                            for n in chromosome.node_genes if n.id == id)
+        
+    # finally the output
+    neurons_list.extend(nn.Neuron('OUTPUT', o.id, o.bias) \
+                        for o in chromosome.node_genes if o.type == 'OUTPUT')
     
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromosome.conn_genes if cg.enabled] 
