@@ -162,7 +162,7 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         # Crossover node genes
-        child.__node_genes = []
+        child.__node_genes = [] # child already has this attribute
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
@@ -184,6 +184,7 @@ class Chromosome(object):
                     new_gene = random.choice((cg1, cg2)).copy()
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
+                    
                 child.__connection_genes[cg1.key] = new_gene
         #child.mutate()
         #mutate the child later
@@ -196,8 +197,10 @@ class Chromosome(object):
         except IndexError: # Empty list of genes
             # TODO: this can't happen, do not fail silently
             return
+        
         ng = NodeGene(len(self.__node_genes) + 1, 'HIDDEN')
         self.__node_genes.append(ng)
+        
         new_conn1, new_conn2 = conn_to_split.split(ng.id)
         self.__connection_genes[new_conn1.key] = new_conn1
         self.__connection_genes[new_conn2.key] = new_conn2
@@ -219,8 +222,13 @@ class Chromosome(object):
         # Only for feedforwad networks
         num_hidden = len(self.__node_order)
         num_output = len(self.__node_genes) - self.__input_nodes - num_hidden
+        
+        #total_possible_conns = self.__input_nodes * (num_hidden + num_output) + \
+        #    num_hidden * num_output + sum(range(num_hidden))
+            
         total_possible_conns = self.__input_nodes * (num_hidden + num_output) + \
-            num_hidden * num_output + sum(range(num_hidden))
+            num_hidden * (num_output - num_hidden) - sum(range(num_hidden))
+            
         remaining_conns = total_possible_conns - len(self.__connection_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
