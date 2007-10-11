@@ -253,8 +253,12 @@ class Chromosome(object):
                             count += 1
     
     def __is_connection_feedforward(self, in_node, out_node):
-        return in_node.type == 'INPUT' or out_node.type == 'OUTPUT' or \
-            self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
+        if in_node.type == 'INPUT' or out_node.type == 'OUTPUT':
+            return True
+        elif out_node.type == 'INPUT' or in_node.type == 'OUTPUT':
+            return False
+        else:
+            return self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
     
 # compatibility function        
     def distance(self, other):
