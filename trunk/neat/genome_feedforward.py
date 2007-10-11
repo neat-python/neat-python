@@ -133,6 +133,7 @@ class Chromosome(object):
         
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
+    node_order = property(lambda self: self.__node_order)
         
     def mutate(self):
         """ Mutates this chromosome """
@@ -230,8 +231,8 @@ class Chromosome(object):
         #total_possible_conns = self.__input_nodes * (num_hidden + num_output) + \
         #    num_hidden * num_output + sum(range(num_hidden))
             
-        total_possible_conns = self.__input_nodes * (num_hidden + num_output) + \
-            num_hidden * (num_output - num_hidden) - sum(range(num_hidden))
+        total_possible_conns = (num_hidden+num_output)*(self.__input_nodes+num_hidden) - \
+            sum(range(num_hidden+1))
             
         remaining_conns = total_possible_conns - len(self.__connection_genes)
         # Check if new connection can be added:
@@ -329,12 +330,24 @@ class Chromosome(object):
     
 import nn
 # TODO: verify consistency!
-def create_phenotype(chromosome):
+def create_phenotype_feedforward(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # bias parameter is missing (default=0)
     neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
                     for ng in chromosome.node_genes]
+    
+#    # first create inputs
+#    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
+#                    for ng in chromosome.node_genes if ng.type == 'INPUT']
+#    
+#    # Add hidden nodes in the right order
+#    for h in chromosome.node_order:
+#        neurons_list.append(nn.Neuron(h.type, h.id, h.bias))
+#        
+#    # finally the output
+#    neurons_list.extend([nn.Neuron(ng.type, ng.id, ng.bias) \
+#                    for ng in chromosome.node_genes if ng.type == 'OUTPUT'])
     
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromosome.conn_genes if cg.enabled] 

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 import random, math
-from genome import Chromosome
+from genome_feedforward import Chromosome
 from config import Config
 
 species_size = Config.species_size
@@ -272,6 +272,8 @@ class Population:
             best_size = len(max(self.__population).node_genes)
             avg_pop = self.average_fitness()
             print 'Best: ', best_fitness, best_size, avg_pop
+            print max(self.__population)
+            print 'Node order', max(self.__population).node_order
             
             #self.file.write(str(max(self.__population)))
             #self.file.flush()

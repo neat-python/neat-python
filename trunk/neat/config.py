@@ -22,7 +22,7 @@ class Config: # read from file
     prob_mutation = 0.25  # dynamic mutation rate (future release)
     prob_addconn = 0.05
     prob_addnode = 0.03
-    prob_mutatebias = 0.3
+    prob_mutatebias = 0.01
     prob_togglelink = 0.0
     prob_weightreplaced = 0.0 # not implemented
     prob_mutate_weight = 0.05
