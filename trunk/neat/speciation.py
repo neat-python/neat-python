@@ -268,11 +268,14 @@ class Population:
                     child = parent1.crossover(parent2)
                     new_population.append(child.mutate());
                     
-            best_fitness = max(self.__population).fitness
-            best_size = len(max(self.__population).node_genes)
+            # Current generation's best chromosome 
+            best_chromo = max(self.__population)
+            # Current population's average fitness
             avg_pop = self.average_fitness()
-            print 'Best: ', best_fitness, best_size, avg_pop
-            print max(self.__population)
+            
+            print 'Population\'s average fitness', avg_pop
+            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            print best_chromo
             print 'Node order', max(self.__population).node_order
             
             #self.file.write(str(max(self.__population)))
