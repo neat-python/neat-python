@@ -201,24 +201,33 @@ class Chromosome(object):
         new_conn1, new_conn2 = conn_to_split.split(ng.id)
         self.__connection_genes[new_conn1.key] = new_conn1
         self.__connection_genes[new_conn2.key] = new_conn2
-        # Add node to node order list: after the input node of the split connection
-        # and before the output node of the split connection
-        mini = self.__node_order.index(conn_to_split.innodeid) + 1
-        maxi = self.__node_order.index(conn_to_split.outnodeid)
+        # Add node to node order list: after the presynaptic node of the split connection
+        # and before the postsynaptic node of the split connection
+        try:
+            mini = self.__node_order.index(conn_to_split.innodeid) + 1
+        except ValueError:
+            # Presynaptic node is an input node, not hidden node
+            mini = 0
+        try:
+            maxi = self.__node_order.index(conn_to_split.outnodeid)
+        except ValueError:
+            # Postsynaptic node is an output node, not hidden node
+            maxi = len(self.__node_order)
         self.__node_order.insert(random.randint(mini, maxi), ng.id)
     
     def __mutate_add_connection(self):
         # Only for feedforwad networks
-        total_possible_conns = \
-            self.__input_nodes * (len(self.__node_genes) - self.__input_nodes) + \
-            sum(range(len(self.__node_genes) - self.__input_nodes))
+        num_hidden = len(self.__node_order)
+        num_output = len(self.__node_genes) - self.__input_nodes - num_hidden
+        total_possible_conns = self.__input_nodes * (num_hidden + num_output) + \
+            num_hidden * num_output + sum(range(num_hidden))
         remaining_conns = total_possible_conns - len(self.__connection_genes)
         # Check if new connection can be added:
         if remaining_conns > 0:
             n = random.randint(0, remaining_conns - 1)
             count = 0
             # Count connections
-            for in_node in self.__node_genes:
+            for in_node in self.__node_genes[:-num_output]:
                 for out_node in self.__node_genes[self.__input_nodes:]:
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys() and \
                         self.__is_connection_feedforward(in_node, out_node):
@@ -231,7 +240,7 @@ class Chromosome(object):
                             count += 1
     
     def __is_connection_feedforward(self, in_node, out_node):
-        return in_node.type == 'INPUT' or \
+        return in_node.type == 'INPUT' or out_node.type == 'OUTPUT' or \
             self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
     
 # compatibility function        
@@ -289,8 +298,6 @@ class Chromosome(object):
             for input_node in c.__node_genes[:num_input]:
                 cg = ConnectionGene(input_node.id, node_gene.id, random.random(), True)
                 c.__connection_genes[cg.key] = cg
-        # Put output nodes in node order list
-        c.__node_order = [n.id for n in c.__node_genes[num_input:]]
         return c
     
     # sort chromosomes by their fitness
