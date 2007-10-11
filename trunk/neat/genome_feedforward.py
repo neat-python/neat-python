@@ -345,14 +345,12 @@ def create_phenotype_feedforward(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = []
-    neurons_list.extend(nn.Neuron('INPUT', i.id, 0) \
-                        for i in chromosome.node_genes if i.type == 'INPUT')
+    neurons_list = [nn.Neuron('INPUT', i.id, 0) \
+                    for i in chromosome.node_genes if i.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromosome.node_order:
-        neurons_list.extend(nn.Neuron('HIDDEN', n.id, n.bias) \
-                            for n in chromosome.node_genes if n.id == id)
+        neurons_list.append(nn.Neuron('HIDDEN', id, chromosome.node_genes[id - 1].bias))
         
     # finally the output
     neurons_list.extend(nn.Neuron('OUTPUT', o.id, o.bias) \
