@@ -210,14 +210,14 @@ class Chromosome(object):
         self.__connection_genes[new_conn2.key] = new_conn2
         # Add node to node order list: after the presynaptic node of the split connection
         # and before the postsynaptic node of the split connection
-        if self.__node_genes[conn_to_split.innodeid - 1].type == 'HIDDEN':
+        try:
             mini = self.__node_order.index(conn_to_split.innodeid) + 1
-        else:
+        except ValueError:
             # Presynaptic node is an input node, not hidden node
             mini = 0
-        if self.__node_genes[conn_to_split.outnodeid - 1].type == 'HIDDEN':
+        try:
             maxi = self.__node_order.index(conn_to_split.outnodeid)
-        else:
+        except ValueError:
             # Postsynaptic node is an output node, not hidden node
             maxi = len(self.__node_order)
         self.__node_order.insert(random.randint(mini, maxi), ng.id)
