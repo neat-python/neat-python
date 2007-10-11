@@ -239,7 +239,7 @@ class Chromosome(object):
             n = random.randint(0, remaining_conns - 1)
             count = 0
             # Count connections
-            for in_node in self.__node_genes:
+            for in_node in (self.__node_genes[:self.__input_nodes] + self.__node_genes[-num_hidden:]):
                 for out_node in self.__node_genes[self.__input_nodes:]:
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys() and \
                         self.__is_connection_feedforward(in_node, out_node):
@@ -252,12 +252,8 @@ class Chromosome(object):
                             count += 1
     
     def __is_connection_feedforward(self, in_node, out_node):
-        if in_node.type == 'INPUT' or out_node.type == 'OUTPUT':
-            return True
-        elif out_node.type == 'INPUT' or in_node.type == 'OUTPUT':
-            return False
-        else:
-            return self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
+        return in_node.type == 'INPUT' or out_node.type == 'OUTPUT' or \
+            self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
     
 # compatibility function        
     def distance(self, other):
