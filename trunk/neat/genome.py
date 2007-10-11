@@ -49,6 +49,7 @@ class NodeGene(object):
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
+    bias = property(lambda self: self.__bias)
 
 class ConnectionGene(object):
     __global_innov_number = 0
