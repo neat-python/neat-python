@@ -331,11 +331,12 @@ class Chromosome(object):
     def size(self):
         ''' Defines chromosome 'complexity': number of hidden nodes plus
             number of enabled connections '''
+            # Neuron's bias is not considered
            
         # number of hidden nodes
         num_hidden = len(self.__node_order)
         # number of enabled connections
-        conns_enabled = sum([1 for cg in self.__connection_genes.values() if cg.enabled is True])
+        conns_enabled = sum([1 for cg in self.conn_genes if cg.enabled is True])
         
         return (num_hidden, conns_enabled)
     
