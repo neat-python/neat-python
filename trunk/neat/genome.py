@@ -21,15 +21,31 @@ max_weight = Config.max_weight
 min_weight = Config.min_weight
 
 class NodeGene(object):    
-    # Without bias from rev 22.
-    def __init__(self, id, nodetype):
+    def __init__(self, id, nodetype, bias=0):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
         self.__type = nodetype
+        self.__bias = bias
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
         return "Node %d %s" % (self.__id, self.__type)
+    
+    def get_child(self, other):
+        assert(self.__id == other.__id)
+        ng = NodeGene(self.__id, self.__type,
+                      random.choice((self.__bias, other.__bias)))
+        return ng
+    
+    def mutate_bias(self):
+        self.__bias += random.uniform(-1, 1) * weight_mutation_power
+        if self.__bias > max_weight:
+            self.__bias = max_weight
+        elif self.__bias < min_weight:
+            self.__bias = min_weight
+    
+    def copy(self):
+        return NodeGene(self.__id, self.__type, self.__bias)
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
@@ -81,7 +97,7 @@ class ConnectionGene(object):
     def split(self, node_id):
         """Splits a connection, creating two new connections and disabling this one"""
         self.__enabled = False
-        new_conn1 = ConnectionGene(self.__in, node_id, random.random(), True)
+        new_conn1 = ConnectionGene(self.__in, node_id, 1, True)
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
         return new_conn1, new_conn2
     
@@ -125,6 +141,9 @@ class Chromosome(object):
                 cg.mutate_weight()
             if r() < prob_togglelink:
                 cg.enable()
+        for ng in self.__node_genes:
+            if r() < prob_mutatebias:
+                ng.mutate_bias()
         if r() < prob_addconn:    
             self.__mutate_add_connection()
         if r() < prob_addnode:
@@ -141,7 +160,12 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         # Crossover node genes
-        child.__node_genes = parent1.__node_genes[:]
+        child.__node_genes = []
+        for i, ng1 in enumerate(parent1.__node_genes):
+            try:
+                child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
+            except IndexError:
+                child.__node_genes.append(ng1.copy())
         # Crossover connection genes
         for cg1 in parent1.__connection_genes.values():
             try:
