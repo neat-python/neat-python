@@ -66,6 +66,8 @@ class Species: # extend list?
         offspring = [] # new babies for this species        
         self.age += 1  # increment species's age
         
+        assert(len(self) > 0)
+        
         if self.spawn_amount == 0:
             # TODO: remove useless condition
             print 'Species %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
@@ -91,16 +93,17 @@ class Species: # extend list?
             self.representative  = self.__chromosomes[0] # Stanley selects a random member from population
             # na verdade não preciso de representante pq a especie morrerá caso não spawne nada!
             # checar isto melhor!
-        
-        while(self.spawn_amount > 1):          
+            self.spawn_amount -= 1
+            
+        while(self.spawn_amount > 0):          
             
             # make sure our offspring will have the same parent's species_id number
             # this is going to help us when speciating again
-            if(len(self) == 2):
-                child = self.__chromosomes[1] # is it really copying or just referencing?
+            if(len(self) == 1):
+                child = self.__chromosomes[0] # is it really copying or just referencing?
                 offspring.append(child.mutate())
                 
-            if(len(self) > 2):
+            if(len(self) > 1):
                 # Selects two parents from the remaining species and produces a single individual 
                 random.shuffle(self.__chromosomes)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
@@ -138,7 +141,6 @@ class Population:
         self.__popsize = popsize
         self.__population = [Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
                              for i in xrange(self.__popsize)]
-        self.__bestchromo = max(self.__population)
         self.__species = []
         self.compatibility_threshold = Config.compatibility_threshold
     
@@ -228,8 +230,6 @@ class Population:
             # remove species that won't spawn - seems to be very improbable!
             # what happens if the best chromo is in a non-spawning species?
             self.__species = [s for s in self.__species if s.spawn_amount > 0]            
-
-            #print 'Best belongs to specie', self.__bestchromo.species_id
             
             # print some "debugging" information
             print 'Species length:', len(self.__species)
@@ -244,7 +244,7 @@ class Population:
             # spawning new population
             for s in self.__species:
                 if len(new_population) < len(self):
-                    new_population += s.reproduce() # add a certain amount of individuals to the new pop
+                    new_population.extend(s.reproduce()) # add a certain amount of individuals to the new pop
                           
             # remove stagnated species (except if it has the best chromosome)
             self.__species = [s for s in self.__species if \
@@ -275,8 +275,8 @@ class Population:
             
             print 'Population\'s average fitness', avg_pop
             print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
-            print best_chromo
-            print 'Node order', max(self.__population).node_order
+            #print best_chromo
+            #print 'Node order', best_chromo.node_order # just debugging!
             
             #self.file.write(str(max(self.__population)))
             #self.file.flush()

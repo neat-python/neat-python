@@ -75,24 +75,8 @@ class Network(object):
     def addSynapse(self, synapse):
         self.__synapses.append(synapse)
             
-    #neurons = property(lambda self: self.__neurons, addNeuron)
-    #synapses = property(lambda self: self.__synapses, addSynapse)
-        
-                    
     def __repr__(self):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
-                    
-    # preciso repensar como os pesos serão atribuídos de volta!
-    # como os bias evoluem no próprio neurônio agora, preciso
-    # decidir como eles serão alterados (e.g. as N primeiras
-    # posições da lista de pesos corresponde aos bias dos N
-    # neurônios, o que vier depois é conexão - mas a lista pode
-    # estar desordenada! Então seria melhor usar um dict.
-    def setWeights(self, weights):
-        k=0
-        for s in self.synapses:
-            s.weight = weights[k]
-            k+=1
 
     # serial network activation (asynchronous)
     def sactivate(self, inputs):	   
