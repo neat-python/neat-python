@@ -91,8 +91,7 @@ class Species: # extend list?
             
             # updates species representative member
             self.representative  = self.__chromosomes[0] # Stanley selects a random member from population
-            # na verdade não preciso de representante pq a especie morrerá caso não spawne nada!
-            # checar isto melhor!
+
             self.spawn_amount -= 1
             
         while(self.spawn_amount > 0):          
@@ -169,11 +168,6 @@ class Population:
                 self.__species.append(Species(c)) 
                 c.species_id = self.__species[-1].id                
                 #print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
-                
-            # TODO: requires some fixing!
-            #if c.fitness == self.__bestchromo.fitness:
-            #        self.__species[-1].hasBest = True
-                    #print 'Specie %d has best individual %d' %(self.__species[-1].id, c.id)
         
         # controls compatibility threshold
         if len(self.__species) > species_size:
@@ -182,9 +176,7 @@ class Population:
             if self.compatibility_threshold > compatibility_change:
                 self.compatibility_threshold -= compatibility_change
             else:
-                print 'Compatibility threshold cannot be changed (minimum value has been reached)'
-                
-        # there are two bests: from the current pop and the overall            
+                print 'Compatibility threshold cannot be changed (minimum value has been reached)'            
                 
     def average_fitness(self):
         ''' Returns the average raw fitness of population '''
@@ -222,14 +214,10 @@ class Population:
             self.evaluate()            
             # speciates the population
             self.__speciate()
-            # remove empty species - why does this happen?
+            # remove empty species (those that become extinct)
             self.__species = [s for s in self.__species if len(s) > 0]
             # compute spawn levels for each remaining species
-            self.__compute_spawn_levels()  
-            
-            # remove species that won't spawn - seems to be very improbable!
-            # what happens if the best chromo is in a non-spawning species?
-            self.__species = [s for s in self.__species if s.spawn_amount > 0]            
+            self.__compute_spawn_levels()            
             
             # print some "debugging" information
             print 'Species length:', len(self.__species)
@@ -237,19 +225,38 @@ class Population:
             print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
             print 'Species age:',[s.age for s in self.__species]
             print 'Species ID :',[s.id for s in self.__species]
-            print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
+            print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age            
+                   
+            # Current generation's best chromosome 
+            best_chromo = max(self.__population)
+            for s in self.__species:
+                if best_chromo.species_id == s.id:
+                    s.hasBest = True
+                    break
+                
+            # Current population's average fitness
+            avg_pop = self.average_fitness()
             
+            print 'Population\'s average fitness', avg_pop
+            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            #print best_chromo
+            #print 'Node order', best_chromo.node_order # just debugging!
+            
+            #self.file.write(str(max(self.__population)))
+            #self.file.flush()
+                
+            # -------------------------- Producing new offspring -------------------------- #
             new_population = [] # next generation's population
+            
+            # remove species that won't spawn - seems to be very improbable!
+            # what happens if the best chromo is in a non-spawning species?
+            # self.__species = [s for s in self.__species if s.spawn_amount > 0 and s.hasBest == False]  
             
             # spawning new population
             for s in self.__species:
                 if len(new_population) < len(self):
-                    new_population.extend(s.reproduce()) # add a certain amount of individuals to the new pop
-                          
-            # remove stagnated species (except if it has the best chromosome)
-            self.__species = [s for s in self.__species if \
-                              s.no_improvement_age <= max_stagnation or \
-                              s.no_improvement_age > max_stagnation and s.hasBest == True]            
+                    # add new offspring from each species
+                    new_population.extend(s.reproduce())           
                     
             # controls under or overflow
             fill = len(self) - len(new_population)
@@ -268,18 +275,10 @@ class Population:
                     child = parent1.crossover(parent2)
                     new_population.append(child.mutate());
                     
-            # Current generation's best chromosome 
-            best_chromo = max(self.__population)
-            # Current population's average fitness
-            avg_pop = self.average_fitness()
-            
-            print 'Population\'s average fitness', avg_pop
-            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
-            #print best_chromo
-            #print 'Node order', best_chromo.node_order # just debugging!
-            
-            #self.file.write(str(max(self.__population)))
-            #self.file.flush()
+            # remove stagnated species (except if it has the best chromosome)
+            self.__species = [s for s in self.__species if \
+                              s.no_improvement_age <= max_stagnation or \
+                              s.no_improvement_age > max_stagnation and s.hasBest == True]                  
                     
             # updates current population
             assert len(self) == len(new_population), 'Different population sizes!'
