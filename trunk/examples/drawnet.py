@@ -1,5 +1,5 @@
 # Receives a chromosome and returns a graphical representation of its phenotype
-# This is draft solution - works only with linux
+# This is a draft solution - works only with linux
 import os
 
 def draw(chromosome):
