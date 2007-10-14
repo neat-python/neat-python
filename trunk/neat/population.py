@@ -49,6 +49,9 @@ class Population:
                 if c.id == s.representative.id:
                     s.add(c)
                     break
+                
+        # Remove empty species
+        self.__species = [s for s in self.__species if len(s) > 0] 
                     
         # remove each species' representant from population        
         for s in self.__species:
@@ -94,6 +97,12 @@ class Population:
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
         # 1. boost if young and penalize if old (on raw fitness!) - on average_raw?
+        for s in self.__species:
+            if s.age < Config.youth_threshold:
+                s.boost()
+            if s.age > Config.old_threshold:
+                s.penalize()                
+        
         # 2. Share fitness (only usefull for computing spawn amounts)
         # 3. Compute spawn
         # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
@@ -121,9 +130,7 @@ class Population:
             # Current population's average fitness
             avg_pop = self.average_fitness()                              
             # Speciates the population
-            self.__speciate()            
-            # Remove empty species
-            self.__species = [s for s in self.__species if len(s) > 0]       
+            self.__speciate()                  
             # Compute spawn levels for each remaining species
             self.__compute_spawn_levels()      
 
