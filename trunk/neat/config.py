@@ -11,7 +11,7 @@ def load(file):
 
 class Config: # read from file
     # network type
-    nn_allow_recurrence = True
+    nn_allow_recurrence = False
     
     # phenotype config
     input_nodes = 2
