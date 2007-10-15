@@ -82,7 +82,7 @@ class Chromosome(genome.Chromosome):
     
 import nn
 # TODO: verify consistency!
-def create_phenotype_feedforward(chromosome):
+def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
@@ -120,6 +120,6 @@ if __name__ ==  '__main__':
     print "Child"
     print child
     print
-    brain = create_phenotype_feedforward(c1)
+    brain = create_phenotype(c1)
     print brain.sactivate([0.5, 0.5, 0.5])
     print brain
