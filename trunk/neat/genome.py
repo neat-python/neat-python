@@ -56,6 +56,10 @@ class ConnectionGene(object):
     __innovations = {} # A list of innovations.
     # Should it be global? Reset at every generation? Who knows?
     
+    @classmethod
+    def reset_innovations(cls):
+        cls.__innovations = {}
+    
     def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
         self.__in = innodeid
         self.__out = outnodeid
@@ -160,6 +164,11 @@ class Chromosome(object):
         else:
             parent1 = other
             parent2 = self
+        self.__crossover_genes(parent1, parent2, child)
+        return child
+        
+    @staticmethod
+    def __crossover_genes(parent1, parent2, child):
         # Crossover node genes
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
@@ -182,9 +191,6 @@ class Chromosome(object):
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
                 child.__connection_genes[cg1.key] = new_gene
-        #child.mutate()
-        #mutate the child later
-        return child
     
     def __mutate_add_node(self):
         # Choose a random connection to split

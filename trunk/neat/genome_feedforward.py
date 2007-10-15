@@ -11,8 +11,16 @@ class Chromosome(genome.Chromosome):
     
     def crossover(self, other):
         ''' Applies the crossover operator. Returns a child '''
-        child = super(Chromosome, self).crossover(other)
-        child.__node_order = max(self, other).__node_order[:]
+        child = self.__class__() # TODO: self.__crossover(other)
+        if self.fitness > other.fitness:
+            parent1 = self
+            parent2 = other
+        else:
+            parent1 = other
+            parent2 = self
+        self.__crossover_genes(parent1, parent2, child)
+        child.__node_order = parent1.__node_order[:]
+        assert(len(child.__node_order) == len([n for n in child.node_genes if n.type == 'HIDDEN']))
         return child
     
     def __mutate_add_node(self):
@@ -30,6 +38,7 @@ class Chromosome(genome.Chromosome):
             # Postsynaptic node is an output node, not hidden node
             maxi = len(self.__node_order)
         self.__node_order.insert(random.randint(mini, maxi), ng.id)
+        assert(len(self.__node_order) == len([n for n in self.node_genes if n.type == 'HIDDEN']))
         return (ng, split_conn)
     
     def __mutate_add_connection(self):
@@ -96,6 +105,8 @@ def create_phenotype(chromosome):
     # finally the output
     neurons_list.extend(nn.Neuron('OUTPUT', o.id, o.bias) \
                         for o in chromosome.node_genes if o.type == 'OUTPUT')
+    
+    assert(len(neurons_list) == len(chromosome.node_genes))
     
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromosome.conn_genes if cg.enabled] 
