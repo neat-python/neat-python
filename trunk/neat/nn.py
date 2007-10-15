@@ -2,7 +2,7 @@
 from math import exp
 import random
 #random.seed(0)
-from psyco.classes import *
+#from psyco.classes import *
 
 class Neuron: # using properties without extending object? Is it possible?
     """ A simple artificial neuron """

@@ -153,7 +153,7 @@ class Chromosome(object):
     
     def crossover(self, other):
         ''' Applies the crossover operator. Returns a child '''
-        child = Chromosome() # TODO: self.__crossover(other)
+        child = self.__class__() # TODO: self.__crossover(other)
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
@@ -198,6 +198,7 @@ class Chromosome(object):
         new_conn1, new_conn2 = conn_to_split.split(ng.id)
         self.__connection_genes[new_conn1.key] = new_conn1
         self.__connection_genes[new_conn2.key] = new_conn2
+        return (ng, conn_to_split)
     
     def __mutate_add_connection(self):
         # Only for recurrent networks
@@ -255,13 +256,13 @@ class Chromosome(object):
                 
         return distance
     
-    @staticmethod
-    def create_fully_connected(num_input, num_output):
+    @classmethod
+    def create_fully_connected(cls, num_input, num_output):
         '''
         Factory method
         Creates a chromosome for a fully connected network with no hidden nodes.
         '''
-        c = Chromosome()
+        c = cls()
         id = 1
         # Create node genes
         for i in range(num_input):
