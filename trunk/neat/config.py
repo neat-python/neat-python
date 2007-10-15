@@ -43,10 +43,10 @@ class Config: # read from file
     # species
     species_size = 10
     survival_threshold = 0.2
-    species_age_threshold = 80    # not implemented
-    species_youth_threshold = 10  # not implemented
+    old_threshold = 80
+    youth_threshold = 10
     species_old_penalty = 1.2     # not implemented
-    species_youth_boost = 0.7     # not implemented
+    youth_boost = 0.7
     max_stagnation = 15
     
     # for a future release
