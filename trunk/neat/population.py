@@ -1,4 +1,8 @@
-from genome_feedforward import *
+from config import Config
+if Config.nn_allow_recurrence:
+    from genome import *
+else:
+    from genome_feedforward import *
 from species import *
 #from psyco.classes import *
     
@@ -141,7 +145,10 @@ class Population:
                     s.hasBest = True
 
             print 'Population\'s average fitness', avg_pop
-            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            if Config.nn_allow_recurrence:
+                print 'Best fitness: %s ' %(best_chromo.fitness)
+            else:
+                print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
             #print best_chromo
             file = open('best','w')
             file.write(str(best_chromo))

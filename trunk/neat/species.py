@@ -2,7 +2,6 @@
 from neat import *
 import random, math
 from config import Config
-from genome_feedforward import *
 #from psyco.classes import *
 
 species_size = Config.species_size
