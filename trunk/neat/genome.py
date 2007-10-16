@@ -164,11 +164,11 @@ class Chromosome(object):
         else:
             parent1 = other
             parent2 = self
-        self.__crossover_genes(parent1, parent2, child)
+        child.__inherit_genes(parent1, parent2)
         return child
         
-    @staticmethod
-    def __crossover_genes(parent1, parent2, child):
+    def __inherit_genes(child, parent1, parent2):
+        assert(parent1.fitness >= parent2.fitness)
         # Crossover node genes
         for i, ng1 in enumerate(parent1.__node_genes):
             try:

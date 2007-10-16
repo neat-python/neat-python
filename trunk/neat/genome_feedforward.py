@@ -9,19 +9,10 @@ class Chromosome(genome.Chromosome):
         
     node_order = property(lambda self: self.__node_order)
     
-    def crossover(self, other):
-        ''' Applies the crossover operator. Returns a child '''
-        child = self.__class__() # TODO: self.__crossover(other)
-        if self.fitness > other.fitness:
-            parent1 = self
-            parent2 = other
-        else:
-            parent1 = other
-            parent2 = self
-        self.__crossover_genes(parent1, parent2, child)
+    def __inherit_genes(child, parent1, parent2):
+        super(Chromosome, child).__inherit_genes(parent1, parent2)
         child.__node_order = parent1.__node_order[:]
         assert(len(child.__node_order) == len([n for n in child.node_genes if n.type == 'HIDDEN']))
-        return child
     
     def __mutate_add_node(self):
         ng, split_conn = super(Chromosome, self).__mutate_add_node()
