@@ -11,10 +11,10 @@ def load(file):
 
 class Config: # read from file
     # network type
-    nn_allow_recurrence = False
+    nn_allow_recurrence = True
     
     # phenotype config
-    input_nodes = 2
+    input_nodes = 3
     output_nodes = 1
     max_weight = 50
     min_weight = -50
@@ -24,7 +24,7 @@ class Config: # read from file
     prob_mutation = 0.25  # dynamic mutation rate (future release)
     prob_addconn = 0.05
     prob_addnode = 0.03
-    prob_mutatebias = 0.01
+    prob_mutatebias = 0.0
     prob_togglelink = 0.0
     prob_weightreplaced = 0.0 # not implemented
     prob_mutate_weight = 0.05

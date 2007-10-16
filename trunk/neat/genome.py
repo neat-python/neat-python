@@ -3,6 +3,8 @@ import random
 import math
 from config import Config
 
+random.seed(0)
+
 excess_coeficient = Config.excess_coeficient
 disjoint_coeficient = Config.disjoint_coeficient
 weight_coeficient = Config.weight_coeficient
@@ -136,6 +138,7 @@ class Chromosome(object):
         
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
+
         
     def mutate(self):
         """ Mutates this chromosome """

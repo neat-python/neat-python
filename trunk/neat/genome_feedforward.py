@@ -2,6 +2,8 @@
 import genome
 import random
 
+random.seed(0)
+
 class Chromosome(genome.Chromosome):
     def __init__(self):
         super(Chromosome, self).__init__()

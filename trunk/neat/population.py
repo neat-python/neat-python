@@ -150,9 +150,9 @@ class Population:
             else:
                 print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
             #print best_chromo
-            file = open('best','w')
-            file.write(str(best_chromo))
-            file.close()
+            #file = open('best','w')
+            #file.write(str(best_chromo))
+            #file.close()
            
             # print some "debugging" information
             print 'Species length: %d totalizing %d individuals' %(len(self.__species), sum([len(s) for s in self.__species]))
