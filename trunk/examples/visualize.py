@@ -36,8 +36,8 @@ def plot_best(stats):
     
     plot = biggles.FramedPlot()
     plot.title = "Best fitness"
-    plot.xlabel = r"Fitness"
-    plot.ylabel = r"Generations"
+    plot.xlabel = r"Generations"
+    plot.ylabel = r"Fitness"
 
     plot.add(biggles.Curve(generation, fitness, color="red"))
          
