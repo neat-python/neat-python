@@ -3,7 +3,7 @@ import random
 import math
 from config import Config
 
-random.seed(0)
+#random.seed(0)
 
 excess_coeficient = Config.excess_coeficient
 disjoint_coeficient = Config.disjoint_coeficient
@@ -14,8 +14,6 @@ prob_mutate_weight = Config.prob_mutate_weight
 prob_togglelink = Config.prob_togglelink
 prob_addconn = Config.prob_addconn
 prob_addnode = Config.prob_addnode
-
-prob_crossover = Config.prob_crossover # always perform crossingover?
 
 # Weight mutation parameters
 weight_mutation_power = Config.weight_mutation_power
@@ -255,8 +253,10 @@ class Chromosome(object):
                     disjoint += 1
             else:
                 # Homologous genes
-                weight_diff += (cg1.weight - cg2.weight)
+                weight_diff += math.fabs(cg1.weight - cg2.weight)
                 matching += 1
+
+        disjoint += len(chromo2.__connection_genes) - matching
         
         assert(matching > 0) # this can't happen
         distance = excess_coeficient * excess + \

@@ -4,7 +4,7 @@ import random, math
 from config import Config
 #from psyco.classes import *
 
-random.seed(0)
+#random.seed(0)
 
 species_size = Config.species_size
 compatibility_change = Config.compatibility_change

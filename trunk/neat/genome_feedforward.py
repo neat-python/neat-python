@@ -2,7 +2,7 @@
 import genome
 import random
 
-random.seed(0)
+#random.seed(0)
 
 class Chromosome(genome.Chromosome):
     def __init__(self):
@@ -55,8 +55,7 @@ class Chromosome(genome.Chromosome):
                         # Free connection
                         if count == n: # Connection to create
                             weight = random.uniform(-15, 15)
-                            cg = genome.ConnectionGene(in_node.id, out_node.id,
-                                                       weight, True)
+                            cg = genome.ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return
                         else:

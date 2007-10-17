@@ -21,11 +21,11 @@ class Config: # read from file
     
     # mutation probabilities
     prob_addconn = 0.005
-    prob_addnode = 0.0003
+    prob_addnode = 0.003
     prob_mutatebias = 0.1
     prob_togglelink = 0.0
-    prob_mutate_weight = 0.25 # dynamic mutation rate (future release)
-    weight_mutation_power = 0.05
+    prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
+    weight_mutation_power = 1.5
     
     prob_crossover = 0.7  # not implemented (always apply crossover)
     prob_weightreplaced = 0.0 # not implemented
@@ -37,7 +37,7 @@ class Config: # read from file
     
     # genotype compatibility 
     compatibility_threshold = 3.0
-    compatibility_change = 0.1
+    compatibility_change = 0.2
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4

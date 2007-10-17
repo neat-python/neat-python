@@ -22,8 +22,7 @@ class Population:
     ''' Manages all the species  '''
     selection = TournamentSelection
     evaluate = None # Evaluates the entire population. You need to override 
-                    # this method in your experiments
-    
+                    # this method in your experiments    
 
     def __init__(self, popsize):
         self.__popsize = popsize
@@ -67,7 +66,8 @@ class Population:
         for c in self:
             found = False
             # TODO: if c.species_id is not None try this species first      
-            for s in self.__species:                
+            for s in self.__species:      
+                # or random.choice(s.chromosomes) ?          
                 if c.distance(s.chromosomes[0]) < self.compatibility_threshold:
                     c.species_id = s.id # the species chromo belongs to
                     s.add(c)                
