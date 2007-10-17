@@ -43,14 +43,6 @@ class Species: # extend list?
     def __repr__(self):
         return repr([c.fitness for c in self.__chromosomes])
     
-    def boost(self):
-        for c in self.__chromosomes:
-            c.fitness *= Config.youth_boost
-    
-    def penalize(self):
-         for c in self.__chromosomes:
-            c.fitness /= Config.old_penalty
-    
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
         sum = 0.0

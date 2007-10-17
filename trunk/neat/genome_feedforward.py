@@ -65,18 +65,6 @@ class Chromosome(genome.Chromosome):
         return in_node.type == 'INPUT' or out_node.type == 'OUTPUT' or \
             self.__node_order.index(in_node.id) < self.__node_order.index(out_node.id)
     
-    def size(self):
-        ''' Defines chromosome 'complexity': number of hidden nodes plus
-            number of enabled connections '''
-            # Neuron's bias is not considered
-           
-        # number of hidden nodes
-        num_hidden = len(self.__node_order)
-        # number of enabled connections
-        conns_enabled = sum([1 for cg in self.conn_genes if cg.enabled is True])
-        
-        return (num_hidden, conns_enabled)
-    
     def __str__(self):
         s = super(Chromosome, self).__str__()
         s += '\nNode order: ' + str(self.node_order)

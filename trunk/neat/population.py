@@ -101,12 +101,15 @@ class Population:
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
         # 1. boost if young and penalize if old (on raw fitness!) - on average_raw?
-#        for s in self.__species:
-#            if s.age < Config.youth_threshold:
-#                s.boost()
-#            if s.age > Config.old_threshold:
-#                s.penalize()                
-        
+        species_stats = []
+        for s in self.__species:
+            if s.age < Config.youth_threshold:
+                species_stats.append(s.average_fitness()*Config.youth_boost)
+            elif s.age > Config.old_threshold:
+                species_stats.append(s.average_fitness()/Config.old_penalty)       
+            else:
+                species_stats.append(s.average_fitness())
+                
         # 2. Share fitness (only usefull for computing spawn amounts)
         # 3. Compute spawn
         # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
@@ -114,12 +117,12 @@ class Population:
         # Sharing the fitness is only meaningful here  
         # we don't really have to change each individual's raw fitness 
         total_average = 0.0
-        for s in self.__species:
-                total_average += s.average_fitness()
+        for s in species_stats:
+                total_average += s
       
         # average_fitness is being computed twice! optimize!        
-        for s in self.__species:
-            s.spawn_amount = int(round((s.average_fitness()*self.__popsize/total_average)))
+        for i, s in enumerate(self.__species):
+            s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
                     
     def epoch(self, n):
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
@@ -145,16 +148,14 @@ class Population:
                     s.hasBest = True
 
             print 'Population\'s average fitness', avg_pop
-            if Config.nn_allow_recurrence:
-                print 'Best fitness: %s ' %(best_chromo.fitness)
-            else:
-                print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            
             # print best_chromo
-            #file = open('best','w')
-            #file.write(str(best_chromo))
-            #file.close()
             
             if best_chromo.fitness > 0.99:
+                file = open('best','w')
+                file.write(str(best_chromo))
+                file.close()
                 break
            
             # print some "debugging" information

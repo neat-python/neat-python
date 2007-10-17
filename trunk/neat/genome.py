@@ -17,6 +17,7 @@ prob_addnode = Config.prob_addnode
 
 # Weight mutation parameters
 weight_mutation_power = Config.weight_mutation_power
+bias_mutation_power = Config.bias_mutation_power
 max_weight = Config.max_weight
 min_weight = Config.min_weight
 
@@ -38,7 +39,7 @@ class NodeGene(object):
         return ng
     
     def mutate_bias(self):
-        self.__bias += random.uniform(-1, 1) * weight_mutation_power
+        self.__bias += random.uniform(-1, 1) * bias_mutation_power
         if self.__bias > max_weight:
             self.__bias = max_weight
         elif self.__bias < min_weight:
@@ -188,6 +189,7 @@ class Chromosome(object):
                     # Homologous gene found
                     # TODO: average both weights (Stanley, p. 38)
                     new_gene = random.choice((cg1, cg2)).copy()
+                    #new_gene.enable() # avoids disconnected neurons
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
                 child.__connection_genes[cg1.key] = new_gene
@@ -264,6 +266,18 @@ class Chromosome(object):
                    weight_coeficient * (weight_diff/matching)
                 
         return distance
+    
+    def size(self):
+        ''' Defines chromosome 'complexity': number of hidden nodes plus
+            number of enabled connections '''
+            # Neuron's bias is not considered
+           
+        # number of hidden nodes
+        num_hidden = len(self.__node_genes) - Config.input_nodes - Config.output_nodes
+        # number of enabled connections
+        conns_enabled = sum([1 for cg in self.conn_genes if cg.enabled is True])
+        
+        return (num_hidden, conns_enabled)
     
     @classmethod
     def create_fully_connected(cls, num_input, num_output):

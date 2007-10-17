@@ -21,23 +21,23 @@ class Config: # read from file
     
     # mutation probabilities
     prob_addconn = 0.05
-    prob_addnode = 0.03
+    prob_addnode = 0.03    
     prob_mutatebias = 0.1
-    prob_togglelink = 0.05
+    bias_mutation_power = 1.5    
     prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
-    weight_mutation_power = 1.5
+    weight_mutation_power = 1.5    
+    prob_togglelink = 0.05
     
-    prob_crossover = 0.7  # not implemented (always apply crossover)
-    prob_weightreplaced = 0.0 # not implemented
-    max_bias_pertubation = 0.1 # not implemented
+    #prob_crossover = 0.7  # not implemented (always apply crossover)
+    #prob_weightreplaced = 0.0 # not implemented
     
     # genetic algorithm parameters
-    pop_size = 50        # set when initializing population
-    number_epochs = 1000 # not implemented
+    #pop_size = 50        # set when initializing population
+    #number_epochs = 1000 # not implemented
     
     # genotype compatibility 
     compatibility_threshold = 3.0
-    compatibility_change = 0.2
+    compatibility_change = 0.0
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4
@@ -47,7 +47,7 @@ class Config: # read from file
     survival_threshold = 0.2
     old_threshold = 80
     youth_threshold = 10
-    old_penalty = 1.0     # not implemented
+    old_penalty = 0.7     # not implemented
     youth_boost = 1.7
     max_stagnation = 15
     
