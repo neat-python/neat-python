@@ -30,13 +30,16 @@ class Population:
                              for i in xrange(self.__popsize)]
         self.__species = []
         self.compatibility_threshold = Config.compatibility_threshold
+        
+        # Statistics
+        self.__avg_fitness = []
+        self.__best_fitness = []
+        
+    stats = property(lambda self: self.__best_fitness)        
     
     def __len__(self):
         return len(self.__population)
-    
-    def best(self):
-        return max(self.__population)
-    
+      
     def __iter__(self):
         return iter(self.__population)
     
@@ -133,9 +136,9 @@ class Population:
             # Evaluate individuals
             self.evaluate()              
             # Current generation's best chromosome 
-            best_chromo = max(self.__population)
+            self.__best_fitness.append(max(self.__population))
             # Current population's average fitness
-            avg_pop = self.average_fitness()                              
+            self.__avg_fitness.append(self.average_fitness())                              
             # Speciates the population
             self.__speciate()                  
             # Compute spawn levels for each remaining species
@@ -144,17 +147,17 @@ class Population:
             # Which species has the best chromosome?
             for s in self.__species:
                 s.hasBest = False
-                if best_chromo.species_id == s.id:
+                if self.__best_fitness[-1].species_id == s.id:
                     s.hasBest = True
 
-            print 'Population\'s average fitness', avg_pop
-            print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
+            print 'Population\'s average fitness', self.__avg_fitness[-1]
+            print 'Best fitness: %s - size: %s ' %(self.__best_fitness[-1].fitness, self.__best_fitness[-1].size())
             
             # print best_chromo
             
-            if best_chromo.fitness > 0.99:
+            if self.__best_fitness[-1].fitness > 0.99:
                 file = open('best','w')
-                file.write(str(best_chromo))
+                file.write(str(self.__best_fitness[-1]))
                 file.close()
                 break
            
