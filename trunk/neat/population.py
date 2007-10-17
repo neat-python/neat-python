@@ -101,11 +101,11 @@ class Population:
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
         # 1. boost if young and penalize if old (on raw fitness!) - on average_raw?
-        for s in self.__species:
-            if s.age < Config.youth_threshold:
-                s.boost()
-            if s.age > Config.old_threshold:
-                s.penalize()                
+#        for s in self.__species:
+#            if s.age < Config.youth_threshold:
+#                s.boost()
+#            if s.age > Config.old_threshold:
+#                s.penalize()                
         
         # 2. Share fitness (only usefull for computing spawn amounts)
         # 3. Compute spawn
@@ -149,10 +149,13 @@ class Population:
                 print 'Best fitness: %s ' %(best_chromo.fitness)
             else:
                 print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
-            #print best_chromo
+            print best_chromo
             #file = open('best','w')
             #file.write(str(best_chromo))
             #file.close()
+            
+            if best_chromo.fitness > 0.99:
+                break
            
             # print some "debugging" information
             print 'Species length: %d totalizing %d individuals' %(len(self.__species), sum([len(s) for s in self.__species]))
