@@ -20,10 +20,10 @@ class Config: # read from file
     min_weight = -500
     
     # mutation probabilities
-    prob_addconn = 0.005
-    prob_addnode = 0.003
+    prob_addconn = 0.05
+    prob_addnode = 0.03
     prob_mutatebias = 0.1
-    prob_togglelink = 0.0
+    prob_togglelink = 0.05
     prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
     weight_mutation_power = 1.5
     

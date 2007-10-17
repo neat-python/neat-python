@@ -149,7 +149,7 @@ class Population:
                 print 'Best fitness: %s ' %(best_chromo.fitness)
             else:
                 print 'Best fitness: %s - size: %s ' %(best_chromo.fitness, best_chromo.size())
-            print best_chromo
+            # print best_chromo
             #file = open('best','w')
             #file.write(str(best_chromo))
             #file.close()
