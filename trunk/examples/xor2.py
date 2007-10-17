@@ -21,8 +21,8 @@ def eval_fitness(population):
         chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         
 neat.Population.evaluate = eval_fitness
-pop = neat.Population(50)
-pop.epoch(30)
+pop = neat.Population(150)
+pop.epoch(1600)
 
 # very, very, very draft solution for network visualizing
-print drawnet.draw(pop.best())
+drawnet.draw(pop.best())
