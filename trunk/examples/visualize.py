@@ -1,7 +1,12 @@
 # Receives a chromosome and returns a graphical representation of its phenotype
 # This is a draft solution - works only with linux
 import os
-import biggles
+try:
+    import pydot
+    import biggles
+except ImportError:
+    print "You do not have the required packages"
+    
 
 def draw_net(chromosome):
     output = 'digraph G {\n node [shape = circle]'
@@ -12,12 +17,16 @@ def draw_net(chromosome):
         
     output += '\n }'
     
-    try:
-        #os.system('dot -Tsvg output -o network.svg')
-        os.system('echo "'+output+'" | dot -Tsvg > phenotype.svg')
-        os.system('eog phenotype.svg')
-    except OSError:
-        print 'Can\'t find graphviz package'
+    g = pydot.graph_from_dot_data(output)
+    g.write('phenotype.svg', prog='dot', format='svg') 
+    os.system('eog phenotype.svg')
+    
+#    try:
+#        #os.system('dot -Tsvg output -o network.svg')
+#        os.system('echo "'+output+'" | dot -Tsvg > phenotype.svg')
+#        os.system('eog phenotype.svg')
+#    except OSError:
+#        print 'Can\'t find graphviz package'
     
     return output
 

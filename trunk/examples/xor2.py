@@ -22,11 +22,11 @@ def eval_fitness(population):
         
 neat.Population.evaluate = eval_fitness
 pop = neat.Population(150)
-pop.epoch(1600)
+pop.epoch(16)
 
-# Requires: graphviz
+# Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
 visualize.draw_net(pop.stats[0][-1]) # best chromosome
 # visualize.draw_net(max(pop.stats)) # must be the same as pop.stats[-1]
-# Requires: biggles 
+# Requires: biggles - http://biggles.sourceforge.net/
 visualize.plot_stats(pop.stats)
