@@ -11,24 +11,24 @@ def load(file):
 
 class Config: # read from file
     # network type
-    nn_allow_recurrence = True
+    nn_allow_recurrence = False
     
     # phenotype config
-    input_nodes = 3
+    input_nodes = 2
     output_nodes = 1
-    max_weight = 50
-    min_weight = -50
+    max_weight = 500
+    min_weight = -500
     
     # mutation probabilities
-    prob_crossover = 0.7  # not implemented (always apply crossover)
-    prob_mutation = 0.25  # dynamic mutation rate (future release)
-    prob_addconn = 0.05
-    prob_addnode = 0.03
-    prob_mutatebias = 0.0
+    prob_addconn = 0.005
+    prob_addnode = 0.0003
+    prob_mutatebias = 0.1
     prob_togglelink = 0.0
+    prob_mutate_weight = 0.25 # dynamic mutation rate (future release)
+    weight_mutation_power = 0.05
+    
+    prob_crossover = 0.7  # not implemented (always apply crossover)
     prob_weightreplaced = 0.0 # not implemented
-    prob_mutate_weight = 0.05
-    weight_mutation_power = 2.5
     max_bias_pertubation = 0.1 # not implemented
     
     # genetic algorithm parameters
@@ -36,7 +36,7 @@ class Config: # read from file
     number_epochs = 1000 # not implemented
     
     # genotype compatibility 
-    compatibility_threshold = 0.5
+    compatibility_threshold = 3.0
     compatibility_change = 0.1
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
@@ -47,8 +47,8 @@ class Config: # read from file
     survival_threshold = 0.2
     old_threshold = 80
     youth_threshold = 10
-    old_penalty = 1.2     # not implemented
-    youth_boost = 0.7
+    old_penalty = 1.0     # not implemented
+    youth_boost = 1.7
     max_stagnation = 15
     
     # for a future release
