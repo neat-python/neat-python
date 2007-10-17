@@ -1,6 +1,6 @@
 import math
 import neat
-import drawnet
+import visualize
 #from psyco.classes import *
 
 #config.load('parameters') 
@@ -24,5 +24,9 @@ neat.Population.evaluate = eval_fitness
 pop = neat.Population(150)
 pop.epoch(1600)
 
+# Requires: graphviz
 # very, very, very draft solution for network visualizing
-drawnet.draw(pop.best())
+visualize.draw_net(pop.stats[-1]) # best chromosome
+# visualize.draw_net(max(pop.stats)) # must be the same as pop.stats[-1]
+# Requires: biggles 
+visualize.plot_best(pop.stats)
