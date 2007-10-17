@@ -35,7 +35,7 @@ class Population:
         self.__avg_fitness = []
         self.__best_fitness = []
         
-    stats = property(lambda self: self.__best_fitness)        
+    stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))        
     
     def __len__(self):
         return len(self.__population)
