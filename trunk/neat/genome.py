@@ -131,14 +131,22 @@ class Chromosome(object):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
         self.__input_nodes = 0
-        self.fitness = None
+        self.__fitness = None
         self.species_id = None
         self.id = Chromosome.id
         Chromosome.id += 1
         
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
-
+    
+    def __set_fitness(self, f):
+        if self.__fitness is not None:
+            raise AttributeError, \
+                'Fitness can only be assigned once for each chromosome.'
+        else:
+            self.__fitness = f
+    
+    fitness = property(lambda self: self.__fitness, __set_fitness)
         
     def mutate(self):
         """ Mutates this chromosome """
