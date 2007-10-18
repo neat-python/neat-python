@@ -23,9 +23,9 @@ class Config: # read from file
     prob_addconn = 0.05
     prob_addnode = 0.03    
     prob_mutatebias = 0.1
-    bias_mutation_power = 1.5    
+    bias_mutation_power = 0.5    
     prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
-    weight_mutation_power = 1.5    
+    weight_mutation_power = 0.5    
     prob_togglelink = 0.05
     
     #prob_crossover = 0.7  # not implemented (always apply crossover)
@@ -37,7 +37,7 @@ class Config: # read from file
     
     # genotype compatibility 
     compatibility_threshold = 3.0
-    compatibility_change = 0.0
+    compatibility_change = 0.3
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4
@@ -47,8 +47,8 @@ class Config: # read from file
     survival_threshold = 0.2
     old_threshold = 80
     youth_threshold = 10
-    old_penalty = 0.7     # not implemented
-    youth_boost = 1.7
+    old_penalty = 0.5    # always in (0,1)
+    youth_boost = 1.7    # always in (1,2)
     max_stagnation = 15
     
     # for a future release
