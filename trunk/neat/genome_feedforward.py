@@ -54,7 +54,7 @@ class Chromosome(genome.Chromosome):
                         self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-15, 15)
+                            weight = random.uniform(-1, 1)
                             cg = genome.ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return
