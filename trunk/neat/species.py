@@ -83,8 +83,7 @@ class Species: # extend list?
    
             if kill > 0: # If we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:-kill]
-                
-            assert len(self.__chromosomes) > 0
+                assert len(self.__chromosomes) > 0
                 
             # print 'Species %d with %d members - %d were killed' %(self.id, len(self), kill)   
             
@@ -105,9 +104,9 @@ class Species: # extend list?
                 
             if(len(self) > 1):
                 # Selects two parents from the remaining species and produces a single individual 
-                random.shuffle(self.__chromosomes)
+                random.shuffle(self.__chromosomes) # remove shuffle (always select best: give better results?)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
-                child = parent1.crossover(parent2)                          
+                child = parent1.crossover(parent2)
                 offspring.append(child.mutate())
                 
             self.spawn_amount -= 1 
