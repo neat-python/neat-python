@@ -21,12 +21,37 @@ def draw_net(chromosome):
     g.write('phenotype.svg', prog='dot', format='svg') 
     os.system('eog phenotype.svg')
     
-#    try:
-#        #os.system('dot -Tsvg output -o network.svg')
-#        os.system('echo "'+output+'" | dot -Tsvg > phenotype.svg')
-#        os.system('eog phenotype.svg')
-#    except OSError:
-#        print 'Can\'t find graphviz package'
+    return output
+
+def draw_better(chromosome):
+    output = 'digraph G {\n  node [shape = circle,fontsize=8,size="0.2,0.2"]'
+    
+    # subgraph for inputs, hidden, and outputs
+    output += '\n  subgraph cluster_inputs { \n  node [style=filled, shape = box, color=lightyellow,height=0.2,width=0.2]'
+    
+    for ng in chromosome.node_genes:
+        if ng.type== 'INPUT':
+            output += '\n    '+str(ng.id)
+    output += '\n  }'
+        
+    output += '\n  subgraph cluster_outputs { \n    node [style=filled, color=lightblue,height=0.2,width=0.2]'    
+    for ng in chromosome.node_genes:        
+        if ng.type== 'OUTPUT':
+            output += '\n    '+str(ng.id)       
+    output += '\n  }'
+    # topology
+    for cg in chromosome.conn_genes:
+        output += '\n  '+str(cg.innodeid)+' -> '+str(cg.outnodeid)+' [len='+str(cg.weight)+']'
+        if cg.enabled is False:
+            output += ' [style=dotted, color=cornflowerblue]'
+        
+    output += '\n }'
+    
+    print output
+    
+    g = pydot.graph_from_dot_data(output)
+    g.write('phenotype.svg', prog='dot', format='svg') 
+    os.system('eog phenotype.svg')
     
     return output
 
