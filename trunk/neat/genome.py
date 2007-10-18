@@ -189,7 +189,7 @@ class Chromosome(object):
                     # Homologous gene found
                     # TODO: average both weights (Stanley, p. 38)
                     new_gene = random.choice((cg1, cg2)).copy()
-                    #new_gene.enable() # avoids disconnected neurons
+                    new_gene.enable() # avoids disconnected neurons
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
                 child.__connection_genes[cg1.key] = new_gene
@@ -224,7 +224,7 @@ class Chromosome(object):
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys():
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-15, 15)
+                            weight = random.uniform(-1, 1)
                             cg = ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return
@@ -298,7 +298,7 @@ class Chromosome(object):
             id += 1
             # Connect it to all input nodes
             for input_node in c.__node_genes[:num_input]:
-                weight = random.uniform(-15, 15)
+                weight = random.uniform(-1, 1)
                 cg = ConnectionGene(input_node.id, node_gene.id, weight, True)
                 c.__connection_genes[cg.key] = cg
         return c
