@@ -5,8 +5,13 @@ import visualize
 
 #config.load('parameters') 
 
+# XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
+
+# XOR-3
+#INPUTS = ((0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1))
+#OUTPUTS = (0,1,1,0,1,0,0,1)
 
 def eval_fitness(population):
     for chromosome in population:
@@ -22,11 +27,11 @@ def eval_fitness(population):
         
 neat.Population.evaluate = eval_fitness
 pop = neat.Population(150)
-pop.epoch(16)
+pop.epoch(50)
 
 # Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
 visualize.draw_net(pop.stats[0][-1]) # best chromosome
-# visualize.draw_net(max(pop.stats)) # must be the same as pop.stats[-1]
+# visualize.draw_net(max(pop.stats[0])) # must be the same as pop.stats[-1]
 # Requires: biggles - http://biggles.sourceforge.net/
 visualize.plot_stats(pop.stats)
