@@ -6,21 +6,8 @@ else:
 from species import *
 #from psyco.classes import *
     
-class TournamentSelection:
-    ''' Tournament selection with k = 2 '''
-    def __init__(self, pop):
-        self._pop = pop
-    def __call__(self):
-        random.shuffle(self._pop)
-        s1, s2 = self._pop[0], self._pop[1]
-        if s1.fitness >= s2.fitness:
-            return s1
-        else:
-            return s2
-
 class Population:
     ''' Manages all the species  '''
-    selection = TournamentSelection
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
 
@@ -35,7 +22,7 @@ class Population:
         self.__avg_fitness = []
         self.__best_fitness = []
         
-    stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))        
+    stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     
     def __len__(self):
         return len(self.__population)
@@ -66,6 +53,7 @@ class Population:
                     self.remove(c)
                     break        
         
+        # Speciate the remaining population
         for c in self:
             found = False
             # TODO: if c.species_id is not None try this species first      
@@ -100,6 +88,15 @@ class Population:
             
         return sum/len(self)
     
+    def TournamentSelection(self):
+        ''' Tournament selection with k = 2 '''
+        random.shuffle(self.__population)        
+        p1, p2 = self.__population[0], self.__population[1]
+        if p1.fitness >= p2.fitness:
+            return p1
+        else:
+            return p2   
+    
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
@@ -109,7 +106,7 @@ class Population:
             if s.age < Config.youth_threshold:
                 species_stats.append(s.average_fitness()*Config.youth_boost)
             elif s.age > Config.old_threshold:
-                species_stats.append(s.average_fitness()/Config.old_penalty)       
+                species_stats.append(s.average_fitness()*Config.old_penalty)       
             else:
                 species_stats.append(s.average_fitness())
                 
@@ -136,7 +133,7 @@ class Population:
             # Evaluate individuals
             self.evaluate()              
             # Current generation's best chromosome 
-            self.__best_fitness.append(max(self.__population))
+            self.__best_fitness.append(max(self.__population)) # reference?
             # Current population's average fitness
             self.__avg_fitness.append(self.average_fitness())                              
             # Speciates the population
@@ -186,13 +183,13 @@ class Population:
                 
             if fill > 0: # underflow
                 print 'Selecting %d more individual(s) to fill up the new population' %fill
-                select = self.selection(self.__population)
                 # Apply tournament selection in the whole population (allow inter-species mating?)
                 # or select a random species to reproduce?
                 for i in range(fill):
-                    parent1 = select()
-                    parent2 = select() 
+                    parent1 = self.TournamentSelection() 
+                    parent2 = self.TournamentSelection()
                     child = parent1.crossover(parent2)
+                    # child = max(self.__population) - only apply mutations (give better results?)
                     new_population.append(child.mutate());              
                     
             # Updates current population
