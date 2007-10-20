@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 from math import exp
 import random
+from config import Config
 #random.seed(0)
 #from psyco.classes import *
 
@@ -77,6 +78,12 @@ class Network(object):
             
     def __repr__(self):
         return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
+    
+    def activate(self, inputs):
+        if Config.nn_allow_recurrence:
+            return self.pactivate(inputs)
+        else:
+            return self.sactivate(inputs)
 
     # serial network activation (asynchronous)
     def sactivate(self, inputs):	   
