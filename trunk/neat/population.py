@@ -115,6 +115,7 @@ class Population:
                 species_stats.append(s.average_fitness())
                 
         # 2. Share fitness (only usefull for computing spawn amounts)
+        
         # 3. Compute spawn
         # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
         
@@ -123,8 +124,7 @@ class Population:
         total_average = 0.0
         for s in species_stats:
                 total_average += s
-      
-        # average_fitness is being computed twice! optimize!        
+        
         for i, s in enumerate(self.__species):
             s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
                     
@@ -137,7 +137,7 @@ class Population:
             # Evaluate individuals
             self.evaluate()              
             # Current generation's best chromosome 
-            self.__best_fitness.append(max(self.__population)) # reference?
+            self.__best_fitness.append(copy.deepcopy(max(self.__population))) # reference?
             # Current population's average fitness
             self.__avg_fitness.append(self.average_fitness())                              
             # Speciates the population
@@ -145,14 +145,15 @@ class Population:
             # Compute spawn levels for each remaining species
             self.__compute_spawn_levels()      
 
+
+            best = self.__best_fitness[-1] # temporary reference (just to print some stats)
             # Which species has the best chromosome?
             for s in self.__species:
                 s.hasBest = False
-                if self.__best_fitness[-1].species_id == s.id:
+                if best.species_id == s.id:
                     s.hasBest = True
 
             print 'Population\'s average fitness', self.__avg_fitness[-1]
-            best = self.__best_fitness[-1]
             print 'Best fitness: %s - size: %s - species %s' \
                     %(best.fitness, best.size(), best.species_id)
             
