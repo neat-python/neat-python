@@ -73,7 +73,7 @@ class Chromosome(genome.Chromosome):
     
     def __deepcopy__(self, memo):
         c = super(Chromosome, self).__deepcopy__(memo)
-        c.__node_order = copy.deepcopy(self.__node_order)
+        c.__node_order = self.__node_order[:]
         return c
     
 import nn

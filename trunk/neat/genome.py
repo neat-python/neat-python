@@ -46,6 +46,7 @@ class NodeGene(object):
             self.__bias = max_weight
         elif self.__bias < min_weight:
             self.__bias = min_weight
+        return self
     
     def copy(self):
         return NodeGene(self.__id, self.__type, self.__bias)
@@ -343,8 +344,9 @@ class Chromosome(object):
         c = self.__class__()
         c.fitness = self.fitness
         c.species_id = self.species_id
-        c.__connection_genes = copy.deepcopy(self.__connection_genes)
-        c.__node_genes = copy.deepcopy(self.__node_genes)
+        for k, v in self.__connection_genes.items():
+            c.__connection_genes[k] = v
+        c.__node_genes = self.__node_genes[:]
         c.__input_nodes = self.__input_nodes
         return c
     
