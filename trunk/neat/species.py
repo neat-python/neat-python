@@ -81,13 +81,14 @@ class Species: # extend list?
             self.__chromosomes.reverse()  # best members first
  
             # Couldn't come up with a better name! Ain't we killing them anyway?
-            kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals - round() or not?       
+            kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals - round() or not?
+            print len(self), Config.survival_threshold      
    
             if kill > 0: # If we're going to kill, then do it.
-                self.__chromosomes = self.__chromosomes[:-kill]
+                self.__chromosomes = self.__chromosomes[:kill]
                 assert len(self.__chromosomes) > 0
                 
-            # print 'Species %d with %d members - %d were killed' %(self.id, len(self), kill)   
+            print 'Species %d with %d members' %(self.id, len(self))   
             
             offspring.append(self.__chromosomes[0]) # keep the best member
             self.representative = self.__chromosomes[0] # this is the same chromo from last gen.
@@ -106,7 +107,7 @@ class Species: # extend list?
                 
             if(len(self) > 1):
                 # Selects two parents from the remaining species and produces a single individual 
-                #random.shuffle(self.__chromosomes) # remove shuffle (always select best: give better results?)
+                random.shuffle(self.__chromosomes) # remove shuffle (always select best: give better results?)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
                 assert parent1.species_id == parent2.species_id
                 child = parent1.crossover(parent2)
