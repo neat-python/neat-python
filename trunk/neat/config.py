@@ -21,8 +21,8 @@ class Config: # read from file
     random_range = 1.5 # experimental
     
     # mutation probabilities
-    prob_addconn = 0.005
-    prob_addnode = 0.003    
+    prob_addconn = 0.05
+    prob_addnode = 0.03    
     prob_mutatebias = 0.1
     bias_mutation_power = 0.5    
     prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
@@ -45,7 +45,7 @@ class Config: # read from file
     
     # species
     species_size = 20
-    survival_threshold = 0.2 # only the best 20% for each species is allowed to mate
+    survival_threshold = 0.1 # only the best 20% for each species is allowed to mate
     old_threshold = 80
     youth_threshold = 10
     old_penalty = 0.2    # always in (0,1)
