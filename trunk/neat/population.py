@@ -193,7 +193,6 @@ class Population:
                 # Apply tournament selection in the whole population (allow inter-species mating?)
                 # or select a random species to reproduce?
                 for i in range(fill):
-#                    # aqui eu crio aberracoees! Selecionando dois individuos que nao tem nada a ver!
 #                    parent1 = self.TournamentSelection() 
 #                    parent2 = self.TournamentSelection()
 #                    child = parent1.crossover(parent2)
