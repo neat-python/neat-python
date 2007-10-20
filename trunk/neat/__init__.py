@@ -1,5 +1,6 @@
 from population import *
 from nn import *
+from visualize import *
 from config import Config
 if Config.nn_allow_recurrence:
     from genome import *

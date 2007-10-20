@@ -159,7 +159,7 @@ class Population:
             
             # print best_chromo
             
-            if best.fitness > 0.9:
+            if best.fitness > 0.9999:
                 file = open('best','w')
                 file.write(str(best))
                 file.close()
