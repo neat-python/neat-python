@@ -18,8 +18,9 @@ class Species: # extend list?
         """ A species requires at least one individual to come to existence """
         self.id = Species.id                        # species's id 
         self.age = 0                                # species's age
-        self.__chromosomes = [first_chromo]         # species's individuals
-        self.representative = first_chromo          # species's representative (first added member)
+        self.__chromosomes = []                     # species's individuals
+        self.add(first_chromo)
+        self.representative = self.__chromosomes[0] # species's representative (first added member)
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
         self.no_improvement_age = 0                 # the age species has shown no improvements on average
@@ -29,9 +30,10 @@ class Species: # extend list?
     #representative = property(lambda self: self.__chromosomes[0])
     chromosomes = property(lambda self: self.__chromosomes)
         
-    def add(self, ind):
+    def add(self, chromosome):
         """ Add a new individual to the species """
-        self.__chromosomes.append(ind)
+        chromosome.species_id = self.id        # set member's species id
+        self.__chromosomes.append(chromosome)        
         
     def __iter__(self):
         return iter(self.__chromosomes)
@@ -104,8 +106,9 @@ class Species: # extend list?
                 
             if(len(self) > 1):
                 # Selects two parents from the remaining species and produces a single individual 
-                random.shuffle(self.__chromosomes) # remove shuffle (always select best: give better results?)
+                #random.shuffle(self.__chromosomes) # remove shuffle (always select best: give better results?)
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
+                assert parent1.species_id == parent2.species_id
                 child = parent1.crossover(parent2)
                 offspring.append(child.mutate())
                 
@@ -114,6 +117,6 @@ class Species: # extend list?
         # reset species (new members will be added when speciating)
         self.__chromosomes = []  
         
-        assert len(offspring) > 0
+        #assert len(offspring) > 0
 
         return offspring

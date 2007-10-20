@@ -20,6 +20,7 @@ weight_mutation_power = Config.weight_mutation_power
 bias_mutation_power = Config.bias_mutation_power
 max_weight = Config.max_weight
 min_weight = Config.min_weight
+random_range = Config.random_range
 
 class NodeGene(object):    
     def __init__(self, id, nodetype, bias=0):
@@ -137,23 +138,41 @@ class Chromosome(object):
         
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
-        
+    
     def mutate(self):
         """ Mutates this chromosome """
         # TODO: review the probabilities
+        
+        # Stanley's way...
         r = random.random
-        for cg in self.__connection_genes.values():
-            if r() < prob_mutate_weight:
-                cg.mutate_weight()
-            if r() < prob_togglelink:
-                cg.enable()
-        for ng in self.__node_genes[self.__input_nodes:]:
-            if r() < prob_mutatebias:
-                ng.mutate_bias()
-        if r() < prob_addconn:    
-            self.__mutate_add_connection()
+        
         if r() < prob_addnode:
             self.__mutate_add_node()
+        elif r() < prob_addconn:
+            self.__mutate_add_connection()
+        else: # if no structural mutation occured
+            for cg in self.__connection_genes.values():
+                if r() < prob_mutate_weight:
+                    cg.mutate_weight()
+                if r() < prob_togglelink:
+                    cg.enable()
+            for ng in self.__node_genes[self.__input_nodes:]:
+                if r() < prob_mutatebias:
+                    ng.mutate_bias()
+        
+#        for cg in self.__connection_genes.values():
+#            if r() < prob_mutate_weight:
+#                cg.mutate_weight()
+#            if r() < prob_togglelink:
+#                cg.enable()
+#        for ng in self.__node_genes[self.__input_nodes:]:
+#            if r() < prob_mutatebias:
+#                ng.mutate_bias()
+#        if r() < prob_addconn:    
+#            self.__mutate_add_connection()
+#        if r() < prob_addnode:
+#            self.__mutate_add_node()
+
         return self
     
     def crossover(self, other):
@@ -166,6 +185,7 @@ class Chromosome(object):
             parent1 = other
             parent2 = self
         child.__inherit_genes(parent1, parent2)
+        assert parent1.species_id == parent2.species_id, 'species id %d' %parent1.species_id
         return child
         
     def __inherit_genes(child, parent1, parent2):
@@ -224,7 +244,7 @@ class Chromosome(object):
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys():
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-1, 1)
+                            weight = random.uniform(-random_range, random_range)
                             cg = ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return
@@ -298,7 +318,7 @@ class Chromosome(object):
             id += 1
             # Connect it to all input nodes
             for input_node in c.__node_genes[:num_input]:
-                weight = random.uniform(-1, 1)
+                weight = random.uniform(-random_range, random_range)
                 cg = ConnectionGene(input_node.id, node_gene.id, weight, True)
                 c.__connection_genes[cg.key] = cg
         return c

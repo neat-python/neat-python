@@ -18,6 +18,7 @@ class Config: # read from file
     output_nodes = 1
     max_weight = 500
     min_weight = -500
+    random_range = 1.5 # experimental
     
     # mutation probabilities
     prob_addconn = 0.05
@@ -33,11 +34,11 @@ class Config: # read from file
     
     # genetic algorithm parameters
     #pop_size = 50        # set when initializing population
-    #number_epochs = 1000 # not implemented
+    #number_epochs = 1000 # set when initializing population
     
     # genotype compatibility 
     compatibility_threshold = 3.0
-    compatibility_change = 0.3
+    compatibility_change = 0
     excess_coeficient = 1.0
     disjoint_coeficient = 1.0
     weight_coeficient = 0.4

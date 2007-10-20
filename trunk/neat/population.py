@@ -4,6 +4,7 @@ if Config.nn_allow_recurrence:
 else:
     from genome_feedforward import *
 from species import *
+import copy
 #from psyco.classes import *
     
 class Population:
@@ -35,24 +36,27 @@ class Population:
         self.__population.remove(chromo)
         
     def __speciate(self):
-        """ Group chromosomes into species by similarity """   
-        # put best members back to their species
-        for c in self:
-            for s in self.__species:                
-                if c.id == s.representative.id:
-                    s.add(c)
-                    break
-                
-        # Remove empty species
-        self.__species = [s for s in self.__species if len(s) > 0] 
-                    
-        # remove each species' representant from population        
-        for s in self.__species:
-            for c in self:
-                if c.id == s.representative.id:
-                    self.remove(c)
-                    break        
+        """ Group chromosomes into species by similarity """
         
+        if len(self.__species) > 0:   
+            # put best members back to their species
+            for c in self:
+                for s in self.__species:                
+                    if c.id == s.representative.id:
+                        x = copy.deepcopy(c)
+                        s.add(x) 
+                        break
+                    
+            # Remove empty species
+            self.__species = [s for s in self.__species if len(s) > 0] 
+                        
+            # remove each species' representant from population        
+            for s in self.__species:
+                for c in self:
+                    if c.id == s.representative.id:
+                        self.remove(c)
+                        break        
+            
         # Speciate the remaining population
         for c in self:
             found = False
@@ -60,15 +64,15 @@ class Population:
             for s in self.__species:      
                 # or random.choice(s.chromosomes) ?          
                 if c.distance(s.chromosomes[0]) < self.compatibility_threshold:
-                    c.species_id = s.id # the species chromo belongs to
-                    s.add(c)                
+                    x = copy.deepcopy(c)
+                    s.add(x)                              
                     #print 'chromo %s added to species %s' %(chromo.id, s.id)
                     found = True
                     break # we found a compatible species, so let's skip to the next
                 
             if not found: # create a new species for this lone chromosome
-                self.__species.append(Species(c)) 
-                c.species_id = self.__species[-1].id                
+                x = copy.deepcopy(c)
+                self.__species.append(Species(x))                                 
                 #print 'Creating new species %s and adding chromo %s' %(self.__species[-1].id, c.id)
         
         # controls compatibility threshold
@@ -137,7 +141,7 @@ class Population:
             # Current population's average fitness
             self.__avg_fitness.append(self.average_fitness())                              
             # Speciates the population
-            self.__speciate()                  
+            self.__speciate()          
             # Compute spawn levels for each remaining species
             self.__compute_spawn_levels()      
 
@@ -148,18 +152,21 @@ class Population:
                     s.hasBest = True
 
             print 'Population\'s average fitness', self.__avg_fitness[-1]
-            print 'Best fitness: %s - size: %s ' %(self.__best_fitness[-1].fitness, self.__best_fitness[-1].size())
+            best = self.__best_fitness[-1]
+            print 'Best fitness: %s - size: %s - species %s' \
+                    %(best.fitness, best.size(), best.species_id)
             
             # print best_chromo
             
-            if self.__best_fitness[-1].fitness > 0.99:
+            if best.fitness > 0.9:
                 file = open('best','w')
-                file.write(str(self.__best_fitness[-1]))
+                file.write(str(best))
                 file.close()
                 break
            
             # print some "debugging" information
-            print 'Species length: %d totalizing %d individuals' %(len(self.__species), sum([len(s) for s in self.__species]))
+            print 'Species length: %d totalizing %d individuals' \
+                    %(len(self.__species), sum([len(s) for s in self.__species]))
             print 'Species ID :',[s.id for s in self.__species]
             print 'Each species size:', [len(s) for s in self.__species]
             print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
@@ -186,11 +193,28 @@ class Population:
                 # Apply tournament selection in the whole population (allow inter-species mating?)
                 # or select a random species to reproduce?
                 for i in range(fill):
-                    parent1 = self.TournamentSelection() 
-                    parent2 = self.TournamentSelection()
-                    child = parent1.crossover(parent2)
-                    # child = max(self.__population) - only apply mutations (give better results?)
-                    new_population.append(child.mutate());              
+#                    # aqui eu crio aberracoees! Selecionando dois individuos que nao tem nada a ver!
+#                    parent1 = self.TournamentSelection() 
+#                    parent2 = self.TournamentSelection()
+#                    child = parent1.crossover(parent2)
+#                    # child = max(self.__population) - only apply mutations (give better results?)
+#                    new_population.append(child.mutate())    
+
+                    # Selects a random chromosome from population                    
+                    parent1 = random.choice(self.__population)                    
+                    # Search for a mate within same species
+                    found = False
+                    for c in self.__population:
+                        if c.species_id == parent1.species_id:
+                            child = parent1.crossover(c)
+                            new_population.append(child.mutate())
+                            found = True
+                            break
+                    # If found no mate, just mutate it.
+                    if not found:
+                        new_population.append(parent1.mutate())
+                                 
+                            
                     
             # Updates current population
             assert self.__popsize == len(new_population), 'Different population sizes!'

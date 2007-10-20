@@ -27,7 +27,7 @@ def eval_fitness(population):
         
 neat.Population.evaluate = eval_fitness
 pop = neat.Population(150)
-pop.epoch(50)
+pop.epoch(1500)
 
 # Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
