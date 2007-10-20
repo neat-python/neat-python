@@ -2,6 +2,7 @@
 import random
 import math
 from config import Config
+import copy
 
 #random.seed(0)
 
@@ -337,6 +338,15 @@ class Chromosome(object):
         for c in connections:
             s += "\n\t" + str(c)
         return s
+    
+    def __deepcopy__(self, memo):
+        c = self.__class__()
+        c.fitness = self.fitness
+        c.species_id = self.species_id
+        c.__connection_genes = copy.deepcopy(self.__connection_genes)
+        c.__node_genes = copy.deepcopy(self.__node_genes)
+        c.__input_nodes = self.__input_nodes
+        return c
     
 import nn
 # TODO: verify consistency!

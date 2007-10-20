@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import genome
 import random
+import copy
 
 #random.seed(0)
 
@@ -69,6 +70,11 @@ class Chromosome(genome.Chromosome):
         s = super(Chromosome, self).__str__()
         s += '\nNode order: ' + str(self.node_order)
         return s
+    
+    def __deepcopy__(self, memo):
+        c = super(Chromosome, self).__deepcopy__(memo)
+        c.__node_order = copy.deepcopy(self.__node_order)
+        return c
     
 import nn
 # TODO: verify consistency!
