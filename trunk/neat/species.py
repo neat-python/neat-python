@@ -82,13 +82,12 @@ class Species: # extend list?
  
             # Couldn't come up with a better name! Ain't we killing them anyway?
             kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals - round() or not?
-            print len(self), Config.survival_threshold      
    
             if kill > 0: # If we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:kill]
                 assert len(self.__chromosomes) > 0
                 
-            print 'Species %d with %d members' %(self.id, len(self))   
+            #print 'Species %d with %d members' %(self.id, len(self))   
             
             offspring.append(self.__chromosomes[0]) # keep the best member
             self.representative = self.__chromosomes[0] # this is the same chromo from last gen.
