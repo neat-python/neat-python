@@ -23,7 +23,7 @@ class SpikingNeuron(object):
         self.__d = d
         self.__v = self.__c # membrane potential
         self.__u = self.__b * self.__v # membrane recovery variable
-        self.__fired = False
+        self.__has_fired = False
         self.__bias = bias
         self.current = self.__bias
     
@@ -33,15 +33,48 @@ class SpikingNeuron(object):
         self.__v += 0.5 * (0.04 * self.__v ** 2 + 5 * self.__v + 140 - self.__u + self.current)
         self.__u += self.__a * (self.__b * self.__v - self.__u)
         if self.__v > 30:
-            self.__fired = True
+            self.__has_fired = True
             self.__v = self.__c
             self.__u += self.__d
         else:
-            self.__fired = False
+            self.__has_fired = False
         self.current = self.__bias
     
-    potential = property(lambda self: self.__v, doc = 'membrane potential')
-    fired = property(lambda self: self.__fired, doc = 'indicates whether the neuron has fired')
+    potential = property(lambda self: self.__v, doc = 'Membrane potential')
+    has_fired = property(lambda self: self.__has_fired,
+                     doc = 'Indicates whether the neuron has fired')
+
+class Synapse:
+    """ A synapse indicates the connection strength between two neurons (or itself) """
+    def __init__(self, source, dest, weight):        
+        self.__weight = weight
+        self.__source = source
+        self.__dest = dest
+
+    def advance(self):
+        'Advances time in 1 ms.'
+        if self.__source.has_fired:
+            self.__dest.current += self.__weight
+
+class Network(object):
+    """ A neural network has a list of neurons linked by synapses """
+    def __init__(self, neurons=[], input_neurons = [], output_neuron = [], synapses=[]):
+        self.__neurons = neurons
+        self.__synapses = links
+        self.__input_neurons = input_neurons
+        self.__output_neurons = output_neurons 
+            
+    def __repr__(self):
+        return '%d nodes and %d synapses' % (len(self.__neurons), len(self.__synapses))
+    
+    def advance(self, inputs):
+        for i, input in enumerate(inputs):
+            self.__input_neurons[i].current += input
+        for s in self.__synapses:
+            s.advance()
+        for n in self.__neurons:
+            n.advance()
+        return [n.has_fired in self.__output_neurons]
 
 if __name__ == '__main__':
     n = SpikingNeuron(10)
