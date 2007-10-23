@@ -86,3 +86,17 @@ def plot_stats(stats):
     plot.write_img(600, 300, 'avg_fitness.svg')
     # width and height doesn't seem to affect the output! 
     os.system('eog avg_fitness.svg')
+    
+def plot_spikes(spikes):
+    
+    time = [i for i in xrange(len(spikes))]
+    
+    plot = biggles.FramedPlot()
+    plot.title = "Izhikevich's spiking neuron model"
+    plot.xlabel = r"Membrane Potential"
+    plot.ylabel = r"Time (in ms)"
+    
+    plot.add(biggles.Curve(time, spikes, color="green"))
+    plot.write_img(600, 300, 'spiking_neuron.svg')
+    # width and height doesn't seem to affect the output! 
+    os.system('eog spiking_neuron.svg')
