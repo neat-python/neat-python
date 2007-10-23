@@ -93,8 +93,8 @@ def plot_spikes(spikes):
     
     plot = biggles.FramedPlot()
     plot.title = "Izhikevich's spiking neuron model"
-    plot.xlabel = r"Membrane Potential"
-    plot.ylabel = r"Time (in ms)"
+    plot.ylabel = r"Membrane Potential"
+    plot.xlabel = r"Time (in ms)"
     
     plot.add(biggles.Curve(time, spikes, color="green"))
     plot.write_img(600, 300, 'spiking_neuron.svg')
