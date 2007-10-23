@@ -94,13 +94,13 @@ def create_phenotype(chromosome):
     
     return Network(neurons, input_neurons, output_neurons, synapses)
 
-import visualize
 if __name__ == '__main__':
+    import visualize
     n = Neuron(10)
     spike_train = []
     for i in range(1000):
         spike_train.append(n.potential)
-        print '%d\t%f' % (i, n.potential)
+        #print '%d\t%f' % (i, n.potential)
         n.advance()
         
     visualize.plot_spikes(spike_train)
