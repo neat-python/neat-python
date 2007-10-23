@@ -1,6 +1,6 @@
 import math
 import neat
-import visualize
+
 
 from neat import spiking_nn, config
 config.Config.output_nodes = 2
@@ -39,7 +39,7 @@ pop.epoch(1500)
 
 # Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
-visualize.draw_net(pop.stats[0][-1]) # best chromosome
+neat.draw_net(pop.stats[0][-1]) # best chromosome
 # visualize.draw_net(max(pop.stats[0])) # must be the same as pop.stats[-1]
 # Requires: biggles - http://biggles.sourceforge.net/
-visualize.plot_stats(pop.stats)
+neat.plot_stats(pop.stats)
