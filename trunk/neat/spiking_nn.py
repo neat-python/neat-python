@@ -8,7 +8,7 @@ class Neuron(object):
     Simple Model of Spiking Neurons
     IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
     '''
-    
+        
     def __init__(self, bias = 0, a = 0.02, b = 0.2, c = -65.0, d = 2.0):
         '''
         a, b, c, d are the parameters of this model.
@@ -94,8 +94,13 @@ def create_phenotype(chromosome):
     
     return Network(neurons, input_neurons, output_neurons, synapses)
 
+import visualize
 if __name__ == '__main__':
-    n = SpikingNeuron(10)
+    n = Neuron(10)
+    spike_train = []
     for i in range(1000):
+        spike_train.append(n.potential)
         print '%d\t%f' % (i, n.potential)
         n.advance()
+        
+    visualize.plot_spikes(spike_train)
