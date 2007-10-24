@@ -33,8 +33,8 @@ def eval_fitness(population):
             chromosome.fitness = 0.00001
 
 population.Population.evaluate = eval_fitness
-pop = population.Population(2)
-pop.epoch(2)
+pop = population.Population(30)
+pop.epoch(1500)
 
 # Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
