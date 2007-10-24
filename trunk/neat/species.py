@@ -51,9 +51,11 @@ class Species: # extend list?
         for c in self.__chromosomes:
             sum += c.fitness
             
-        avg_fitness = sum/len(self.__chromosomes)
-            
-        return avg_fitness
+        try:
+            avg_fitness = sum/len(self.__chromosomes)
+            return avg_fitness
+        except ZeroDivisionError:
+            print "Species %d, with rep. %d is empty! But why?" %(self.id, self.representative.id)   
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
@@ -70,12 +72,7 @@ class Species: # extend list?
         else:
             self.no_improvement_age += 1 
         
-        if self.spawn_amount == 0:
-            # TODO: remove useless condition
-            print 'Species %d (age %s) will be removed (produced no offspring)' %(self.id, self.age)
-        
         if self.spawn_amount > 0:
-            # remove condition since we're always reproducing species with spawn_amount > 0
             
             self.__chromosomes.sort()     # sort species's members by their fitness
             self.__chromosomes.reverse()  # best members first
@@ -89,9 +86,8 @@ class Species: # extend list?
                 
             #print 'Species %d with %d members' %(self.id, len(self))   
             
-            offspring.append(self.__chromosomes[0]) # keep the best member
             self.representative = self.__chromosomes[0] # this is the same chromo from last gen.
-
+            offspring.append(self.__chromosomes[0])
             self.spawn_amount -= 1 # The best member will be kept for the next generation
                                    # so we have one less individual to spawn
                
@@ -115,7 +111,7 @@ class Species: # extend list?
             self.spawn_amount -= 1 
 
         # reset species (new members will be added when speciating)
-        self.__chromosomes = []  
+        self.__chromosomes = []  # keep the best, only returns the offspring
         
         #assert len(offspring) > 0
 
