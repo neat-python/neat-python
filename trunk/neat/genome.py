@@ -340,21 +340,20 @@ class Chromosome(object):
             s += "\n\t" + str(c)
         return s
     
-    def __deepcopy__(self, memo):
-        c = self.__class__()
-        c.fitness = self.fitness
-        c.species_id = self.species_id
-        for k, v in self.__connection_genes.items():
-            c.__connection_genes[k] = v
-        c.__node_genes = self.__node_genes[:]
-        c.__input_nodes = self.__input_nodes
-        return c
+#    def __deepcopy__(self):
+#        c = self.__class__()
+#        c.fitness = self.fitness
+#        c.species_id = self.species_id
+#        #assert c.id == self.id, 'Different ids'
+#        for k, v in self.__connection_genes.items():
+#            c.__connection_genes[k] = v
+#        c.__node_genes = self.__node_genes[:]
+#        c.__input_nodes = self.__input_nodes
+#        return c
     
-import nn
-# TODO: verify consistency!
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
-    
+    import nn
     # bias parameter is missing (default=0)
     neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
                     for ng in chromosome.node_genes]
