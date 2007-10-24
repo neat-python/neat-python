@@ -7,26 +7,10 @@ try:
 except ImportError:
     print "You do not have the required packages"
     
-
-def draw_old(chromosome):
-    output = 'digraph G {\n node [shape = circle]'
-    for cg in chromosome.conn_genes:
-        output += '\n\t'+str(cg.innodeid)+' -> '+str(cg.outnodeid)
-        if cg.enabled is False:
-            output += ' [style=dotted, color=cornflowerblue]'
-        
-    output += '\n }'
-    
-    g = pydot.graph_from_dot_data(output)
-    g.write('phenotype.svg', prog='dot', format='svg') 
-    os.system('eog phenotype.svg')
-    
-    return output
-
 def draw_net(chromosome):
     output = 'digraph G {\n  node [shape=circle, fontsize=9, height=0.2, width=0.2]'
     
-    # subgraph for inputs, hidden, and outputs
+    # subgraph for inputs and outputs
     output += '\n  subgraph cluster_inputs { \n  node [style=filled, shape=box] \n    color=white'    
     for ng in chromosome.node_genes:
         if ng.type== 'INPUT':
@@ -49,6 +33,34 @@ def draw_net(chromosome):
     g = pydot.graph_from_dot_data(output)
     g.write('phenotype.svg', prog='dot', format='svg') 
     os.system('eog phenotype.svg')
+    
+    return output
+
+def draw_ff(net):
+    
+    output = 'digraph G {\n  node [shape=circle, fontsize=9, height=0.2, width=0.2]'
+    
+    # subgraph for inputs and outputs
+    output += '\n  subgraph cluster_inputs { \n  node [style=filled, shape=box] \n    color=white'    
+    for neuron in net.neurons:
+        if neuron.type== 'INPUT':
+            output += '\n    '+str(neuron.id)
+    output += '\n  }'
+        
+    output += '\n  subgraph cluster_outputs { \n    node [style=filled, color=lightblue] \n    color=white'    
+    for neuron in net.neurons:        
+        if neuron.type== 'OUTPUT':
+            output += '\n    '+str(neuron.id)       
+    output += '\n  }'
+    # topology
+    for synapse in net.synapses:
+        output += '\n  '+str(synapse.source.id)+' -> '+str(synapse.dest.id)
+                
+    output += '\n }'
+    
+    g = pydot.graph_from_dot_data(output)
+    g.write('feedforward.svg', prog='dot', format='svg') 
+    os.system('eog feedforward.svg')
     
     return output
 
