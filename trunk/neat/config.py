@@ -26,7 +26,7 @@ class Config: # read from file
     prob_mutatebias = 0.2
     bias_mutation_power = 0.5    
     prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
-    weight_mutation_power = 3.5    
+    weight_mutation_power = 1.5    
     prob_togglelink = 0.1
     
     #prob_crossover = 0.7  # not implemented (always apply crossover)
@@ -35,6 +35,7 @@ class Config: # read from file
     # genetic algorithm parameters
     #pop_size = 50        # set when initializing population
     #number_epochs = 1000 # set when initializing population
+    max_fitness_threshold = 0.99
     
     # genotype compatibility 
     compatibility_threshold = 3.0
@@ -44,7 +45,7 @@ class Config: # read from file
     weight_coeficient = 0.4
     
     # species
-    species_size = 20
+    species_size = 10
     survival_threshold = 0.1 # only the best 20% for each species is allowed to mate
     old_threshold = 80
     youth_threshold = 10
