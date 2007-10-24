@@ -1,8 +1,7 @@
 import math
-import neat
 
 
-from neat import spiking_nn, config
+from neat import config, population, genome_feedforward, visualize, spiking_nn
 config.Config.output_nodes = 2
 config.Config.prob_addconn = 0.01
 config.Config.prob_addnode = 0.005
@@ -33,13 +32,13 @@ def eval_fitness(population):
         if not chromosome.fitness:
             chromosome.fitness = 0.00001
 
-neat.Population.evaluate = eval_fitness
-pop = neat.Population(50)
-pop.epoch(1500)
+population.Population.evaluate = eval_fitness
+pop = population.Population(2)
+pop.epoch(2)
 
 # Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
 # very, very, very draft solution for network visualizing
-neat.draw_net(pop.stats[0][-1]) # best chromosome
+visualize.draw_net(pop.stats[0][-1]) # best chromosome
 # visualize.draw_net(max(pop.stats[0])) # must be the same as pop.stats[-1]
 # Requires: biggles - http://biggles.sourceforge.net/
-neat.plot_stats(pop.stats)
+visualize.plot_stats(pop.stats)
