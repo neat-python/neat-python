@@ -1,11 +1,9 @@
-# -*- coding: UTF-8 -*-
-from math import exp
-import random
+import math, random
 from config import Config
 #random.seed(0)
 #from psyco.classes import *
 
-class Neuron: # using properties without extending object? Is it possible?
+class Neuron(object):
     """ A simple artificial neuron """
     __id = 0
     def __init__(self, neurontype, id=None, bias_weight=0.0, response=4.924273):
@@ -23,10 +21,11 @@ class Neuron: # using properties without extending object? Is it possible?
         self.__response = response # default = 4.924273 (Stanley, p. 146)
         self.activation = 0.0  # for recurrent networks all neurons must have an "initial state"
     
-    type = property(lambda self: self.__type)
-    id = property(lambda self: self.__id)
+    type = property(lambda self: self.__type, "Returns neuron's type: INPUT, OUTPUT, or HIDDEN")
+    id = property(lambda self: self.__id, "Returns neuron's id")
     
     def activate(self):
+        """ Activates the neuron. """
         if(len(self.synapses) > 0):
             soma = 0.0
             for s in self.synapses:
@@ -44,17 +43,34 @@ class Neuron: # using properties without extending object? Is it possible?
     # activation function
     @staticmethod
     def f(x, response):
-	return 1.0/(1.0 + exp(-x*response)) 
+        """ Sigmoidal activation function. Here you can define 
+            any type of activation function. """
+        try:
+            output = 1.0/(1.0 + math.exp(-x*response))
+        except OverflowError:
+             print 'Overflow error: x = %s', x
+             
+        return output
+        #return math.tanh(x*response)
 
-class Synapse:
+class Synapse(object):
     """ A synapse indicates the connection strength between two neurons (or itself) """
     def __init__(self, source, dest, weight):        
-        self.weight = weight
-        self.source = source
-        dest.append(self)
+        self.__weight = weight
+        self.__source = source
+        self.__dest = dest
+        dest.append(self) # adds the synapse to the destination neuron
+        
+    source = property(lambda self: self.__source)
+    dest = property(lambda self: self.__dest)
 
     def incoming(self):
-        return self.weight*self.source.activation
+        """ Receives the incoming signal from a sensor or another neuron
+            and returns the value to the neuron it belongs to. """
+        return self.__weight*self.__source.activation
+    
+    def __repr__(self):
+        return '%s -> %s -> %s' %(self.__source.id, self.__weight, self.__dest.id)
 
 class Network(object):
     """ A neural network has a list of neurons linked by synapses """
@@ -64,14 +80,16 @@ class Network(object):
         
         if links is not None:        
             N = {} # a temporary dictionary to create the network connections
-            for n in self.__neurons: N[n.id] = n            
-            for c in links: self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
+            for n in self.__neurons: 
+                N[n.id] = n            
+            for c in links: 
+                self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
+                
+    neurons = property(lambda self: self.__neurons)
+    synapses = property(lambda self: self.__synapses)
             
     def addNeuron(self, neuron):
-        self.__neurons += neuron
-        
-    def getNeuron(self):
-        return self.__neurons
+        self.__neurons.append(neuron)
         
     def addSynapse(self, synapse):
         self.__synapses.append(synapse)
@@ -85,12 +103,13 @@ class Network(object):
         else:
             return self.sactivate(inputs)
 
-    # serial network activation (asynchronous)
-    def sactivate(self, inputs):	   
+    def sactivate(self, inputs):	
+        """ Serial network activation (asynchronous) method. Mostly
+            used in classification tasks (supervised learning) in
+            feedforward topologies """   
         # assign "input neurons'" activation values (actually a sensor)
         k=0
-        #for n in self.__neurons[:len(inputs)]:
-        for n in self.__neurons:
+        for n in self.__neurons[:len(inputs)]:
             if(n.type == 'INPUT'):
                 n.activation = inputs[k]   
                 k+=1
@@ -104,9 +123,14 @@ class Network(object):
 			
         return output
 
-    # parallel network activation (synchronous)
-    def pactivate(self, inputs): # ugly name for such an important method!
-        current_state = []
+    def pactivate(self, inputs):
+        """ Parallel network activation (synchronous) method. Mostly 
+            used for control and unsupervised learning (i.e., artificial 
+            life) in recurrent networks.            
+        """
+        # the current state is like a "photograph" taken at each time step 
+        # reresenting all neuron's state at that time (think of it as a clock)
+        current_state = [] 
         # assign "input neurons'" activation values (actually a sensor)
         k=0	   
         for n in self.__neurons:
@@ -127,52 +151,58 @@ class Network(object):
 
 class FeedForward(Network):
     """ A feedforward network is a particular class of neural network """
-    # only a hidden layer is considered for now
-    def __init__(self, inputs, hidden, output, bias=False):
+    # only one hidden layer is considered for now
+    def __init__(self, layers, bias=False):
         Network.__init__(self)    
-        self.inputs = inputs
-        self.hidden = hidden
-        self.output = output
+        self.input_layer = layers[0]
+        self.output_layer = layers[-1]
+        self.hidden_layers = layers[1:-1]
         self.bias = bias
         
-        self.addNeuron([Neuron('INPUT')  for i in xrange(self.inputs)])
-        self.addNeuron([Neuron('HIDDEN') for i in xrange(self.hidden)])
-        self.addNeuron([Neuron('OUTPUT') for i in xrange(self.output)])
+        # assign random weights for bias
+        if bias:
+            r = random.uniform
+        else:
+            r = lambda a,b: 0
         
-        print self.getNeuron()
-               
+        for i in xrange(self.input_layer):
+            self.addNeuron(Neuron('INPUT'))                              
+        
+        for i in xrange(self.hidden_layers[0]):
+            self.addNeuron(Neuron('HIDDEN', bias_weight = r(-1,1), response = 1))
+            
+        for i in xrange(self.output_layer):
+            self.addNeuron(Neuron('OUTPUT', bias_weight = r(-1,1), response = 1))
+           
+        r = random.uniform  # assign random weights             
         # inputs -> hidden
-        for i in self.getNeuron()[:inputs]: # percorre só os inputs
-            if i.type == 'INPUT': # nem preciso testar pq só será do tipo input mesmo!
-                for h in self.getNeuron()[inputs:-output]: # percorre só os hidden
-                    if h.type == 'HIDDEN': # aqui só tem hidden, nem preciso testar
-                        self.addSynapse(Synapse(i, h, random.random()))                        
-                        
+        for i in self.neurons[:self.input_layer]:
+                for h in self.neurons[self.input_layer:-self.output_layer]:
+                        self.addSynapse(Synapse(i, h, r(-1,1)))       
         # hidden -> outputs
-        for h in self.getNeuron()[inputs:-output]:
-            if h.type == 'HIDDEN':
-                for o in self.getNeuron()[-output:]:
-                    if o.type == 'OUTPUTS':
-                        self.addSynapse(Synapse(h, o, random.random()))
-
+        for h in self.neurons[self.input_layer:-self.output_layer]:
+                for o in self.neurons[-self.output_layer:]:
+                        self.addSynapse(Synapse(h, o, r(-1,1)))
 
 
 if __name__ == "__main__":
-#    # Example
-#    nn = FeedForward(2,1,2,True)
-#    print 'Parallel activation method: '
-#    for t in range(3):
-#        print nn.sactivate([1,0])
-#    print nn
-#		
-#    print 'Serial activation method: '
-#    for t in range(3):
-#	    print nn.pactivate([1,0])
+    # Example
+    import visualize
+    nn = FeedForward([2,2,1], False)
+    #visualize.draw_ff(nn)
+    print 'Parallel activation method: '
+    for t in range(3):
+        print nn.pactivate([1,0])
+    print 'Serial activation method: '
+    for t in range(3):
+	    print nn.pactivate([1,0])
+    print nn
 
     # defining a neural network manually
     neurons = [Neuron('INPUT', 0), Neuron('OUTPUT', 1), Neuron('OUTPUT', 2)]
     connections = [(0, 2, 0.5), (0, 1, 0.5), (1, 2, 0.5)]
     
     net = Network(neurons, connections) # constructs the neural network
+    #visualize.draw_ff(net)
     print net.pactivate([0.04]) # parallel activation method
     print net # print how many neurons and synapses our network has 
