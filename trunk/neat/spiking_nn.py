@@ -9,13 +9,23 @@ class Neuron(object):
     IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
     '''
         
-    def __init__(self, bias = 0, a = 0.02, b = 0.2, c = -65.0, d = 2.0):
+    def __init__(self, bias = 0, a = 0.02, b = 0.2, c = -65.0, d = 8.0):
         '''
         a, b, c, d are the parameters of this model.
         a: the time scale of the recovery variable.
         b: the sensitivity of the recovery variable.
         c: the after-spike reset value of the membrane potential.
         d: after-spike reset of the recovery variable.
+        
+        The following parameters produces some known spiking behavior:
+        
+        Regular spiking: a = 0.02, b = 0.2, c = -65.0, d = 8.0
+        Intrinsically bursting: a = 0.02, b = 0.2, c = -55.0, d = 4.0
+        Chattering: a = 0.02, b = 0.2, c = -50.0, d = 2.0
+        Fast spiking: a = 0.1, b = 0.2, c = -65.0, d = 2.0
+        Thalamo-cortical: a = 0.02, b = 0.25, c = -65.0, d = 0.05
+        Resonator: a = 0.1, b = 0.25, c = -65.0, d = 2.0
+        Low-threshold spiking: a = 0.02, b = 0.25, c = -65, d = 2.0
         '''
         self.__a = a
         self.__b = b
