@@ -17,7 +17,7 @@ class Neuron(object):
         c: the after-spike reset value of the membrane potential.
         d: after-spike reset of the recovery variable.
         
-        The following parameters produce some known spiking behavior:
+        The following parameters produce some known spiking behaviors:
         
         Regular spiking: a = 0.02, b = 0.2, c = -65.0, d = 8.0
         Intrinsically bursting: a = 0.02, b = 0.2, c = -55.0, d = 4.0

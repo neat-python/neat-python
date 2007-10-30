@@ -4,9 +4,11 @@
  */
 
 #include <Python.h>
+#include "neuron.hpp"
 
 typedef struct {
     PyObject_HEAD
+    Neuron neuron;
 } NeuronObject;
 
 namespace {
