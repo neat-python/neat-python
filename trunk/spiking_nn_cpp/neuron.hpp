@@ -37,7 +37,7 @@ public:
     // Indicates whether the neuron has fired
     bool has_fired() const { return __has_fired; }
     double get_current() const { return __current; }
-    void add_current(double current) { __current += current; }
+    void set_current(double current) { __current = current; }
 private:
 	double __a;
 	double __b;
