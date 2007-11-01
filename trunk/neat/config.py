@@ -12,6 +12,7 @@ def load(file):
 class Config: # read from file
     # network type
     nn_allow_recurrence = False
+    nn_activation = 'exp'  # exp or tanh
     
     # phenotype config
     input_nodes = 2
