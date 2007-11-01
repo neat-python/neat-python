@@ -1,10 +1,7 @@
 from config import Config
-if Config.nn_allow_recurrence:
-    from genome import *
-else:
-    from genome_feedforward import *
 from species import *
-import copy
+import genome, genome_feedforward
+import cPickle as pickle
 #from psyco.classes import *
 
 class Population:
@@ -14,15 +11,23 @@ class Population:
 
     def __init__(self, popsize):
         self.__popsize = popsize
-        self.__population = [Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                             for i in xrange(self.__popsize)]
         self.__species = []
                 
         # Statistics
         self.__avg_fitness = []
         self.__best_fitness = []
         
+        self.__create_population()
+        
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
+    
+    def __create_population(self):
+        if Config.nn_allow_recurrence:
+            self.__population = [genome.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
+                                 for i in xrange(self.__popsize)]
+        else:
+            self.__population = [genome_feedforward.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
+                                 for i in xrange(self.__popsize)]
     
     def __len__(self):
         return len(self.__population)
@@ -149,12 +154,14 @@ class Population:
             print 'Best fitness: %s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
             
-            # print best_chromo
+            # saves the best chromo from current generation
+            #file = open('best_chromo_'+str(generation),'w')
+            file = open('best_chromo_'+str(generation),'w')
+            pickle.dump(best, file)
+            file.close()
             
+            # stops the simulation
             if best.fitness > Config.max_fitness_threshold:
-                file = open('best','w')
-                file.write(str(best))
-                file.close()
                 break
            
             if stats:

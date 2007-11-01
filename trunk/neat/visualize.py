@@ -33,8 +33,6 @@ def draw_net(chromosome):
     g = pydot.graph_from_dot_data(output)
     g.write('phenotype.svg', prog='dot', format='svg') 
     os.system('eog phenotype.svg')
-    
-    return output
 
 def draw_ff(net):
     
@@ -61,8 +59,6 @@ def draw_ff(net):
     g = pydot.graph_from_dot_data(output)
     g.write('feedforward.svg', prog='dot', format='svg') 
     os.system('eog feedforward.svg')
-    
-    return output
 
 def plot_best(stats): 
     fitness = [c.fitness for c in stats]

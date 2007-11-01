@@ -46,12 +46,18 @@ class Neuron(object):
         """ Sigmoidal activation function. Here you can define 
             any type of activation function. """
         try:
-            output = 1.0/(1.0 + math.exp(-x*response))
+            if Config.nn_activation == 'exp':
+                output = 1.0/(1.0 + math.exp(-x*response))
+            elif Config.nn_activation == 'tanh':
+                output = math.tanh(x*response)
+            else:
+                # raise exception
+                print 'Invalid activation type selected'
+                
         except OverflowError:
              print 'Overflow error: x = %s', x
              
         return output
-        #return math.tanh(x*response)
 
 class Synapse(object):
     """ A synapse indicates the connection strength between two neurons (or itself) """
