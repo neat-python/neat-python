@@ -71,11 +71,6 @@ class Chromosome(genome.Chromosome):
         s += '\nNode order: ' + str(self.node_order)
         return s
     
-#    def __deepcopy__(self, memo):
-#        c = super(Chromosome, self).__deepcopy__(memo)
-#        c.__node_order = self.__node_order[:]
-#        return c
-    
 import nn
 # TODO: verify consistency!
 def create_phenotype(chromosome):
