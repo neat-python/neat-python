@@ -211,7 +211,7 @@ class Chromosome(object):
                     # Homologous gene found
                     # TODO: average both weights (Stanley, p. 38)
                     new_gene = random.choice((cg1, cg2)).copy()
-                    #new_gene.enable() # avoids disconnected neurons
+                    new_gene.enable() # avoids disconnected neurons
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
                 child.__connection_genes[cg1.key] = new_gene
