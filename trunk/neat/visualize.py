@@ -1,12 +1,13 @@
 # Receives a chromosome and returns a graphical representation of its phenotype
-# This is a draft solution - works only with linux
+# This is a draft solution
 try:
-    import pydot
-    import biggles
+    import pydot   # Requires PyDot: http://code.google.com/p/pydot/downloads/list
+    import biggles # Requires biggles: http://biggles.sourceforge.net/
 except ImportError:
-    print "You do not have the required packages"
+    print "You do not have the required packages: PyDot and/or Biggles"
     
 def draw_net(chromosome):
+    ''' Draws a neural network with arbitrary topology. '''
     output = 'digraph G {\n  node [shape=circle, fontsize=9, height=0.2, width=0.2]'
     
     # subgraph for inputs and outputs
@@ -33,6 +34,7 @@ def draw_net(chromosome):
     g.write('phenotype.svg', prog='dot', format='svg') 
 
 def draw_ff(net):
+    ''' Draws a feedforward neural network '''
     
     output = 'digraph G {\n  node [shape=circle, fontsize=9, height=0.2, width=0.2]'
     
@@ -56,23 +58,9 @@ def draw_ff(net):
     
     g = pydot.graph_from_dot_data(output)
     g.write('feedforward.svg', prog='dot', format='svg') 
-
-def plot_best(stats): 
-    fitness = [c.fitness for c in stats]
-    generation = [i for i in xrange(len(fitness))]
-    
-    plot = biggles.FramedPlot()
-    plot.title = "Best fitness"
-    plot.xlabel = r"Generations"
-    plot.ylabel = r"Fitness"
-
-    plot.add(biggles.Curve(generation, fitness, color="red"))
-         
-    #plot.show() # X11
-    plot.write_img(600, 300, 'best_fitness.svg')
-    # width and height doesn't seem to affect the output! 
     
 def plot_stats(stats): 
+    ''' Plots the population's average and best fitness. '''
     generation = [i for i in xrange(len(stats[0]))]
     
     fitness = [c.fitness for c in stats[0]]
@@ -91,7 +79,7 @@ def plot_stats(stats):
     # width and height doesn't seem to affect the output! 
     
 def plot_spikes(spikes):
-    
+    ''' Plots the trains for a single spiking neuron. '''
     time = [i for i in xrange(len(spikes))]
     
     plot = biggles.FramedPlot()
