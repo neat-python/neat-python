@@ -122,7 +122,7 @@ class Population:
                 # This rarely happens
                 print 'Species %d (age %s) will be removed (produced no offspring)' %(s.id, s.age)
                     
-    def epoch(self, n, stats=True):
+    def epoch(self, n, stats=True, save_best=False):
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
         
         for generation in xrange(n):
@@ -153,13 +153,10 @@ class Population:
                     %(best.fitness, best.size(), best.species_id, best.id)
             
             # saves the best chromo from current generation
-            file = open('best_chromo_'+str(generation),'w')
-            pickle.dump(best, file)
-            file.close()
-            
-            # stops the simulation
-            if best.fitness > Config.max_fitness_threshold:
-                break
+            if save_best:
+                file = open('best_chromo_'+str(generation),'w')
+                pickle.dump(best, file)
+                file.close()
            
             if stats:
                 # print some "debugging" information
@@ -169,7 +166,12 @@ class Population:
                 print 'Each species size:', [len(s) for s in self.__species]
                 print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
                 print 'Species age:',[s.age for s in self.__species]
-                print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age            
+                print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
+                
+            # Stops the simulation
+            if best.fitness > Config.max_fitness_threshold:
+                print 'Best individual found in epoch',generation
+                break            
                 
             # -------------------------- Producing new offspring -------------------------- #
             new_population = [] # next generation's population
