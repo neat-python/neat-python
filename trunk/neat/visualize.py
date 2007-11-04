@@ -1,6 +1,5 @@
 # Receives a chromosome and returns a graphical representation of its phenotype
 # This is a draft solution - works only with linux
-import os
 try:
     import pydot
     import biggles
@@ -32,7 +31,6 @@ def draw_net(chromosome):
     
     g = pydot.graph_from_dot_data(output)
     g.write('phenotype.svg', prog='dot', format='svg') 
-    os.system('eog phenotype.svg')
 
 def draw_ff(net):
     
@@ -58,7 +56,6 @@ def draw_ff(net):
     
     g = pydot.graph_from_dot_data(output)
     g.write('feedforward.svg', prog='dot', format='svg') 
-    os.system('eog feedforward.svg')
 
 def plot_best(stats): 
     fitness = [c.fitness for c in stats]
@@ -74,7 +71,6 @@ def plot_best(stats):
     #plot.show() # X11
     plot.write_img(600, 300, 'best_fitness.svg')
     # width and height doesn't seem to affect the output! 
-    os.system('eog best_fitness.svg')
     
 def plot_stats(stats): 
     generation = [i for i in xrange(len(stats[0]))]
@@ -93,7 +89,6 @@ def plot_stats(stats):
     #plot.show() # X11
     plot.write_img(600, 300, 'avg_fitness.svg')
     # width and height doesn't seem to affect the output! 
-    os.system('eog avg_fitness.svg')
     
 def plot_spikes(spikes):
     
@@ -107,4 +102,3 @@ def plot_spikes(spikes):
     plot.add(biggles.Curve(time, spikes, color="green"))
     plot.write_img(600, 300, 'spiking_neuron.svg')
     # width and height doesn't seem to affect the output! 
-    os.system('eog spiking_neuron.svg')
