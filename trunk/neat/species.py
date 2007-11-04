@@ -10,7 +10,7 @@ species_size = Config.species_size
 compatibility_change = Config.compatibility_change
 max_stagnation = Config.max_stagnation
 
-class Species: # extend list?
+class Species:
     """ A subpopulation containing similar individiduals """
     id = 1 # species id
     
@@ -50,7 +50,7 @@ class Species: # extend list?
         sum = 0.0
         for c in self.__chromosomes:
             sum += c.fitness
-            
+                        
         try:
             avg_fitness = sum/len(self.__chromosomes)
             return avg_fitness
@@ -78,13 +78,11 @@ class Species: # extend list?
             self.__chromosomes.reverse()  # best members first
  
             # Couldn't come up with a better name! Ain't we killing them anyway?
-            kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals - round() or not?
+            kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
    
             if kill > 0: # If we're going to kill, then do it.
                 self.__chromosomes = self.__chromosomes[:kill]
-                assert len(self.__chromosomes) > 0
-                
-            #print 'Species %d with %d members' %(self.id, len(self))   
+                assert len(self.__chromosomes) > 0 
             
             self.representative = self.__chromosomes[0] # this is the same chromo from last gen.
             offspring.append(self.__chromosomes[0])
@@ -112,7 +110,5 @@ class Species: # extend list?
 
         # reset species (new members will be added when speciating)
         self.__chromosomes = []  # keep the best, only returns the offspring
-        
-        #assert len(offspring) > 0
 
         return offspring

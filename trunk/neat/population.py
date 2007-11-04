@@ -68,7 +68,7 @@ class Population:
             if not found: # create a new species for this lone chromosome
                 self.__species.append(Species(c))  
        
-        # controls compatibility threshold
+        # Controls compatibility threshold
         if len(self.__species) > species_size:
             Config.compatibility_threshold += Config.compatibility_change
         elif len(self.__species) < species_size:
@@ -97,7 +97,7 @@ class Population:
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
-        # 1. boost if young and penalize if old (on raw fitness!) - on average_raw?
+        # 1. Boost if young and penalize if old
         species_stats = []
         for s in self.__species:
             if s.age < Config.youth_threshold:
@@ -107,17 +107,15 @@ class Population:
             else:
                 species_stats.append(s.average_fitness())
                 
-        # 2. Share fitness (only usefull for computing spawn amounts)
-        
-        # 3. Compute spawn
-        # More about it on: http://tech.groups.yahoo.com/group/neat/message/2203
-        
+        # 2. Share fitness (only usefull for computing spawn amounts)       
+        # More info: http://tech.groups.yahoo.com/group/neat/message/2203        
         # Sharing the fitness is only meaningful here  
         # we don't really have to change each individual's raw fitness 
         total_average = 0.0
         for s in species_stats:
                 total_average += s
-        
+                
+         # 3. Compute spawn
         for i, s in enumerate(self.__species):
             s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
             if s.spawn_amount == 0:
@@ -155,7 +153,6 @@ class Population:
                     %(best.fitness, best.size(), best.species_id, best.id)
             
             # saves the best chromo from current generation
-            #file = open('best_chromo_'+str(generation),'w')
             file = open('best_chromo_'+str(generation),'w')
             pickle.dump(best, file)
             file.close()
@@ -183,6 +180,10 @@ class Population:
                 new_population.extend(s.reproduce())
                            
 #            # Controls under or overflow
+#            # This is unnecessary since the population size is stable
+#            # due to the computed spawn levels for each species. No
+#            # performance gain is noticed whether we use it or not.
+#
 #            fill = (self.__popsize) - len(new_population)
 #            if fill < 0: # overflow
 #                print 'Removing %d excess individual(s) from the new population' %-fill
@@ -217,19 +218,18 @@ class Population:
 #            # Updates current population
 #            assert self.__popsize == len(new_population), 'Different population sizes!'
             self.__population = new_population[:]
-            
-            # The new pop hasn't been evaluated at this point! Don't call average_fitness() !
-            
+                    
             # Remove stagnated species (except if it has the best chromosome)
             self.__species = [s for s in self.__species if \
                               s.no_improvement_age <= max_stagnation or \
                               s.no_improvement_age > max_stagnation and s.hasBest == True] 
             
+            # Does it help in avoiding local minima?
             for s in self.__species:
                 if s.no_improvement_age > 50:
                     print 'Species %d is super-stagnated, removing it' %(s.id)
             
-            # Remove super-stagnated species (even if it has the best chromosome)
+            # Remove "super-stagnated" species (even if it has the best chromosome)
             self.__species = [s for s in self.__species if \
                               s.no_improvement_age < 50]
 
@@ -250,21 +250,4 @@ if __name__ ==  '__main__' :
 
 # Things left to check:
 # b) boost and penalize is done inside Species.shareFitness() method (as in Buckland's code)
-# d) ELE (Extinct Life Events) - something to be implemented as described in NEAT4J version 
-
-# Algorithm:
-# 1. Apply fitness sharing in each species
-# 2. Compute spawn levels for each species (need to round up or down to an integer value)
-# 3. Keep the best performing individual of each species (per species elitism) - if spawn amount >= 1
-# 4. Reserve some % members of each species to produce next gen.
-#    4.1 Parents are chosen randomly (uniform distribuition with replacement) - this is much like tournament selection with k = len(parents_chosen)
-#    4.2 Create offspring based on species's spawn amount:
-#        a) If the species has only one member we keep it to the next gen.
-#        b) If the species has only one member besides the best we only apply mutation
-#        c) Select two parents from the remaining individuals (make sure we do not select the same individuals to mate!)
-#           Stanley does not apply tournament selection, but we could try!
-
-# Questions: If a species spawn level is below < 1, what to do? Remove it?
-#            When should a species be removed? Before fitness sharing?
-
-# NEAT FAQ: http://www.cs.ucf.edu/~kstanley/neat.html#neatref
+# d) ELE (Extinct Life Events) - something to be implemented as described in the NEAT4J version 
