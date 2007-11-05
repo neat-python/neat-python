@@ -1,5 +1,5 @@
-#ifndef NEURON_HPP
-#define NEURON_HPP
+#ifndef SPIKING_NN_HPP
+#define SPIKING_NN_HPP
 
 /*
  * A spiking neuron model based on:
