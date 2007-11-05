@@ -28,8 +28,13 @@ public:
 	 * Resonator: a = 0.1, b = 0.25, c = -65.0, d = 2.0
 	 * Low-threshold spiking: a = 0.02, b = 0.25, c = -65, d = 2.0
      */
-	Neuron(double bias = 0, double a = 0.02, double b = 0.2, double c = -65.0,
-			double d = 8.0);
+	static const double DEFAULT_BIAS = 0;
+	static const double DEFAULT_A = 0.02;
+	static const double DEFAULT_B = 0.2;
+	static const double DEFAULT_C = -65.0;
+	static const double DEFAULT_D = 8.0;
+	Neuron(double bias = DEFAULT_BIAS, double a = DEFAULT_A, double b = DEFAULT_B,
+		double c = DEFAULT_C, double d = DEFAULT_D);
 	// Advances time in 1 ms.
     void advance();
     // Membrane potential

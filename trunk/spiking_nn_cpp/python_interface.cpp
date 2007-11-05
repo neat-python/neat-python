@@ -24,7 +24,24 @@ PyMethodDef SpikingNNMethods[] = {
 		{0}
 };
 
-// Neuron
+// Neuron Interface
+
+int Neuron_init(NeuronObject *self, PyObject *args, PyObject *kwds) {
+	double bias = Neuron::DEFAULT_BIAS;
+	double a = Neuron::DEFAULT_A;
+	double b = Neuron::DEFAULT_B;
+	double c = Neuron::DEFAULT_C;
+	double d = Neuron::DEFAULT_D;
+
+    static char *kwlist[] = {"bias", "a", "b", "c", "d", 0};
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ddddd", kwlist, 
+    		&bias, &a, &b, &c, &d)) {
+        return -1;
+    }
+    self->neuron = Neuron(bias, a, b, c, d);
+    return 0;
+}
 
 PyObject* Neuron_get_potential(NeuronObject *self, void *closure)
 {
@@ -110,6 +127,12 @@ PyTypeObject NeuronType = {
 		Neuron_methods,				/* tp_methods */
 		0,             				/* tp_members */
 		Neuron_getseters,           /* tp_getset */
+		0,                         /* tp_base */
+		0,                         /* tp_dict */
+		0,                         /* tp_descr_get */
+		0,                         /* tp_descr_set */
+		0,                         /* tp_dictoffset */
+		reinterpret_cast<initproc>(Neuron_init),	/* tp_init */
 };
 
 }

@@ -1,6 +1,6 @@
 # Temporary Makefile just for testing
 
-CFLAGS = -Wall -march=k8 -O2 -fPIC -fomit-frame-pointer -pipe -fno-strict-aliasing
+CFLAGS = -Wall -march=k8 -O2 -fPIC -fno-strict-aliasing
 
 all: spiking_nn.so
 	
