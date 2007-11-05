@@ -4,11 +4,11 @@ CFLAGS = -Wall -march=k8 -O2 -fPIC -fomit-frame-pointer -pipe -fno-strict-aliasi
 
 all: spiking_nn.so
 	
-spiking_nn.so: spiking_nn.o neuron.o
-	g++ -shared spiking_nn.o neuron.o -o spiking_nn.so
-spiking_nn.o: spiking_nn.cpp neuron.hpp
+spiking_nn.so: python_interface.o spiking_nn.o
+	g++ -shared python_interface.o spiking_nn.o -o spiking_nn.so
+python_interface.o: python_interface.cpp spiking_nn.hpp
+	g++ -c $(CFLAGS) -I/usr/include/python2.5 python_interface.cpp -o python_interface.o
+spiking_nn.o: spiking_nn.cpp spiking_nn.hpp
 	g++ -c $(CFLAGS) -I/usr/include/python2.5 spiking_nn.cpp -o spiking_nn.o
-neuron.o: neuron.cpp neuron.hpp
-	g++ -c $(CFLAGS) -I/usr/include/python2.5 neuron.cpp -o neuron.o
 clean:
 	rm *o

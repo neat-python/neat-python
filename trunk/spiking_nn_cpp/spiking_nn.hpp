@@ -50,4 +50,20 @@ private:
 	long double __current;
 };
 
+/*
+ * A synapse indicates the connection strength between two neurons (or itself)
+ */
+class Synapse
+{
+public:
+	Synapse(Neuron* source, Neuron* dest, double weight)
+		: __source(source), __dest(dest), __weight(weight) {}
+	// Advances time in 1 ms.
+    void advance();
+private:
+	Neuron* __source;
+	Neuron* __dest;
+	double __weight;
+};
+
 #endif

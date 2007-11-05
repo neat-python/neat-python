@@ -1,112 +1,30 @@
-/*
- * Spiking Neural Networks
- * C++ Python module to be used with NEAT
- */
+#include "spiking_nn.hpp"
 
-#include <Python.h>
-#include "structmember.h"
-
-#include "neuron.hpp"
-
-typedef struct {
-	PyObject_HEAD
-    Neuron neuron;
-} NeuronObject;
-
-namespace {
-
-PyMethodDef SpikingNNMethods[] = {
-		{0}
-};
-
-PyObject* Neuron_get_potential(NeuronObject *self, void *closure)
+Neuron::Neuron(double bias, double a, double b,	double c, double d)
+	: __a(a), __b(b), __c(c), __d(d), __v(c), __u(b * __v), __has_fired(false),
+	__bias(bias), __current(__bias)
 {
-    return Py_BuildValue("f", self->neuron.get_potential());
 }
 
-PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
+void Neuron::advance()
 {
-	return self->neuron.has_fired() ? Py_True : Py_False;
-}
-
-PyObject* Neuron_get_current(NeuronObject* self, void* closure)
-{
-	return Py_BuildValue("f", self->neuron.get_current());
-}
-
-int Neuron_set_current(NeuronObject *self, PyObject *value, void *closure)
-{
-	if (!PyFloat_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "current must be a float");
-		return -1;
+	__v += 0.5 * (0.04 * __v * __v + 5 * __v + 140 - __u + __current);
+	__v += 0.5 * (0.04 * __v * __v + 5 * __v + 140 - __u + __current);
+	__u += __a * (__b * __v - __u);
+	if (__v > 30) {
+            __has_fired = true;
+            __v = __c;
+            __u += __d;
 	}
-	double c = PyFloat_AS_DOUBLE(value);
-	self->neuron.set_current(c);
-	return 0;
+	else {
+		__has_fired = false;
+		__current = __bias;
+	}
 }
 
-
-PyGetSetDef Neuron_getseters[] = {
-		{"potential", reinterpret_cast<getter>(Neuron_get_potential), 0,
-			"Membrane potential", 0},
-		{"has_fired", reinterpret_cast<getter>(Neuron_get_has_fired), 0,
-			"Indicates whether the neuron has fired", 0},
-		{"current", reinterpret_cast<getter>(Neuron_get_current),
-			reinterpret_cast<setter>(Neuron_set_current), "current", 0},
-     	{0}
-};
-
-
-PyTypeObject NeuronType = {
-		PyObject_HEAD_INIT(0)
-		0,							/* ob_size */
-		"spiking_nn.Neuron",		/* tp_name */
-		sizeof(NeuronObject),		/* tp_basicsize */
-		0,							/* tp_itemsize */
-		0,							/* tp_dealloc */
-		0,							/* tp_print */
-		0,							/* tp_getattr */
-		0,							/* tp_setattr */
-		0,							/* tp_compare */
-		0,							/* tp_repr */
-		0,							/* tp_as_number */
-		0,							/* tp_as_sequence */
-		0,							/* tp_as_mapping */
-		0,							/* tp_hash */
-		0,							/* tp_call */
-		0,							/* tp_str */
-		0,							/* tp_getattro */
-		0,							/* tp_setattro */
-		0,							/* tp_as_buffer */
-		Py_TPFLAGS_DEFAULT,			/* tp_flags */
-		"A spiking neuron model based on:\n\n"
-		"Izhikevich, E. M.\n"
-		"Simple Model of Spiking Neurons\n"
-		"IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003",
-		0,		               		/* tp_traverse */
-		0,		               		/* tp_clear */
-		0,		               		/* tp_richcompare */
-		0,		               		/* tp_weaklistoffset */
-		0,		               		/* tp_iter */
-		0,		               		/* tp_iternext */
-		0,             				/* tp_methods */
-		0,             				/* tp_members */
-		Neuron_getseters,           /* tp_getset */
-};
-
-}
-
-PyMODINIT_FUNC initspiking_nn(void)
-{	
-	/* Neuron */
-	
-	NeuronType.tp_new = PyType_GenericNew;
-	if (PyType_Ready(&NeuronType) < 0)
-		return;
-	
-	/* Init module */
-	
-	PyObject* module = Py_InitModule("spiking_nn", SpikingNNMethods);
-	Py_INCREF(&NeuronType);
-	PyModule_AddObject(module, "Neuron", reinterpret_cast<PyObject*>(&NeuronType));
+void Synapse::advance()
+{
+	 if (__source->has_fired()) {
+		 __dest->set_current(__dest->get_current() + __weight); 
+	 }
 }
