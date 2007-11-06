@@ -14,12 +14,6 @@ struct NeuronObject {
 
 namespace {
 
-PyMethodDef SpikingNNMethods[] = {
-		{0}
-};
-
-// Neuron Interface
-
 int Neuron_init(NeuronObject *self, PyObject *args, PyObject *kwds) {
 	double bias = Neuron::DEFAULT_BIAS;
 	double a = Neuron::DEFAULT_A;
