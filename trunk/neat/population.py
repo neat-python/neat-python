@@ -1,5 +1,5 @@
 from config import Config
-from species import *
+import species
 import genome, genome_feedforward
 import cPickle as pickle
 #from psyco.classes import *
@@ -66,12 +66,12 @@ class Population:
                         break # we found a compatible species, so let's skip to the next
                 
             if not found: # create a new species for this lone chromosome
-                self.__species.append(Species(c))  
+                self.__species.append(species.Species(c))  
        
         # Controls compatibility threshold
-        if len(self.__species) > species_size:
+        if len(self.__species) > Config.species_size:
             Config.compatibility_threshold += Config.compatibility_change
-        elif len(self.__species) < species_size:
+        elif len(self.__species) < Config.species_size:
             if Config.compatibility_threshold > Config.compatibility_change:
                 Config.compatibility_threshold -= Config.compatibility_change
             else:
@@ -157,7 +157,7 @@ class Population:
                 file = open('best_chromo_'+str(generation),'w')
                 pickle.dump(best, file)
                 file.close()
-           
+                        
             if stats:
                 # print some "debugging" information
                 print 'Species length: %d totalizing %d individuals' \
@@ -223,8 +223,8 @@ class Population:
                     
             # Remove stagnated species (except if it has the best chromosome)
             self.__species = [s for s in self.__species if \
-                              s.no_improvement_age <= max_stagnation or \
-                              s.no_improvement_age > max_stagnation and s.hasBest == True] 
+                              s.no_improvement_age <= Config.max_stagnation or \
+                              s.no_improvement_age > Config.max_stagnation and s.hasBest == True] 
             
             # Does it help in avoiding local minima?
             for s in self.__species:

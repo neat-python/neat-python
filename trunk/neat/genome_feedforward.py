@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
+from config import Config
 import genome
 import random
-import copy
 
 #random.seed(0)
 
@@ -55,7 +55,7 @@ class Chromosome(genome.Chromosome):
                         self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-genome.random_range, genome.random_range)
+                            weight = random.uniform(-Config.random_range, Config.random_range)
                             cg = genome.ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return

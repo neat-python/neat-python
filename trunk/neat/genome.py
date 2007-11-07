@@ -4,25 +4,6 @@ import math
 from config import Config
 import copy
 
-#random.seed(0)
-
-excess_coeficient = Config.excess_coeficient
-disjoint_coeficient = Config.disjoint_coeficient
-weight_coeficient = Config.weight_coeficient
-
-prob_mutatebias = Config.prob_mutatebias
-prob_mutate_weight = Config.prob_mutate_weight
-prob_togglelink = Config.prob_togglelink
-prob_addconn = Config.prob_addconn
-prob_addnode = Config.prob_addnode
-
-# Weight mutation parameters
-weight_mutation_power = Config.weight_mutation_power
-bias_mutation_power = Config.bias_mutation_power
-max_weight = Config.max_weight
-min_weight = Config.min_weight
-random_range = Config.random_range
-
 class NodeGene(object):    
     def __init__(self, id, nodetype, bias=0):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
@@ -41,11 +22,11 @@ class NodeGene(object):
         return ng
     
     def mutate_bias(self):
-        self.__bias += random.uniform(-1, 1) * bias_mutation_power
-        if self.__bias > max_weight:
-            self.__bias = max_weight
-        elif self.__bias < min_weight:
-            self.__bias = min_weight
+        self.__bias += random.uniform(-1, 1) * Config.bias_mutation_power
+        if self.__bias > Config.max_weight:
+            self.__bias = Config.max_weight
+        elif self.__bias < Config.min_weight:
+            self.__bias = Config.min_weight
         return self
     
     def copy(self):
@@ -111,11 +92,11 @@ class ConnectionGene(object):
         return new_conn1, new_conn2
     
     def mutate_weight(self):
-        self.__weight += random.uniform(-1, 1) * weight_mutation_power
-        if self.__weight > max_weight:
-            self.__weight = max_weight
-        elif self.__weight < min_weight:
-            self.__weight = min_weight
+        self.__weight += random.uniform(-1, 1) * Config.weight_mutation_power
+        if self.__weight > Config.max_weight:
+            self.__weight = Config.max_weight
+        elif self.__weight < Config.min_weight:
+            self.__weight = Config.min_weight
     
     def copy(self):
         return ConnectionGene(self.__in, self.__out, self.__weight,
@@ -147,19 +128,18 @@ class Chromosome(object):
         
         # Stanley's way...
         r = random.random
-        
-        if r() < prob_addnode:
+        if r() < Config.prob_addnode:
             self.__mutate_add_node()
-        elif r() < prob_addconn:
+        elif r() < Config.prob_addconn:
             self.__mutate_add_connection()
         else: # if no structural mutation occured
             for cg in self.__connection_genes.values():
-                if r() < prob_mutate_weight:
+                if r() < Config.prob_mutate_weight:
                     cg.mutate_weight()
-                if r() < prob_togglelink:
+                if r() < Config.prob_togglelink:
                     cg.enable()
             for ng in self.__node_genes[self.__input_nodes:]:
-                if r() < prob_mutatebias:
+                if r() < Config.prob_mutatebias:
                     ng.mutate_bias()
         
 #        for cg in self.__connection_genes.values():
@@ -246,7 +226,7 @@ class Chromosome(object):
                     if (in_node.id, out_node.id) not in self.__connection_genes.keys():
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-random_range, random_range)
+                            weight = random.uniform(-Config.random_range, Config.random_range)
                             cg = ConnectionGene(in_node.id, out_node.id, weight, True)
                             self.__connection_genes[cg.key] = cg
                             return
@@ -283,9 +263,9 @@ class Chromosome(object):
         disjoint += len(chromo2.__connection_genes) - matching
         
         assert(matching > 0) # this can't happen
-        distance = excess_coeficient * excess + \
-                   disjoint_coeficient * disjoint + \
-                   weight_coeficient * (weight_diff/matching)
+        distance = Config.excess_coeficient * excess + \
+                   Config.disjoint_coeficient * disjoint + \
+                   Config.weight_coeficient * (weight_diff/matching)
                 
         return distance
     
@@ -320,7 +300,7 @@ class Chromosome(object):
             id += 1
             # Connect it to all input nodes
             for input_node in c.__node_genes[:num_input]:
-                weight = random.uniform(-random_range, random_range)
+                weight = random.uniform(-Config.random_range, Config.random_range)
                 cg = ConnectionGene(input_node.id, node_gene.id, weight, True)
                 c.__connection_genes[cg.key] = cg
         return c

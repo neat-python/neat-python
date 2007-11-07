@@ -4,12 +4,6 @@ import random, math
 from config import Config
 #from psyco.classes import *
 
-#random.seed(0)
-
-species_size = Config.species_size
-compatibility_change = Config.compatibility_change
-max_stagnation = Config.max_stagnation
-
 class Species:
     """ A subpopulation containing similar individiduals """
     id = 1 # species id

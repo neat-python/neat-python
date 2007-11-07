@@ -6,7 +6,7 @@ try:
 except ImportError:
     print "You do not have the required packages: PyDot and/or Biggles"
     
-def draw_net(chromosome):
+def draw_net(chromosome, id=''):
     ''' Draws a neural network with arbitrary topology. '''
     output = 'digraph G {\n  node [shape=circle, fontsize=9, height=0.2, width=0.2]'
     
@@ -31,7 +31,7 @@ def draw_net(chromosome):
     output += '\n }'
     
     g = pydot.graph_from_dot_data(output)
-    g.write('phenotype.svg', prog='dot', format='svg') 
+    g.write('phenotype'+id+'.svg', prog='dot', format='svg') 
 
 def draw_ff(net):
     ''' Draws a feedforward neural network '''
