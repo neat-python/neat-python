@@ -18,8 +18,8 @@ struct SynapseObject {
 namespace {
 
 int Synapse_init(SynapseObject *self, PyObject *args, PyObject *kwds) {
-	PyObject* source = (PyObject*) self;
-	PyObject* dest = (PyObject*) self;
+	PyObject* source = 0;
+	PyObject* dest = 0;
 	double weight;
 
     static char *kwlist[] = {"source", "dest", "weight", 0};

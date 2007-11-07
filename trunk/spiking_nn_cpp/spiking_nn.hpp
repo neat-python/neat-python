@@ -1,6 +1,8 @@
 #ifndef SPIKING_NN_HPP
 #define SPIKING_NN_HPP
 
+#include <list>
+
 /*
  * A spiking neuron model based on:
  * 
@@ -61,7 +63,7 @@ private:
 class Synapse
 {
 public:
-	Synapse(Neuron* source, Neuron* dest, double weight)
+	Synapse(Neuron* source = 0, Neuron* dest = 0, double weight = 0)
 		: __source(source), __dest(dest), __weight(weight) {}
 	// Advances time in 1 ms.
     void advance();
@@ -69,6 +71,15 @@ private:
 	Neuron* __source;
 	Neuron* __dest;
 	double __weight;
+};
+
+// A neural network has a list of neurons linked by synapses
+class Network : public std::list<Neuron> {
+public:
+    Network();
+    void advance();
+private:
+	std::list<Synapse> __synapses;
 };
 
 #endif
