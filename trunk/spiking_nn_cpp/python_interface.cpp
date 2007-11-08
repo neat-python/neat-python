@@ -6,7 +6,6 @@
 #include <Python.h>
 #include "neuron_pyobject.hpp"
 #include "synapse_pyobject.hpp"
-#include "network_pyobject.hpp"
 
 namespace {
 
@@ -16,7 +15,7 @@ PyMethodDef SpikingNNMethods[] = {
 
 }
 
-PyMODINIT_FUNC initspiking_nn(void)
+PyMODINIT_FUNC initspiking_nn_c(void)
 {	
 	/* Neuron */
 	
@@ -32,7 +31,7 @@ PyMODINIT_FUNC initspiking_nn(void)
 	
 	/* Init module */
 	
-	PyObject* module = Py_InitModule("spiking_nn", SpikingNNMethods);
+	PyObject* module = Py_InitModule("spiking_nn_c", SpikingNNMethods);
 	Py_INCREF(&NeuronType);
 	PyModule_AddObject(module, "Neuron", reinterpret_cast<PyObject*>(&NeuronType));
 	Py_INCREF(&SynapseType);
