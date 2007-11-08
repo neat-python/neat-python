@@ -6,7 +6,7 @@
 #include <Python.h>
 #include "neuron_pyobject.hpp"
 #include "synapse_pyobject.hpp"
-//#include "network_pyobject.hpp"
+#include "network_pyobject.hpp"
 
 namespace {
 
