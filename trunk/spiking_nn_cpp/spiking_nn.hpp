@@ -73,13 +73,4 @@ private:
 	double __weight;
 };
 
-// A neural network has a list of neurons linked by synapses
-class Network : public std::list<Neuron> {
-public:
-    Network();
-    void advance();
-private:
-	std::list<Synapse> __synapses;
-};
-
 #endif

@@ -1,6 +1,4 @@
 #include "spiking_nn.hpp"
-#include <algorithm>
-#include <functional>
 
 Neuron::Neuron(double bias, double a, double b,	double c, double d)
 	: __a(a), __b(b), __c(c), __d(d), __v(c), __u(b * __v), __has_fired(false),
@@ -29,11 +27,4 @@ void Synapse::advance()
 	 if (__source->has_fired()) {
 		 __dest->set_current(__dest->get_current() + __weight); 
 	 }
-}
-
-void Network::advance()
-{
-       std::for_each(__synapses.begin(), __synapses.end(),
-    		   std::mem_fun_ref(&Synapse::advance));
-       std::for_each(begin(), end(), std::mem_fun_ref(&Neuron::advance));
 }
