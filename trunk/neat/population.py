@@ -2,6 +2,8 @@ from config import Config
 import species
 import genome, genome_feedforward
 import cPickle as pickle
+import visualize
+import random
 #from psyco.classes import *
 
 class Population:
@@ -12,6 +14,7 @@ class Population:
     def __init__(self, popsize):
         self.__popsize = popsize
         self.__species = []
+        self.__species_log = []
                 
         # Statistics
         self.__avg_fitness = []
@@ -20,6 +23,7 @@ class Population:
         self.__create_population()
         
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
+    species_log = property(lambda self: self.__species_log)
     
     def __create_population(self):
         if Config.nn_allow_recurrence:
@@ -40,13 +44,12 @@ class Population:
         self.__population.remove(chromo)      
         
     def __speciate(self):
-        """ Group chromosomes into species by similarity """
-        
+        """ Group chromosomes into species by similarity """       
         # Speciate the population
         for c in self:
             found = False    
             for s in self.__species:
-                if s.representative.id == c.species_id:
+                if s.representative.id == c.id:
                     s.add(c)
                     found = True
                     break    
@@ -121,6 +124,21 @@ class Population:
             if s.spawn_amount == 0:
                 # This rarely happens
                 print 'Species %d (age %s) will be removed (produced no offspring)' %(s.id, s.age)
+                
+    def __log_species(self):
+        ''' Logging species data for visualizing speciation. '''
+        higher = max([s.id for s in self.__species])
+        temp = []
+        for i in xrange(1, higher+1):
+            found_specie = False
+            for s in self.__species:
+                if i == s.id:
+                    temp.append(len(s))
+                    found_specie = True
+                    break                            
+            if not found_specie:                     
+                temp.append(0)                            
+        self.__species_log.append(temp)
                     
     def epoch(self, n, stats=True, save_best=False):
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
@@ -130,8 +148,8 @@ class Population:
             
             # Evaluate individuals
             self.evaluate()     
-             # Speciates the population
-            self.__speciate()          
+            # Speciates the population
+            self.__speciate()       
             # Compute spawn levels for each remaining species
             self.__compute_spawn_levels()                   
             # Removing species with spawn amount = 0
@@ -139,9 +157,11 @@ class Population:
             # Current generation's best chromosome 
             self.__best_fitness.append(max(self.__population))
             # Current population's average fitness
-            self.__avg_fitness.append(self.average_fitness())     
-
-            best = self.__best_fitness[-1] # just to print some stats
+            self.__avg_fitness.append(self.average_fitness()) 
+            # Logging speciation stats    
+            self.__log_species()
+            # Print some statistics
+            best = self.__best_fitness[-1] 
             # Which species has the best chromosome?
             for s in self.__species:
                 s.hasBest = False
@@ -157,6 +177,11 @@ class Population:
                 file = open('best_chromo_'+str(generation),'w')
                 pickle.dump(best, file)
                 file.close()
+                
+            # saves all phenotypes - debugging!
+            for chromosome in self.__population:
+                #visualize.draw_net(chromosome, str(generation)+'_'+str(chromosome.id))
+                pass
                         
             if stats:
                 # print some "debugging" information
@@ -167,7 +192,7 @@ class Population:
                 print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
                 print 'Species age:',[s.age for s in self.__species]
                 print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
-                
+            
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
                 print 'Best individual found in epoch',generation

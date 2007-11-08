@@ -47,9 +47,11 @@ class Species:
                         
         try:
             avg_fitness = sum/len(self.__chromosomes)
-            return avg_fitness
         except ZeroDivisionError:
-            print "Species %d, with rep. %d is empty! But why?" %(self.id, self.representative.id)   
+            print "Species %d, with rep. %d is empty! But why? It's in species %s" \
+                    %(self.id, self.representative.id, self.representative.species_id)   
+        else:
+            return avg_fitness
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
