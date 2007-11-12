@@ -144,7 +144,7 @@ class Population:
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
         
         for generation in xrange(n):
-            print 'Running generation',generation
+            if stats: print 'Running generation',generation
             
             # Evaluate individuals
             self.evaluate()     
@@ -167,11 +167,7 @@ class Population:
                 s.hasBest = False
                 if best.species_id == s.id:
                     s.hasBest = True
-
-            print 'Population\'s average fitness', self.__avg_fitness[-1]
-            print 'Best fitness: %s - size: %s - species %s - id %s' \
-                    %(best.fitness, best.size(), best.species_id, best.id)
-            
+          
             # saves the best chromo from current generation
             if save_best:
                 file = open('best_chromo_'+str(generation),'w')
@@ -184,6 +180,10 @@ class Population:
                 pass
                         
             if stats:
+                print 'Population\'s average fitness', self.__avg_fitness[-1]
+                print 'Best fitness: %s - size: %s - species %s - id %s' \
+                    %(best.fitness, best.size(), best.species_id, best.id)
+                
                 # print some "debugging" information
                 print 'Species length: %d totalizing %d individuals' \
                         %(len(self.__species), sum([len(s) for s in self.__species]))
@@ -195,7 +195,7 @@ class Population:
             
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
-                print 'Best individual found in epoch',generation
+                if stats: print 'Best individual found in epoch',generation
                 break            
                 
             # -------------------------- Producing new offspring -------------------------- #
