@@ -38,7 +38,14 @@ PyObject* Neuron_get_potential(NeuronObject *self, void *closure)
 
 PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
 {
-	return self->neuron.has_fired() ? Py_True : Py_False;
+	if (self->neuron.has_fired()) {
+		Py_INCREF(Py_True);
+		return Py_True;
+	}
+	else {
+		Py_INCREF (Py_False);
+		return Py_False;
+	}
 }
 
 PyObject* Neuron_get_current(NeuronObject* self, void* closure)
@@ -70,7 +77,7 @@ PyGetSetDef Neuron_getseters[] = {
 
 PyObject* Neuron_advance(NeuronObject* self) {
 	self->neuron.advance();
-	return Py_None;
+	return Py_BuildValue("");
 }
 
 PyMethodDef Neuron_methods[] = {

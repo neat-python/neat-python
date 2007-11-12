@@ -45,7 +45,7 @@ void Synapse_dealloc(SynapseObject* self)
 
 PyObject* Synapse_advance(SynapseObject* self) {
 	self->synapse.advance();
-	return Py_None;
+	return Py_BuildValue("");
 }
 
 PyMethodDef Synapse_methods[] = {
