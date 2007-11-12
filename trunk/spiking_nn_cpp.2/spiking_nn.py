@@ -2,6 +2,18 @@
 
 from spiking_nn_c import *
 
+class Synapse:
+    """ A synapse indicates the connection strength between two neurons (or itself) """
+    def __init__(self, source, dest, weight):        
+        self.__weight = weight
+        self.__source = source
+        self.__dest = dest
+
+    def advance(self):
+        'Advances time in 1 ms.'
+        if self.__source.has_fired:
+            self.__dest.current += self.__weight
+
 class Network(object):
     """ A neural network has a list of neurons linked by synapses """
     def __init__(self, neurons=[], input_neurons = [], output_neurons = [], synapses=[]):
