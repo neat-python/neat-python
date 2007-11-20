@@ -124,7 +124,6 @@ class Chromosome(object):
     
     def mutate(self):
         """ Mutates this chromosome """
-        # TODO: review the probabilities
         
         # Stanley's way...
         r = random.random
@@ -143,23 +142,23 @@ class Chromosome(object):
                     ng.mutate_bias()
         
 #        for cg in self.__connection_genes.values():
-#            if r() < prob_mutate_weight:
+#            if r() < Config.prob_mutate_weight:
 #                cg.mutate_weight()
-#            if r() < prob_togglelink:
+#            if r() < Config.prob_togglelink:
 #                cg.enable()
 #        for ng in self.__node_genes[self.__input_nodes:]:
-#            if r() < prob_mutatebias:
+#            if r() < Config.prob_mutatebias:
 #                ng.mutate_bias()
-#        if r() < prob_addconn:    
+#        if r() < Config.prob_addconn:    
 #            self.__mutate_add_connection()
-#        if r() < prob_addnode:
+#        if r() < Config.prob_addnode:
 #            self.__mutate_add_node()
 
         return self
     
     def crossover(self, other):
         ''' Applies the crossover operator. Returns a child '''
-        child = self.__class__() # TODO: self.__crossover(other)
+        child = self.__class__()
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
@@ -212,7 +211,6 @@ class Chromosome(object):
     
     def __mutate_add_connection(self):
         # Only for recurrent networks
-        # TODO: add support for feedforwad networks
         total_possible_conns = (len(self.__node_genes) - self.__input_nodes) \
             * len(self.__node_genes)
         remaining_conns = total_possible_conns - len(self.__connection_genes)
@@ -243,7 +241,10 @@ class Chromosome(object):
             chromo1 = other
             chromo2 = self
             
-        weight_diff = matching = disjoint = excess = 0
+        weight_diff = 0
+        matching = 0
+        disjoint = 0
+        excess = 0
         
         max_cg_chromo2 = max(chromo2.__connection_genes.values())
             
