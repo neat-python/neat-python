@@ -6,7 +6,7 @@ from neat import config, population, genome_feedforward, genome, visualize
 config.Config.input_nodes = 2
 config.Config.output_nodes = 1
 config.Config.survival_threshold = 0.1
-config.Config.max_fitness_threshold = 0.9
+config.Config.max_fitness_threshold = 15.9
 config.Config.compatibility_change = 0.0
 config.Config.nn_allow_recurrence = False
 config.Config.nn_activation = 'exp'
@@ -45,8 +45,8 @@ def eval_fitness(population):
             output = brain.sactivate(input) # serial activation
             error += (output[0] - OUTPUTS[i])**2
             #error += math.fabs(output[0] - OUTPUTS[i])
-        #chromosome.fitness = (4.0 - error)**2 # (Stanley p. 43)        
-        chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
+        chromosome.fitness = (4.0 - error)**2 # (Stanley p. 43)        
+        #chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         
 population.Population.evaluate = eval_fitness
 pop = population.Population(150)
