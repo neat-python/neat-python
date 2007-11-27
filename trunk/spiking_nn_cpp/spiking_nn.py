@@ -41,7 +41,7 @@ def create_phenotype(chromosome):
     return Network(neurons, input_neurons, output_neurons, synapses)
 
 if __name__ == '__main__':
-    import visualize
+    from neat import visualize
     n = Neuron(10)
     spike_train = []
     for i in range(1000):
