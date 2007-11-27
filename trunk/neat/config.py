@@ -17,16 +17,16 @@ class Config: # read from file
     # phenotype config
     input_nodes = 2
     output_nodes = 1
-    max_weight = 500
-    min_weight = -500
-    random_range = 1.5 # experimental
+    #max_weight = 500
+    #min_weight = -500
+    random_range = 20.5 # experimental
     
     # mutation probabilities
     prob_addconn = 0.05
     prob_addnode = 0.03    
     prob_mutatebias = 0.2
     bias_mutation_power = 0.5    
-    prob_mutate_weight = 0.55 # dynamic mutation rate (future release)
+    prob_mutate_weight = 0.25 # dynamic mutation rate (future release)
     weight_mutation_power = 1.5    
     prob_togglelink = 0.1
     
