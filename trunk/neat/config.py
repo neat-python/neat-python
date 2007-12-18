@@ -17,8 +17,8 @@ class Config: # read from file
     # phenotype config
     input_nodes = 2
     output_nodes = 1
-    #max_weight = 500
-    #min_weight = -500
+    max_weight = 500
+    min_weight = -500
     random_range = 20.5 # experimental
     
     # mutation probabilities
