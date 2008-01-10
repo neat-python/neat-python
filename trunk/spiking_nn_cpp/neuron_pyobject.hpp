@@ -33,7 +33,7 @@ int Neuron_init(NeuronObject *self, PyObject *args, PyObject *kwds) {
 
 PyObject* Neuron_get_potential(NeuronObject *self, void *closure)
 {
-    return Py_BuildValue("f", self->neuron.get_potential());
+    return Py_BuildValue("d", self->neuron.get_potential());
 }
 
 PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
@@ -50,7 +50,7 @@ PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
 
 PyObject* Neuron_get_current(NeuronObject* self, void* closure)
 {
-	return Py_BuildValue("f", self->neuron.get_current());
+	return Py_BuildValue("d", self->neuron.get_current());
 }
 
 int Neuron_set_current(NeuronObject *self, PyObject *value, void *closure)

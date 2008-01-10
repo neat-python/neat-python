@@ -18,8 +18,8 @@ void Neuron::advance()
 	}
 	else {
 		__has_fired = false;
-		__current = __bias;
 	}
+	__current = __bias;
 }
 
 void Synapse::advance()
