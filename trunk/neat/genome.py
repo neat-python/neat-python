@@ -5,15 +5,16 @@ from config import Config
 import copy
 
 class NodeGene(object):    
-    def __init__(self, id, nodetype, bias=0):
+    def __init__(self, id, nodetype, bias=0, response=4.924273):
         '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
         self.__id = id
         self.__type = nodetype
         self.__bias = bias
+        self.__response = response
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s, bias %s"% (self.__id, self.__type, self.__bias)
+        return "Node %d %s, bias %s, response %s"% (self.__id, self.__type, self.__bias, self.__response)
     
     def get_child(self, other):
         assert(self.__id == other.__id)
@@ -29,12 +30,18 @@ class NodeGene(object):
             self.__bias = Config.min_weight
         return self
     
+    def mutate_response(self):
+    	''' Mutates the neuron's firing response. '''
+        self.__response += random.uniform(-0.5, 0.5)
+        return self
+    
     def copy(self):
         return NodeGene(self.__id, self.__type, self.__bias)
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
     bias = property(lambda self: self.__bias)
+    response = property(lambda self: self.__response)
 
 class ConnectionGene(object):
     __global_innov_number = 0
@@ -140,6 +147,24 @@ class Chromosome(object):
             for ng in self.__node_genes[self.__input_nodes:]:
                 if r() < Config.prob_mutatebias:
                     ng.mutate_bias()
+                    
+        # Simmerson's way... behaves as good (or bad?) as Stanley's!
+#        for cg in self.__connection_genes.values():
+#            if r() < Config.prob_mutate_weight:
+#                cg.mutate_weight()
+#            if r() < Config.prob_togglelink:
+#                cg.enable()
+#                
+#        for ng in self.__node_genes[self.__input_nodes:]:
+#            if r() < Config.prob_mutatebias:
+#                ng.mutate_bias()
+#                ng.mutate_response()
+#        
+#        if r() < Config.prob_addconn:
+#            self.__mutate_add_connection()
+#            
+#        if r() < Config.prob_addnode:
+#            self.__mutate_add_node()
         
 #        for cg in self.__connection_genes.values():
 #            if r() < Config.prob_mutate_weight:
@@ -306,6 +331,79 @@ class Chromosome(object):
                 c.__connection_genes[cg.key] = cg
         return c
     
+#   For fixed-topology experiments
+#	Specifies a pre-defined topology for the XOR experiment
+#    @classmethod
+#    def create_fully_connected(cls, num_input, num_output):
+#        '''
+#        Factory method
+#        Creates a chromosome for a fully connected network with no hidden nodes.
+#        '''
+#        c = cls()
+#        id = 1
+#        # Create node genes
+#        for i in range(num_input):
+#            c.__node_genes.append(NodeGene(id, 'INPUT'))
+#            id += 1
+#        c.__input_nodes += num_input
+#        
+#        for i in range(num_output):
+#            node_gene = NodeGene(id, 'OUTPUT')
+#            c.__node_genes.append(node_gene)
+#            id += 1
+#            
+#        # hidden node
+#        node_gene = NodeGene(id, 'HIDDEN')   
+#        c.__node_genes.append(node_gene)
+#        id += 1
+#        
+#        node_gene = NodeGene(id, 'HIDDEN')   
+#        c.__node_genes.append(node_gene)
+#        id += 1
+#        
+#        # A network setting that solves 2-XOR
+#        weight = random.uniform(-Config.random_range, Config.random_range)    
+#        #weight = 2.751764    
+#        cg = ConnectionGene(1, 4, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)    
+#        #weight = -2.29486
+#        cg = ConnectionGene(1, 5, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)
+#        #weight = -0.60735
+#        cg = ConnectionGene(1, 3, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)
+#        #weight = 3.124543
+#        cg = ConnectionGene(2, 4, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)   
+#        #weight = 3.883385     
+#        cg = ConnectionGene(2, 5, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)
+#        #weight = 1.178918
+#        cg = ConnectionGene(2, 3, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)
+#        #weight = 0.868042
+#        cg = ConnectionGene(4, 3, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        weight = random.uniform(-Config.random_range, Config.random_range)
+#        #weight = -1.820959        
+#        cg = ConnectionGene(5, 3, weight, True)
+#        c.__connection_genes[cg.key] = cg
+#        
+#        return c
+
     # sort chromosomes by their fitness
     def __cmp__(self, other):
         return cmp(self.fitness, other.fitness)
@@ -336,7 +434,7 @@ def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     import nn
     # bias parameter is missing (default=0)
-    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias) \
+    neurons_list = [nn.Neuron(ng.type, ng.id, ng.bias, ng.response) \
                     for ng in chromosome.node_genes]
     
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
