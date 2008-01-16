@@ -9,6 +9,7 @@ class Chromosome(genome.Chromosome):
     def __init__(self):
         super(Chromosome, self).__init__()
         self.__node_order = [] # For feedforward networks
+        #self.__node_order = [4, 5] # used only in fixed-topology experiments (using a pre-defined topology in genome.py)
         
     node_order = property(lambda self: self.__node_order)
     
@@ -72,20 +73,20 @@ class Chromosome(genome.Chromosome):
         return s
     
 import nn
-# TODO: verify consistency!
+
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = [nn.Neuron('INPUT', i.id, 0) \
+    neurons_list = [nn.Neuron('INPUT', i.id, 0, 0) \
                     for i in chromosome.node_genes if i.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromosome.node_order:
-        neurons_list.append(nn.Neuron('HIDDEN', id, chromosome.node_genes[id - 1].bias))
+        neurons_list.append(nn.Neuron('HIDDEN', id, chromosome.node_genes[id - 1].bias, chromosome.node_genes[id - 1].response))
         
     # finally the output
-    neurons_list.extend(nn.Neuron('OUTPUT', o.id, o.bias) \
+    neurons_list.extend(nn.Neuron('OUTPUT', o.id, o.bias, o.response) \
                         for o in chromosome.node_genes if o.type == 'OUTPUT')
     
     assert(len(neurons_list) == len(chromosome.node_genes))
