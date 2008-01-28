@@ -11,8 +11,8 @@ class Population:
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
 
-    def __init__(self, popsize):
-        self.__popsize = popsize
+    def __init__(self):
+        self.__popsize = Config.pop_size
         self.__species = []
         self.__species_log = []
                 
@@ -104,11 +104,14 @@ class Population:
         species_stats = []
         for s in self.__species:
             if s.age < Config.youth_threshold:
-                species_stats.append(s.average_fitness()*Config.youth_boost)
+                #species_stats.append(s.average_fitness()*Config.youth_boost)
+                species_stats.append(s.average_fitness())
             elif s.age > Config.old_threshold:
-                species_stats.append(s.average_fitness()*Config.old_penalty)       
+                #species_stats.append(s.average_fitness()*Config.old_penalty)       
+                species_stats.append(s.average_fitness())       
             else:
                 species_stats.append(s.average_fitness())
+
                 
         # 2. Share fitness (only usefull for computing spawn amounts)       
         # More info: http://tech.groups.yahoo.com/group/neat/message/2203        
