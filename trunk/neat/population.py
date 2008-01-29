@@ -38,13 +38,16 @@ class Population:
       
     def __iter__(self):
         return iter(self.__population)
+
+    def __getitem__(self, key):
+        return self.__population[key]
     
     def remove(self, chromo):
         ''' Removes a chromosome from the population '''
         self.__population.remove(chromo)      
         
     def __speciate(self):
-        """ Group chromosomes into species by similarity """       
+        """ Group chromosomes into species by similarity """ 
         # Speciate the population
         for c in self:
             found = False    
@@ -198,7 +201,7 @@ class Population:
             
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
-                if stats: print 'Best individual found in epoch',generation
+                print 'Best individual found in epoch %s - complexity: %s' %(generation, best.size())
                 break            
                 
             # -------------------------- Producing new offspring -------------------------- #
