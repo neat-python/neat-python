@@ -40,7 +40,7 @@ def draw_net(chromosome, id=''):
     output += '\n }'
 
     if has_pydot:    
-        pydot.graph_from_dot_data(output)
+        g = pydot.graph_from_dot_data(output)
         g.write('phenotype'+id+'.svg', prog='dot', format='svg') 
     else:
         print 'You do not have the PyDot package.'
