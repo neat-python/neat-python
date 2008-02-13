@@ -14,12 +14,15 @@ class NodeGene(object):
         assert(self.__type in ('INPUT', 'OUTPUT', 'HIDDEN'))
         
     def __str__(self):
-        return "Node %d %s, bias %s, response %s"% (self.__id, self.__type, self.__bias, self.__response)
+        return "Node %2d %6s, bias %+2.5s, response %+2.5s"% (self.__id, self.__type, self.__bias, self.__response)
     
     def get_child(self, other):
+        ''' Creates a new NodeGene ramdonly inheriting its attributes from parents '''
         assert(self.__id == other.__id)
+        
         ng = NodeGene(self.__id, self.__type,
-                      random.choice((self.__bias, other.__bias)))
+                      random.choice((self.__bias, other.__bias)), 
+                      random.choice((self.response, other.response)))
         return ng
     
     def mutate_bias(self):
@@ -36,7 +39,7 @@ class NodeGene(object):
         return self
     
     def copy(self):
-        return NodeGene(self.__id, self.__type, self.__bias)
+        return NodeGene(self.__id, self.__type, self.__bias, self.response)
     
     id = property(lambda self: self.__id)
     type = property(lambda self: self.__type)
@@ -66,10 +69,12 @@ class ConnectionGene(object):
         else:
             self.__innov_number = innov
     
-    weight = property(lambda self: self.__weight)
-    innodeid = property(lambda self: self.__in)
+    weight    = property(lambda self: self.__weight)
+    innodeid  = property(lambda self: self.__in)
     outnodeid = property(lambda self: self.__out)
-    enabled = property(lambda self: self.__enabled)
+    enabled   = property(lambda self: self.__enabled)
+    # Key for dictionaries, avoids two connections between the same nodes.
+    key = property(lambda self: (self.__in, self.__out))
     
     def enable(self):
         '''For the "enable link" mutation'''
@@ -81,7 +86,7 @@ class ConnectionGene(object):
         return cls.__global_innov_number
     
     def __str__(self):
-        s = "In %d, Out %d, Weight %f, " % (self.__in, self.__out, self.__weight)
+        s = "In %2d, Out %2d, Weight %+3.5f, " % (self.__in, self.__out, self.__weight)
         if self.__enabled:
             s += "Enabled, "
         else:
@@ -100,6 +105,7 @@ class ConnectionGene(object):
     
     def mutate_weight(self):
         self.__weight += random.uniform(-1, 1) * Config.weight_mutation_power
+        
         if self.__weight > Config.max_weight:
             self.__weight = Config.max_weight
         elif self.__weight < Config.min_weight:
@@ -111,23 +117,32 @@ class ConnectionGene(object):
     
     def is_same_innov(self, cg):
         return self.__innov_number == cg.__innov_number
-    
-    # Key for dictionaries, avoids two connections between the same nodes.
-    key = property(lambda self: (self.__in, self.__out))
+
 
 class Chromosome(object):
-    id = 1
-    def __init__(self):
+    __id = 0
+    def __init__(self, parent1_id, parent2_id):
         self.__connection_genes = {} # dictionary of connection genes
         self.__node_genes = [] # list of node genes
         self.__input_nodes = 0
+        
         self.fitness = None
         self.species_id = None
-        self.id = Chromosome.id
-        Chromosome.id += 1
+        
+        self.__id = self.__get_new_id()
+        
+        self.parent1_id = parent1_id
+        self.parent2_id = parent2_id
         
     node_genes = property(lambda self: self.__node_genes)
     conn_genes = property(lambda self: self.__connection_genes.values())
+    
+    id = property(lambda self: self.__id)
+    
+    @classmethod
+    def __get_new_id(cls):
+        cls.__id += 1
+        return cls.__id
     
     def mutate(self):
         """ Mutates this chromosome """
@@ -180,29 +195,43 @@ class Chromosome(object):
 #            self.__mutate_add_node()
 
         return self
+
     
     def crossover(self, other):
         ''' Applies the crossover operator. Returns a child '''
-        child = self.__class__()
+        child = self.__class__(self.id, other.id)
+        # TODO: if they're of equal fitnesses, choose the shortest 
         if self.fitness > other.fitness:
             parent1 = self
             parent2 = other
         else:
             parent1 = other
             parent2 = self
-        child.__inherit_genes(parent1, parent2)
-        assert parent1.species_id == parent2.species_id, 'species id %d' %parent1.species_id
+            
+        child.__inherit_genes(parent1, parent2)        
+        assert parent1.species_id == parent2.species_id, 'Different parents species ID: %d vs %d' \
+                                                            % (parent1.species_id, parent2.species_id)
+        child.species_id = parent1.species_id
+        
         return child
+    
+    def __inherit_genes(child, parent1, parent2):
+        assert(parent1.fitness >= parent2.fitness)
         
     def __inherit_genes(child, parent1, parent2):
         assert(parent1.fitness >= parent2.fitness)
+        
         # Crossover node genes
         for i, ng1 in enumerate(parent1.__node_genes):
             try:
+                # matching node genes: randomly selects the neuron's bias and response 
                 child.__node_genes.append(ng1.get_child(parent2.__node_genes[i]))
             except IndexError:
+                # copies extra genes from the fittest parent
                 child.__node_genes.append(ng1.copy())
+                
         child.__input_nodes = parent1.__input_nodes
+        
         # Crossover connection genes
         for cg1 in parent1.__connection_genes.values():
             try:
@@ -219,7 +248,7 @@ class Chromosome(object):
                 else:
                     new_gene = child.__connection_genes[cg1.key] = cg1.copy()
                 child.__connection_genes[cg1.key] = new_gene
-    
+   
     def __mutate_add_node(self):
         # Choose a random connection to split
         try:
@@ -313,7 +342,7 @@ class Chromosome(object):
         Factory method
         Creates a chromosome for a fully connected network with no hidden nodes.
         '''
-        c = cls()
+        c = cls(0,0)
         id = 1
         # Create node genes
         for i in range(num_input):
@@ -330,7 +359,7 @@ class Chromosome(object):
                 cg = ConnectionGene(input_node.id, node_gene.id, weight, True)
                 c.__connection_genes[cg.key] = cg
         return c
-    
+
 #   For fixed-topology experiments
 #	Specifies a pre-defined topology for the XOR experiment
 #    @classmethod
