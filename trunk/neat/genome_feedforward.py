@@ -6,8 +6,8 @@ import random
 #random.seed(0)
 
 class Chromosome(genome.Chromosome):
-    def __init__(self):
-        super(Chromosome, self).__init__()
+    def __init__(self, parent1_id, parent2_id):
+        super(Chromosome, self).__init__(parent1_id, parent2_id)
         self.__node_order = [] # For feedforward networks
         #self.__node_order = [4, 5] # used only in fixed-topology experiments (using a pre-defined topology in genome.py)
         
