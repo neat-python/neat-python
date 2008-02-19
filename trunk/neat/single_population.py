@@ -1,14 +1,46 @@
 from config import Config
-import genome, genome_feedforward
+import chromosomes
 import cPickle as pickle
 import visualize
 import random
 #from psyco.classes import *
 
+class SelecaoTorneio:
+    """Sorteia dois individuos, retorna aquele com o maior fitness."""
+    def __init__(self, pop):
+        self._pop = pop
+    def __call__(self):
+        s1, s2 = random.choice(self._pop), random.choice(self._pop)
+        if s1.fitness >= s2.fitness:
+            return s1
+        else:
+            return s2
+        
+class SelecaoRank:
+    """A probabilidade de selecao e proporcial ao ranking por fitness na populacao."""
+    def __init__(self, pop):
+        self._pop = pop
+        self._total_fitness = 0
+        rank = 1
+        for i in self._pop:
+            self._total_fitness += rank
+            rank += 1
+    def __call__(self):
+        n = random.uniform(0, self._total_fitness)
+        s = 0
+        rank = 1
+        for i in self._pop:
+            s += rank
+            if n <= s:
+                break
+            rank += 1
+        return i
+
 class Population:
     ''' Manages all the species  '''
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
+    selecao = SelecaoRank
 
     def __init__(self):
         self.__popsize = Config.pop_size
@@ -22,13 +54,9 @@ class Population:
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     
     def __create_population(self):
-        if Config.nn_allow_recurrence:
-            self.__population = [genome.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
-        else:
-            self.__population = [genome_feedforward.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
-    
+        self.__population = [chromosomes.FFSigmoidChromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
+                             for i in xrange(self.__popsize)]
+        
     def __len__(self):
         return len(self.__population)
       
@@ -87,6 +115,8 @@ class Population:
             # keeps the best (survival_threshold)%, replace the rest
             self.__population.sort()     # sort species's members by their fitness
             self.__population.reverse()  # best members first
+            
+            #print [c.fitness for c in self.__population]
                           
             kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
             #print "Killing %d individuals out of %d" % (len(self.__population) - kill, len(self.__population))
@@ -96,13 +126,20 @@ class Population:
                 assert len(self.__population) > 0 
                 
             # selects two parents from the remaining population:
+            selecionar = self.selecao(self)
+            
             while (len(offspring) < Config.pop_size  - kill):
                 #print "Creating new individual"
-                random.shuffle(self.__population) # remove shuffle (always select best: give better results?)
-                parent1, parent2 = self.__population[0], self.__population[1]
+                #random.shuffle(self.__population) # remove shuffle (always select best: give better results?)
+                #parent1, parent2 = self.__population[0], self.__population[1]
+                
+                parent1 = selecionar()
+                parent2 = selecionar()
+                
                 child = parent1.crossover(parent2)
                 offspring.append(child.mutate())
                 
 
             #print "Population size %d - offspring size %d" %(len(self.__population), len(offspring))
             self.__population.extend(offspring)
+            
