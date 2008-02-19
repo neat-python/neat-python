@@ -1,19 +1,27 @@
 import random, math, copy
 from config import Config
-import genome2, nn
+from genome2 import NodeGene, ConnectionGene
+from nn import Neuron
 
-class BaseChromosome(object):
+class Chromosome(object):
+    ''' A chromosome for general recurrent neural networks '''
     _id = 0
-    def __init__(self, parent1_id, parent2_id):
+    def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
+        
+        self._id = self.__get_new_id()
+        self._input_nodes = 0        
+        
+        # the type of NodeGene and ConnectionGene the chromosome carries
+        self._node_gene_type = node_gene_type 
+        self._conn_gene_type = conn_gene_type        
+        # how many genes of the previous type the chromosome has
         self._connection_genes = {} # dictionary of connection genes
-        self._input_nodes = 0
         self._node_genes = []
         
         self.fitness = None
         self.species_id = None
         
-        self._id = self.__get_new_id()
-        
+        # my parents id: helps in tracking chromosome's genealogy
         self.parent1_id = parent1_id
         self.parent2_id = parent2_id
         
@@ -36,30 +44,20 @@ class BaseChromosome(object):
             self._mutate_add_node()
         elif r() < Config.prob_addconn:
             self._mutate_add_connection()
-        else: 
-            # if no structural mutation has occured
-            self._parametric_mutation()
-
-        return self
-
-    def _parametric_mutation(self):
-        r = random.random
-        # mutate connection genes
-        for cg in self._connection_genes.values():
-            
-            if r() < Config.prob_mutate_weight:
-                cg.mutate_weight()
-                
-            if r() < Config.prob_togglelink:
-                cg.enable()
-                
-        # mutate node genes
-        # Must be implemented in the inherited class
+        else: # if no structural mutation has occured
+            for cg in self._connection_genes.values():
+                cg.mutate() # mutate weights
+            for ng in self._node_genes[self._input_nodes:]:
+                ng.mutate() # mutate bias, response and etc...
     
     
     def crossover(self, other):
-        ''' Applies the crossover operator. Returns a child '''
-        child = self.__class__(self.id, other.id)
+        ''' Crosses over parents' chromosomes and returns a child '''
+        
+        # This can't happen! Parents must belong to the same species.
+        assert parent1.species_id == parent2.species_id, 'Different parents species ID: %d vs %d' \
+                                                         % (parent1.species_id, parent2.species_id)
+                                                        
         # TODO: if they're of equal fitnesses, choose the shortest 
         if self.fitness > other.fitness:
             parent1 = self
@@ -68,14 +66,18 @@ class BaseChromosome(object):
             parent1 = other
             parent2 = self
             
+        # creates a new child
+        child = self.__class__(self.id, other.id, self._node_gene_type, self._conn_gene_type)
+        
         child._inherit_genes(parent1, parent2)        
-        assert parent1.species_id == parent2.species_id, 'Different parents species ID: %d vs %d' \
-                                                         % (parent1.species_id, parent2.species_id)
+        
         child.species_id = parent1.species_id
+        child._input_nodes = parent1._input_nodes
         
         return child
          
     def _inherit_genes(child, parent1, parent2):
+        ''' Applies the crossover operator '''
         assert(parent1.fitness >= parent2.fitness)
         
         # Crossover connection genes
@@ -103,15 +105,23 @@ class BaseChromosome(object):
             except IndexError:
                 # copies extra genes from the fittest parent
                 child._node_genes.append(ng1.copy())
-                
-        child._input_nodes = parent1._input_nodes
             
    
     def _mutate_add_node(self):
-        # Must be implemented in the inherited class
-        pass
+            # Choose a random connection to split
+        try:
+            conn_to_split = random.choice(self._connection_genes.values())
+        except IndexError: # Empty list of genes
+            # TODO: this can't happen, do not fail silently
+            return
+        ng = self._node_gene_type(len(self._node_genes) + 1, 'HIDDEN')
+        self._node_genes.append(ng)
+        new_conn1, new_conn2 = conn_to_split.split(ng.id)
+        self._connection_genes[new_conn1.key] = new_conn1
+        self._connection_genes[new_conn2.key] = new_conn2
+        return (ng, conn_to_split) # the return is only used in genome_feedforward
     
-    def _mutate_add_connection(self):
+    def _mutate_add_connection(self, conn_gene_type=ConnectionGene):
         # Only for recurrent networks
         total_possible_conns = (len(self._node_genes) - self._input_nodes) \
             * len(self._node_genes)
@@ -127,7 +137,7 @@ class BaseChromosome(object):
                         # Free connection
                         if count == n: # Connection to create
                             weight = random.uniform(-Config.random_range, Config.random_range)
-                            cg = genome2.ConnectionGene(in_node.id, out_node.id, weight, True)
+                            cg = conn_gene_type(in_node.id, out_node.id, weight, True)
                             self._connection_genes[cg.key] = cg
                             return
                         else:
@@ -180,14 +190,10 @@ class BaseChromosome(object):
         # number of hidden nodes
         num_hidden = len(self._node_genes) - Config.input_nodes - Config.output_nodes
         # number of enabled connections
-        conns_enabled = sum([1 for cg in self.conn_genes if cg.enabled is True])
+        conns_enabled = sum([1 for cg in self._connection_genes.values() if cg.enabled is True])
         
         return (num_hidden, conns_enabled)
     
-    @classmethod
-    def create_fully_connected(cls, num_input, num_output):
-        pass
-
     # sort chromosomes by their fitness
     def __cmp__(self, other):
         return cmp(self.fitness, other.fitness)
@@ -202,88 +208,55 @@ class BaseChromosome(object):
         for c in connections:
             s += "\n\t" + str(c)
         return s
-
-class RecurrentSigmoidChromosome(BaseChromosome):
-    ''' A chromosome for general sigmoidal recurrent neural networks '''
-    def __init__(self, parent1_id, parent2_id):
-        super(RecurrentSigmoidChromosome, self).__init__(parent1_id, parent2_id) 
-    
-    def _mutate_add_node(self):
-            # Choose a random connection to split
-        try:
-            conn_to_split = random.choice(self._connection_genes.values())
-        except IndexError: # Empty list of genes
-            # TODO: this can't happen, do not fail silently
-            return
-        ng = genome2.NodeGene(len(self._node_genes) + 1, 'HIDDEN')
-        self._node_genes.append(ng)
-        new_conn1, new_conn2 = conn_to_split.split(ng.id)
-        self._connection_genes[new_conn1.key] = new_conn1
-        self._connection_genes[new_conn2.key] = new_conn2
-        return (ng, conn_to_split)
-        
-    def _parametric_mutation(self):
-        super(RecurrentSigmoidChromosome, self)._parametric_mutation()
-        
-        r = random.random
-        for ng in self._node_genes[self._input_nodes:]:
-            if r() < Config.prob_mutatebias:
-                ng.mutate_bias()
     
     @classmethod
-    def create_fully_connected(cls, num_input, num_output):
+    def create_fully_connected(cls, num_input, num_output, node_gene_type, conn_gene_type):
         '''
         Factory method
-        Creates a chromosome for a fully connected network with no hidden nodes.
-        '''
-        c = cls(0,0)
+        Creates a chromosome for a fully connected feedforward network with no hidden nodes.
+        '''   
+        c = cls(0, 0, node_gene_type, conn_gene_type)
         id = 1
         # Create node genes
         for i in range(num_input):
-            c._node_genes.append(genome2.NodeGene(id, 'INPUT'))
+            c._node_genes.append(c._node_gene_type(id, 'INPUT'))
             id += 1
         c._input_nodes += num_input
+        
         for i in range(num_output):
-            node_gene = genome2.NodeGene(id, 'OUTPUT')
+            node_gene = c._node_gene_type(id, 'OUTPUT')
             c._node_genes.append(node_gene)
             id += 1
+            
             # Connect it to all input nodes
             for input_node in c._node_genes[:num_input]:
+                #TODO: review the initial weights distribution
                 weight = random.uniform(-Config.random_range, Config.random_range)
-                cg = genome2.ConnectionGene(input_node.id, node_gene.id, weight, True)
+                cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg
         return c
+    
 
-    def create_phenotype(self):
-        """ Receives a chromosome and returns its phenotype (a neural network) """
-
-        neurons_list = [nn.Neuron(ng._type, ng._id, ng._bias, ng._response) \
-                        for ng in self._node_genes]
-        
-        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
-                     for cg in self.conn_genes if cg.enabled] 
-        
-        return nn.Network(neurons_list, conn_list)     
-
-class FFSigmoidChromosome(RecurrentSigmoidChromosome):
-    ''' A chromosome for feedforward sigmoidal neural networks.
-        Feedforward topologies are a particular case of Recurrent NNs'''
-    def __init__(self, parent1_id, parent2_id):
-        super(FFSigmoidChromosome, self).__init__(parent1_id, parent2_id)
+class FFChromosome(Chromosome):
+    ''' A chromosome for feedforward neural networks. Feedforward 
+        topologies are a particular case of Recurrent NNs.
+    '''
+    def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
+        super(FFChromosome, self).__init__(parent1_id, parent2_id, node_gene_type, conn_gene_type)
         self.__node_order = [] # hidden node order (for feedforward networks)
         #self.__node_order = [4, 5] # used only in fixed-topology experiments (using a pre-defined topology in genome2.py)
         
     node_order = property(lambda self: self.__node_order)
     
     def _inherit_genes(child, parent1, parent2):
-        super(FFSigmoidChromosome, child)._inherit_genes(parent1, parent2)
+        super(FFChromosome, child)._inherit_genes(parent1, parent2)
         
         child.__node_order = parent1.__node_order[:]
         
         assert(len(child.__node_order) == len([n for n in child.node_genes if n.type == 'HIDDEN']))
     
     def _mutate_add_node(self):
-        ng, split_conn = super(FFSigmoidChromosome, self)._mutate_add_node()
+        ng, split_conn = super(FFChromosome, self)._mutate_add_node()
         # Add node to node order list: after the presynaptic node of the split connection
         # and before the postsynaptic node of the split connection
         if self._node_genes[split_conn.innodeid - 1].type == 'HIDDEN':
@@ -321,7 +294,7 @@ class FFSigmoidChromosome(RecurrentSigmoidChromosome):
                         # Free connection
                         if count == n: # Connection to create
                             weight = random.uniform(-Config.random_range, Config.random_range)
-                            cg = genome2.ConnectionGene(in_node.id, out_node.id, weight, True)
+                            cg = self._conn_gene_type(in_node.id, out_node.id, weight, True)
                             self._connection_genes[cg.key] = cg
                             return
                         else:
@@ -333,14 +306,41 @@ class FFSigmoidChromosome(RecurrentSigmoidChromosome):
             
     
     def __str__(self):
-        s = super(FFSigmoidChromosome, self).__str__()
+        s = super(FFChromosome, self).__str__()
         s += '\nNode order: ' + str(self.__node_order)
         return s
+
+def create_phenotype(chromosome, neuron_type=Neuron): 
+        """ Receives a chromosome and returns its phenotype (a neural network) """
+
+        #need to figure out how to do it - we need a general enough create_phenotype method
+        neurons_list = [neuron_type(ng._type, ng._id, ng._bias, ng._response) \
+                        for ng in chromosome._node_genes]
+        
+        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                     for cg in chromosome.conn_genes if cg.enabled] 
+        
+        return nn.Network(neurons_list, conn_list) 
     
-class CTChromosome(BaseChromosome):
-    ''' A chromosome for general continuous-time recurrent neural networks '''
-    pass
+if __name__ == '__main__':
     
-class IFChromosome(BaseChromosome):
-    ''' A chromosome for general integrate-and-fire type recurrent neural network '''
-    pass
+    Config.random_range = 3
+    
+    # creates a chromosome for general networks
+    c1 = Chromosome.create_fully_connected(2, 2, NodeGene, ConnectionGene)
+    
+    c1._mutate_add_node()    
+    c1._mutate_add_connection()
+    
+    # creates a chromosome for feedforward networks
+    c2 = FFChromosome.create_fully_connected(2, 2, NodeGene, ConnectionGene)
+
+    c2._mutate_add_node()    
+    c2._mutate_add_connection()
+     
+    import visualize 
+    visualize.draw_net(c1)
+    
+    visualize.draw_ff(c2)
+
+    print  c2
