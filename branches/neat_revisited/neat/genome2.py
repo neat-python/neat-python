@@ -111,14 +111,14 @@ class ConnectionGene(object):
     
     def mutate(self):
         r = random.random
-        if r() <  Config.prob_togglelink:
-            self.__enable()
         if r() < Config.prob_mutate_weight: 
             self.__mutate_weight()
-        if r() < 0.1:
-            self.__weight_replaced()
-        
-    
+        if r() <  Config.prob_togglelink:
+            self.__enable()
+        #TODO: Remove weight_replaced?
+        #if r() < 0.001:
+        #    self.__weight_replaced()
+   
     def __enable(self):
         '''For the "enable link" mutation'''
         self.__enabled = True
