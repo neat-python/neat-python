@@ -1,5 +1,5 @@
 from config import Config
-import genome, genome_feedforward
+import chromosome
 import cPickle as pickle
 import visualize
 import random
@@ -22,12 +22,14 @@ class Population:
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     
     def __create_population(self):
-        if Config.nn_allow_recurrence:
-            self.__population = [genome.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
+            
+        if Config.feedforward:
+            genotypes = chromosome.FFChromosome.create_fully_connected
         else:
-            self.__population = [genome_feedforward.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
+            genotypes = chromosome.Chromosome.create_fully_connected
+            
+        self.__population = [genotypes(Config.input_nodes, Config.output_nodes) \
+                             for i in xrange(self.__popsize)]
     
     def __len__(self):
         return len(self.__population)
@@ -50,6 +52,23 @@ class Population:
             
         return sum/len(self)
     
+    def __population_diversity(self):
+        ''' Calculates the diversity of population: total average weights, 
+            number of connections, nodes '''
+            
+        num_nodes = 0
+        num_conns = 0
+        avg_weights = 0.0
+        
+        for c in self.__population:
+            num_nodes += len(c.node_genes)
+            num_conns += len(c.conn_genes)
+            for cg in c.conn_genes:
+                avg_weights += cg.weight
+            
+        total = len(self)
+        return (num_nodes/total, num_conns/total, avg_weights/total)
+    
     def epoch(self, n, stats=True, save_best=False):
         ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
         
@@ -64,6 +83,8 @@ class Population:
             self.__avg_fitness.append(self.average_fitness()) 
             # Print some statistics
             best = self.__best_fitness[-1] 
+            
+            #print 'Diversity: ', self.__population_diversity()
 
             if save_best:
                 file = open('best_chromo_'+str(generation),'w')
@@ -78,7 +99,13 @@ class Population:
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
                 print 'Best individual found in epoch %s - complexity: %s' %(generation, best.size())
-                break            
+                break    
+            
+            #-----------------------------------------   
+            # Prints chromosome's parents id:  {dad_id, mon_id} -> child_id      
+            #for chromosome in self.__population:  
+            #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
+            #-----------------------------------------        
                 
             # -------------------------- Producing new offspring -------------------------- #
             offspring = []
@@ -88,21 +115,21 @@ class Population:
             self.__population.sort()     # sort species's members by their fitness
             self.__population.reverse()  # best members first
                           
-            kill = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
-            #print "Killing %d individuals out of %d" % (len(self.__population) - kill, len(self.__population))
-   
-            if kill > 0: # If we're going to kill, then do it.
-                self.__population = self.__population[:kill]
+            # how many chromosomes will survive
+            survivors = int(round(self.__popsize*Config.survival_threshold)) 
+               
+            if survivors > 0: # if anyone survived
+                self.__population = self.__population[:survivors] # keep a % of the best individuals
                 assert len(self.__population) > 0 
-                
-            # selects two parents from the remaining population:
-            while (len(offspring) < Config.pop_size  - kill):
+             
+            # reproduce until it's filled   
+            while (len(offspring) < self.__popsize - survivors):
                 #print "Creating new individual"
                 random.shuffle(self.__population) # remove shuffle (always select best: give better results?)
                 parent1, parent2 = self.__population[0], self.__population[1]
                 child = parent1.crossover(parent2)
-                offspring.append(child.mutate())
+                child.mutate()
+                offspring.append(child)
                 
-
             #print "Population size %d - offspring size %d" %(len(self.__population), len(offspring))
             self.__population.extend(offspring)
