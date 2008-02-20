@@ -1,7 +1,7 @@
 import random, math, copy
 from config import Config
 from genome2 import NodeGene, ConnectionGene
-from nn import Neuron
+from nn import Neuron, Network
 
 class Chromosome(object):
     ''' A chromosome for general recurrent neural networks '''
@@ -38,25 +38,24 @@ class Chromosome(object):
     def mutate(self):
         """ Mutates this chromosome """
         
-        # Stanley's way...
         r = random.random
-        if r() < Config.prob_addnode:
-            self._mutate_add_node()
-        elif r() < Config.prob_addconn:
+        if r() < Config.prob_addconn:
             self._mutate_add_connection()
-        else: # if no structural mutation has occured
-            for cg in self._connection_genes.values():
-                cg.mutate() # mutate weights
-            for ng in self._node_genes[self._input_nodes:]:
-                ng.mutate() # mutate bias, response and etc...
+        elif r() < Config.prob_addnode:
+            self._mutate_add_node()        
+
+        for cg in self._connection_genes.values():
+            cg.mutate() # mutate weights
+        for ng in self._node_genes[self._input_nodes:]:
+            ng.mutate() # mutate bias, response and etc...
     
     
     def crossover(self, other):
         ''' Crosses over parents' chromosomes and returns a child '''
         
         # This can't happen! Parents must belong to the same species.
-        assert parent1.species_id == parent2.species_id, 'Different parents species ID: %d vs %d' \
-                                                         % (parent1.species_id, parent2.species_id)
+        assert self.species_id == other.species_id, 'Different parents species ID: %d vs %d' \
+                                                         % (self.species_id, other.species_id)
                                                         
         # TODO: if they're of equal fitnesses, choose the shortest 
         if self.fitness > other.fitness:
@@ -92,7 +91,7 @@ class Chromosome(object):
                     # Homologous gene found
                     # TODO: average both weights (Stanley, p. 38)
                     new_gene = random.choice((cg1, cg2)).copy()
-                    new_gene.enable() # avoids disconnected neurons
+                    #new_gene.enable() # avoids disconnected neurons
                 else:
                     new_gene = child._connection_genes[cg1.key] = cg1.copy()
                 child._connection_genes[cg1.key] = new_gene
@@ -210,7 +209,7 @@ class Chromosome(object):
         return s
     
     @classmethod
-    def create_fully_connected(cls, num_input, num_output, node_gene_type, conn_gene_type):
+    def create_fully_connected(cls, num_input, num_output, node_gene_type=NodeGene, conn_gene_type=ConnectionGene):
         '''
         Factory method
         Creates a chromosome for a fully connected feedforward network with no hidden nodes.
@@ -234,6 +233,7 @@ class Chromosome(object):
                 weight = random.uniform(-Config.random_range, Config.random_range)
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg
+                
         return c
     
 
@@ -310,17 +310,39 @@ class FFChromosome(Chromosome):
         s += '\nNode order: ' + str(self.__node_order)
         return s
 
-def create_phenotype(chromosome, neuron_type=Neuron): 
+def create_phenotype(chromo): 
         """ Receives a chromosome and returns its phenotype (a neural network) """
 
         #need to figure out how to do it - we need a general enough create_phenotype method
-        neurons_list = [neuron_type(ng._type, ng._id, ng._bias, ng._response) \
-                        for ng in chromosome._node_genes]
+        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response) \
+                        for ng in chromo._node_genes]
         
         conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
-                     for cg in chromosome.conn_genes if cg.enabled] 
+                     for cg in chromo.conn_genes if cg.enabled] 
         
-        return nn.Network(neurons_list, conn_list) 
+        return Network(neurons_list, conn_list) 
+    
+def create_ffphenotype(chromo):
+    """ Receives a chromosome and returns its phenotype (a neural network) """
+    
+    # first create inputs
+    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
+                    for ng in chromo.node_genes if ng.type == 'INPUT']
+    
+    # Add hidden nodes in the right order
+    for id in chromo.node_order:
+        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
+        
+    # finally the output
+    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response) \
+                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
+    
+    assert(len(neurons_list) == len(chromo.node_genes))
+    
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                 for cg in chromo.conn_genes if cg.enabled] 
+    
+    return Network(neurons_list, conn_list)        
     
 if __name__ == '__main__':
     
