@@ -17,7 +17,7 @@ def load(file):
         Config.output_nodes         =       int(parameters.get('phenotype','output_nodes'))
         Config.max_weight           =     float(parameters.get('phenotype','max_weight'))
         Config.min_weight           =     float(parameters.get('phenotype','min_weight'))
-        Config.nn_allow_recurrence  =  bool(int(parameters.get('phenotype','nn_allow_recurrence')))
+        Config.feedforward          =  bool(int(parameters.get('phenotype','feedforward')))
         Config.nn_activation        =           parameters.get('phenotype','nn_activation')  # exp or tanh
         Config.random_range         =     float(parameters.get('phenotype','random_range'))
         
