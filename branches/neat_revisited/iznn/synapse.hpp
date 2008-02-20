@@ -1,38 +1,32 @@
-#ifndef SYNAPSE_PYOBJECT_HPP
-#define SYNAPSE_PYOBJECT_HPP
+#ifndef SYNAPSE_HPP
+#define SYNAPSE_HPP
 
 #include <Python.h>
 #include "structmember.h"
-#include "spiking_nn.hpp"
-#include "neuron_pyobject.hpp"
+#include "neuron.hpp"
+#include <cmath>
 
-// Constructors won't be automatically called.
-// Always define __init__ method.
 struct SynapseObject {
 	PyObject_HEAD
-    Synapse synapse;
 	NeuronObject* source;
 	NeuronObject* dest;
+	double weight;
 };
 
 namespace {
 
 int Synapse_init(SynapseObject *self, PyObject *args, PyObject *kwds) {
+	static char *kwlist[] = {"source", "dest", "weight", 0};
 	PyObject* source = 0;
 	PyObject* dest = 0;
-	double weight;
-
-    static char *kwlist[] = {"source", "dest", "weight", 0};
-
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!d", kwlist, 
-    		&NeuronType, &source, &NeuronType, &dest, &weight)) {
+    		&NeuronType, &source, &NeuronType, &dest, &self->weight)) {
         return -1;
     }
     Py_INCREF(source);
     self->source = reinterpret_cast<NeuronObject*>(source);
     Py_INCREF(dest);
     self->dest = reinterpret_cast<NeuronObject*>(dest);
-    self->synapse = Synapse(&self->source->neuron, &self->dest->neuron, weight);
     return 0;
 }
 
@@ -43,8 +37,11 @@ void Synapse_dealloc(SynapseObject* self)
     self->ob_type->tp_free(reinterpret_cast<PyObject*>(self));
 }
 
-PyObject* Synapse_advance(SynapseObject* self) {
-	self->synapse.advance();
+PyObject* Synapse_advance(SynapseObject* self)
+{
+    if(self->source->has_fired) {
+    	self->dest->current += self->weight;
+    }
 	return Py_BuildValue("");
 }
 
@@ -58,7 +55,7 @@ PyMethodDef Synapse_methods[] = {
 PyTypeObject SynapseType = {
 		PyObject_HEAD_INIT(0)
 		0,							/* ob_size */
-		"spiking_nn.Synapse",		/* tp_name */
+		"iznn.Synapse",		/* tp_name */
 		sizeof(SynapseObject),		/* tp_basicsize */
 		0,							/* tp_itemsize */
 		reinterpret_cast<destructor>(Synapse_dealloc),	/* tp_dealloc */

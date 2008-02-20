@@ -1,44 +1,54 @@
-#ifndef NEURON_PYOBJECT_HPP
-#define NEURON_PYOBJECT_HPP
+#ifndef NEURON_HPP
+#define NEURON_HPP
 
-#include <Python.h>
-#include "structmember.h"
-#include "spiking_nn.hpp"
-
-// Constructors won't be automatically called.
-// Always define __init__ method.
 struct NeuronObject {
 	PyObject_HEAD
-    Neuron neuron;
+	double a;
+	double b;
+	double c;
+	double d;
+	long double v;
+	long double u;
+	bool has_fired;
+	double bias;
+	double current;
 };
 
 namespace {
 
+const double BIAS = 0;
+const double A = 0.02;
+const double B = 0.2;
+const double C = -65;
+const double D = 8;
+
 int Neuron_init(NeuronObject *self, PyObject *args, PyObject *kwds) {
-	double bias = Neuron::DEFAULT_BIAS;
-	double a = Neuron::DEFAULT_A;
-	double b = Neuron::DEFAULT_B;
-	double c = Neuron::DEFAULT_C;
-	double d = Neuron::DEFAULT_D;
-
-    static char *kwlist[] = {"bias", "a", "b", "c", "d", 0};
-
+	self->bias = BIAS;
+	self->a = A;
+	self->b = B;
+	self->c = C;
+	self->d = D;
+	
+	static char *kwlist[] = {"bias", "a", "b", "c", "d", 0};
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ddddd", kwlist, 
-    		&bias, &a, &b, &c, &d)) {
+    		&self->bias, &self->a, &self->b, &self->c, &self->d)) {
         return -1;
     }
-    self->neuron = Neuron(bias, a, b, c, d);
+    self->v = self->c;
+    self->u = self->b * self->v;
+    self->has_fired = false;
+    self->current = self->bias;
     return 0;
 }
 
 PyObject* Neuron_get_potential(NeuronObject *self, void *closure)
 {
-    return Py_BuildValue("d", self->neuron.get_potential());
+    return Py_BuildValue("d", double(self->v));
 }
 
 PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
 {
-	if (self->neuron.has_fired()) {
+	if (self->has_fired) {
 		Py_INCREF(Py_True);
 		return Py_True;
 	}
@@ -50,22 +60,20 @@ PyObject* Neuron_get_has_fired(NeuronObject* self, void* closure)
 
 PyObject* Neuron_get_current(NeuronObject* self, void* closure)
 {
-	return Py_BuildValue("d", self->neuron.get_current());
+	return Py_BuildValue("d", self->current);
 }
 
 int Neuron_set_current(NeuronObject *self, PyObject *value, void *closure)
 {
-	if (!PyFloat_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "current must be a float");
+	self->current = PyFloat_AsDouble(value);
+	if (PyErr_Occurred()) {
 		return -1;
 	}
-	double c = PyFloat_AS_DOUBLE(value);
-	self->neuron.set_current(c);
 	return 0;
 }
 
 
-PyGetSetDef Neuron_getseters[] = {
+PyGetSetDef Neuron_getsetters[] = {
 		{"potential", reinterpret_cast<getter>(Neuron_get_potential), 0,
 			"Membrane potential", 0},
 		{"has_fired", reinterpret_cast<getter>(Neuron_get_has_fired), 0,
@@ -76,7 +84,18 @@ PyGetSetDef Neuron_getseters[] = {
 };
 
 PyObject* Neuron_advance(NeuronObject* self) {
-	self->neuron.advance();
+	self->v += 0.5 * (0.04 * self->v * self->v + 5 * self->v + 140 - self->u + self->current);
+	self->v += 0.5 * (0.04 * self->v * self->v + 5 * self->v + 140 - self->u + self->current);
+	self->u += self->a * (self->b * self->v - self->u);
+	if (self->v > 30) {
+		self->has_fired = true;
+		self->v = self->c;
+		self->u += self->d;
+	}
+	else {
+		self->has_fired = false;
+	}
+	self->current = self->bias;
 	return Py_BuildValue("");
 }
 
@@ -90,7 +109,7 @@ PyMethodDef Neuron_methods[] = {
 PyTypeObject NeuronType = {
 		PyObject_HEAD_INIT(0)
 		0,							/* ob_size */
-		"spiking_nn.Neuron",		/* tp_name */
+		"iznn.Neuron",			/* tp_name */
 		sizeof(NeuronObject),		/* tp_basicsize */
 		0,							/* tp_itemsize */
 		0,							/* tp_dealloc */
@@ -121,13 +140,17 @@ PyTypeObject NeuronType = {
 		0,		               		/* tp_iternext */
 		Neuron_methods,				/* tp_methods */
 		0,             				/* tp_members */
-		Neuron_getseters,           /* tp_getset */
+		Neuron_getsetters,          /* tp_getset */
 		0,                         /* tp_base */
 		0,                         /* tp_dict */
 		0,                         /* tp_descr_get */
 		0,                         /* tp_descr_set */
 		0,                         /* tp_dictoffset */
 		reinterpret_cast<initproc>(Neuron_init),	/* tp_init */
+};
+
+PyMethodDef methods[] = {
+		{0}
 };
 
 }

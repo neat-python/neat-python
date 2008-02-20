@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 
-from spiking_nn_c import *
+from iznn_cpp import *
 
 class Network(object):
     """ A neural network has a list of neurons linked by synapses """
