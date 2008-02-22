@@ -54,22 +54,36 @@ class NodeGene(object):
 
 class CTNodeGene(NodeGene):
     '''Continuous-time node gene - used in CTRNNs '''
-    def __init__(self, id, nodetype, bias=0, response=4.924273, time_constant=1.0):
+    def __init__(self, id, nodetype, bias=random.uniform(-1,1), response=4.924273, time_constant=1.0):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response)
         
         self._time_constant = time_constant
         
+    time_constant = property(lambda self: self._time_constant)
+        
     def mutate(self):
         super(CTNodeGene, self).mutate()
-        self.__mutate_time_constant()
+        
+        if random.random() < 0.02:
+            self.__mutate_time_constant()
         
     def __mutate_time_constant(self):
-        self._time_constant += random.uniform(-1, 1) * Config.bias_mutation_power
+        self._time_constant += random.uniform(-1, 1)
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
             self._time_constant = Config.min_weight
         return self
+    
+    def get_child(self, other):
+        ''' Creates a new NodeGene ramdonly inheriting its attributes from parents '''
+        assert(self._id == other._id)
+        
+        ng = CTNodeGene(self._id, self._type,
+                      random.choice((self._bias, other._bias)), 
+                      random.choice((self._response, other._response)),
+                      random.choice((self._time_constant, other._time_constant)))
+        return ng
         
     def __str__(self):
         return "Node %2d %6s, bias %+2.5s, response %+2.5s, time constant %+2.5s" \
