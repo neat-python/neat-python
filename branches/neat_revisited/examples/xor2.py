@@ -1,23 +1,27 @@
 import math
-from neat import config, population, genome_feedforward, visualize
+from neat import config, population, chromosome, visualize
 #from psyco.classes import *
 
 config.load('xor2_config') 
+
+# Temporary workaround
+chromosome.node_gene_type = genome2.NodeGene
+chromosome.neuron_model = nn.Neuron
 
 # XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
 def eval_fitness(population):
-    for chromosome in population:
-        brain = genome_feedforward.create_phenotype(chromosome)
+    for chromo in population:
+        brain = chromosome.create_ffphenotype(chromo)
         error = 0.0
         for i, input in enumerate(INPUTS):
             output = brain.activate(input) # serial activation
             error += (output[0] - OUTPUTS[i])**2
             #error += math.fabs(output[0] - OUTPUTS[i])
         #chromosome.fitness = (4.0 - error)**2 # (Stanley p. 43)        
-        chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
+        chromo.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         
 population.Population.evaluate = eval_fitness
 pop = population.Population()
@@ -32,7 +36,13 @@ visualize.plot_stats(pop.stats)
 
 # Let's check if it's really solved the problem
 print 'Best network output'
+brain = chromosome.create_ffphenotype(pop.stats[0][-1])
 for i, input in enumerate(INPUTS):
-    brain = genome_feedforward.create_phenotype(pop.stats[0][-1])
     output = brain.activate(input) # serial activation
     print OUTPUTS[i], output[0]
+    
+
+# saves the winner
+#file = open('winner_chromosome', 'w')
+#pickle.dump(pop.stats[0][-1], file)
+#file.close()

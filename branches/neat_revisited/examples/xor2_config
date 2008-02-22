@@ -11,7 +11,7 @@ output_nodes        = 1
 max_weight          = 500
 min_weight          = -500
 random_range        = 0.5
-nn_allow_recurrence = 0
+feedforward         = 1
 nn_activation       = exp
 
 [genetic]
@@ -25,7 +25,7 @@ prob_mutatebias       = 0.2
 bias_mutation_power   = 0.5    
 prob_mutate_weight    = 0.25
 weight_mutation_power = 1.5    
-prob_togglelink       = 0.1
+prob_togglelink       = 0.01
 
 # Parameters obtained with a meta-SGA
 #prob_addconn          = 0.32064768257848786
@@ -37,7 +37,7 @@ prob_togglelink       = 0.1
 #prob_togglelink       = 0.024390995616214557
 
 [genotype compatibility]
-compatibility_threshold = 3.0
+compatibility_threshold = 5.0
 compatibility_change    = 0.0
 excess_coeficient       = 1.0
 disjoint_coeficient     = 1.0

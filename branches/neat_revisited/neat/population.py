@@ -1,6 +1,6 @@
 from config import Config
 import species
-import genome, genome_feedforward
+import chromosome
 import cPickle as pickle
 import visualize
 import random
@@ -26,13 +26,15 @@ class Population:
     species_log = property(lambda self: self.__species_log)
     
     def __create_population(self):
-        if Config.nn_allow_recurrence:
-            self.__population = [genome.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
+        
+        if Config.feedforward:
+            genotypes = chromosome.FFChromosome.create_fully_connected
         else:
-            self.__population = [genome_feedforward.Chromosome.create_fully_connected(Config.input_nodes, Config.output_nodes) \
-                                 for i in xrange(self.__popsize)]
-    
+            genotypes = chromosome.Chromosome.create_fully_connected
+            
+        self.__population = [genotypes(Config.input_nodes, Config.output_nodes) \
+                             for i in xrange(self.__popsize)]
+                            
     def __len__(self):
         return len(self.__population)
       
@@ -181,7 +183,7 @@ class Population:
                 file.close()
                 
             # saves all phenotypes - debugging!
-            for chromosome in self.__population:
+            for individual in self.__population:
                 #visualize.draw_net(chromosome, str(generation)+'_'+str(chromosome.id))
                 pass
                         
@@ -270,8 +272,8 @@ if __name__ ==  '__main__' :
     
     # sample fitness function
     def eval_fitness(population):
-        for chromosome in population:
-            chromosome.fitness = 1.0
+        for individual in population:
+            individual.fitness = 1.0
             
     # set fitness function 
     Population.evaluate = eval_fitness
