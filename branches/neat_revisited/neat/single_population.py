@@ -5,10 +5,56 @@ import visualize
 import random
 #from psyco.classes import *
 
+class SelecaoRank:
+    def __init__(self, pop):
+        self._pop = pop
+        self._total_fitness = 0
+        rank = 1
+        for i in self._pop:
+            self._total_fitness += rank
+            rank += 1
+    def __call__(self):
+        n = random.uniform(0, self._total_fitness)
+        s = 0
+        rank = 1
+        for i in self._pop:
+            s += rank
+            if n <= s:
+                break
+            rank += 1
+        return i
+    
+class SelecaoRoleta:
+    def __init__(self, pop):
+        self._pop = pop
+        self._total_fitness = 0
+        for i in self._pop:
+            self._total_fitness += i.fitness
+    def __call__(self):
+        n = random.uniform(0, self._total_fitness)
+        s = 0
+        for i in self._pop:
+            s += i.fitness
+            if n <= s:
+                break
+        return i
+    
+class SelecaoTorneio:
+    def __init__(self, pop):
+        self._pop = pop
+    def __call__(self):
+        s1, s2 = random.choice(self._pop), random.choice(self._pop)
+        if s1.fitness >= s2.fitness:
+            return s1
+        else:
+            return s2
+
 class Population:
     ''' Manages all the species  '''
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
+                    
+    selecao = SelecaoRank
 
     def __init__(self):
         self.__popsize = Config.pop_size
@@ -123,10 +169,22 @@ class Population:
                 assert len(self.__population) > 0 
              
             # reproduce until it's filled   
-            while (len(offspring) < self.__popsize - survivors):
-                #print "Creating new individual"
-                random.shuffle(self.__population) # remove shuffle (always select best: give better results?)
-                parent1, parent2 = self.__population[0], self.__population[1]
+#            while (len(offspring) < self.__popsize - survivors):
+#                #print "Creating new individual"
+#                random.shuffle(self.__population) # remove shuffle (always select best: give better results?)
+#                parent1, parent2 = self.__population[0], self.__population[1]
+#                child = parent1.crossover(parent2)
+#                child.mutate()
+#                offspring.append(child)
+                
+                    # selects two parents from the remaining population:
+            selecionar = self.selecao(self)
+            
+            while (len(offspring) < Config.pop_size  - survivors):
+                
+                parent1 = selecionar()
+                parent2 = selecionar()
+                
                 child = parent1.crossover(parent2)
                 child.mutate()
                 offspring.append(child)
