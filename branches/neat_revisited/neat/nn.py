@@ -17,7 +17,7 @@ def sigmoid(x, response):
             print 'Invalid activation type selected:', Config.nn_activation
             
     except OverflowError:
-        print 'Overflow error: x = %s', x
+        print 'Overflow error: x = ', x
 
     return output
     
