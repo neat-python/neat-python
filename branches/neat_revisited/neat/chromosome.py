@@ -1,7 +1,12 @@
 import random, math, copy
 from config import Config
-from genome2 import NodeGene, ConnectionGene
-from nn import Neuron, Network
+import genome2
+import nn
+
+# Temporary workaround - default settings
+node_gene_type = genome2.NodeGene
+neuron_model = nn.Neuron
+conn_gene_type = genome2.ConnectionGene
 
 class Chromosome(object):
     ''' A chromosome for general recurrent neural networks '''
@@ -39,15 +44,16 @@ class Chromosome(object):
         """ Mutates this chromosome """
         
         r = random.random
-        if r() < Config.prob_addconn:
+        if r() < Config.prob_addnode:
+            self._mutate_add_node()
+            
+        if  r() < Config.prob_addconn:
             self._mutate_add_connection()
-        elif r() < Config.prob_addnode:
-            self._mutate_add_node()        
 
         for cg in self._connection_genes.values():
             cg.mutate() # mutate weights
         for ng in self._node_genes[self._input_nodes:]:
-            ng.mutate() # mutate bias, response and etc...
+            ng.mutate() # mutate bias, response, and etc...
     
     
     def crossover(self, other):
@@ -120,7 +126,7 @@ class Chromosome(object):
         self._connection_genes[new_conn2.key] = new_conn2
         return (ng, conn_to_split) # the return is only used in genome_feedforward
     
-    def _mutate_add_connection(self, conn_gene_type=ConnectionGene):
+    def _mutate_add_connection(self):
         # Only for recurrent networks
         total_possible_conns = (len(self._node_genes) - self._input_nodes) \
             * len(self._node_genes)
@@ -136,7 +142,7 @@ class Chromosome(object):
                         # Free connection
                         if count == n: # Connection to create
                             weight = random.uniform(-Config.random_range, Config.random_range)
-                            cg = conn_gene_type(in_node.id, out_node.id, weight, True)
+                            cg = self._conn_gene_type(in_node.id, out_node.id, weight, True)
                             self._connection_genes[cg.key] = cg
                             return
                         else:
@@ -209,7 +215,7 @@ class Chromosome(object):
         return s
     
     @classmethod
-    def create_fully_connected(cls, num_input, num_output, node_gene_type=NodeGene, conn_gene_type=ConnectionGene):
+    def create_fully_connected(cls, num_input, num_output):
         '''
         Factory method
         Creates a chromosome for a fully connected feedforward network with no hidden nodes.
@@ -232,8 +238,7 @@ class Chromosome(object):
                 #TODO: review the initial weights distribution
                 weight = random.uniform(-Config.random_range, Config.random_range)
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
-                c._connection_genes[cg.key] = cg
-                
+                c._connection_genes[cg.key] = cg        
         return c
     
 
@@ -314,27 +319,27 @@ def create_phenotype(chromo):
         """ Receives a chromosome and returns its phenotype (a neural network) """
 
         #need to figure out how to do it - we need a general enough create_phenotype method
-        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response) \
+        neurons_list = [neuron_model(ng._type, ng._id, ng._bias, ng._response, tau=ng.time_constant) \
                         for ng in chromo._node_genes]
         
         conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                      for cg in chromo.conn_genes if cg.enabled] 
         
-        return Network(neurons_list, conn_list) 
+        return nn.Network(neurons_list, conn_list) 
     
 def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
+    neurons_list = [neuron_model('INPUT', ng.id, 0, 0) \
                     for ng in chromo.node_genes if ng.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromo.node_order:
-        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
+        neurons_list.append(neuron_model('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
         
     # finally the output
-    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response) \
+    neurons_list.extend(neuron_model('OUTPUT', ng.id, ng.bias, ng.response) \
                         for ng in chromo.node_genes if ng.type == 'OUTPUT')
     
     assert(len(neurons_list) == len(chromo.node_genes))
@@ -342,7 +347,7 @@ def create_ffphenotype(chromo):
     conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
                  for cg in chromo.conn_genes if cg.enabled] 
     
-    return Network(neurons_list, conn_list)        
+    return nn.Network(neurons_list, conn_list)        
     
 if __name__ == '__main__':
     
