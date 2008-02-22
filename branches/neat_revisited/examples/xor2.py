@@ -1,5 +1,5 @@
 import math
-from neat import config, population, chromosome, visualize
+from neat import config, population, chromosome, genome2, nn, visualize
 #from psyco.classes import *
 
 config.load('xor2_config') 
