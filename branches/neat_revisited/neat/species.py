@@ -92,7 +92,8 @@ class Species:
             if(len(self) == 1):
                 # temporary hack - the child needs a new id (not the father's)
                 child = self.__chromosomes[0].crossover(self.__chromosomes[0])                
-                offspring.append(child.mutate())
+                child.mutate()
+                offspring.append(child)
                 
             if(len(self) > 1):
                 # Selects two parents from the remaining species and produces a single individual 
@@ -100,7 +101,8 @@ class Species:
                 parent1, parent2 = self.__chromosomes[0], self.__chromosomes[1]
                 assert parent1.species_id == parent2.species_id
                 child = parent1.crossover(parent2)
-                offspring.append(child.mutate())
+                child.mutate()
+                offspring.append(child)
                 
             self.spawn_amount -= 1 
 
