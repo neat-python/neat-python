@@ -54,6 +54,8 @@ class Chromosome(object):
             cg.mutate() # mutate weights
         for ng in self._node_genes[self._input_nodes:]:
             ng.mutate() # mutate bias, response, and etc...
+            
+        return self
     
     
     def crossover(self, other):

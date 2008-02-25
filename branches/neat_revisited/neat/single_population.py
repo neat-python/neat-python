@@ -185,9 +185,8 @@ class Population:
                 parent1 = selecionar()
                 parent2 = selecionar()
                 
-                child = parent1.crossover(parent2)
-                child.mutate()
-                offspring.append(child)
+                child = parent1.crossover(parent2)                
+                offspring.append(child.mutate())
                 
             #print "Population size %d - offspring size %d" %(len(self.__population), len(offspring))
             self.__population.extend(offspring)

@@ -12,8 +12,11 @@ class Population:
                     # this method in your experiments    
 
     def __init__(self):
+        # total population size
         self.__popsize = Config.pop_size
+        # currently living species
         self.__species = []
+        # species history
         self.__species_log = []
                 
         # Statistics
@@ -51,39 +54,49 @@ class Population:
     def __speciate(self):
         """ Group chromosomes into species by similarity """ 
         # Speciate the population
-        for c in self:
+        for individual in self:
             found = False    
             for s in self.__species:
-                if s.representative.id == c.id:
-                    s.add(c)
-                    found = True
-                    break    
-                # if c.species_id is not None try this species first  
-                if c.species_id == s.id and not found:
-                    if c.distance(s.representative) < Config.compatibility_threshold:    
-                        s.add(c)
+                #if s.representant.id == individual.id:
+                #    s.add(individual)
+                #    found = True
+                #    break    
+                #if c.species_id is not None try this species first  
+                #if individual.species_id == s.id and not found:
+                if individual.species_id == s.id:
+                    if individual.distance(s.representant) < Config.compatibility_threshold:    
+                        s.add(individual)
                         found = True
                         break
             
             if not found:
                 for s in self.__species:      
-                    if c.distance(s.representative) < Config.compatibility_threshold:
-                        s.add(c)                               
+                    if individual.distance(s.representant) < Config.compatibility_threshold:
+                        s.add(individual)                               
                         #print 'chromo %s added to species %s' %(c.id, s.id)
                         found = True
                         break # we found a compatible species, so let's skip to the next
                 
             if not found: # create a new species for this lone chromosome
-                self.__species.append(species.Species(c))  
-       
-        # Controls compatibility threshold
+                self.__species.append(species.Species(individual)) 
+                
+        # remove empty species
+        before = len(self.__species)            
+        self.__species = [s for s in self.__species if len(s) > 0]  
+        if len(self.__species) < before:
+            print '%d species was removed for being empty.' %(before - len(self.__species))
+        
+        self.__set_compatibility_threshold()  
+                
+    def __set_compatibility_threshold(self):
+        ''' Controls compatibility threshold '''
         if len(self.__species) > Config.species_size:
             Config.compatibility_threshold += Config.compatibility_change
         elif len(self.__species) < Config.species_size:
             if Config.compatibility_threshold > Config.compatibility_change:
                 Config.compatibility_threshold -= Config.compatibility_change
             else:
-                print 'Compatibility threshold cannot be changed (minimum value has been reached)'            
+                print 'Compatibility threshold cannot be changed (minimum value has been reached)'
                 
     def average_fitness(self):
         ''' Returns the average raw fitness of population '''
@@ -106,14 +119,13 @@ class Population:
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
         # 1. Boost if young and penalize if old
+        # TODO: does this increase the overall performance?
         species_stats = []
         for s in self.__species:
             if s.age < Config.youth_threshold:
-                #species_stats.append(s.average_fitness()*Config.youth_boost)
-                species_stats.append(s.average_fitness())
+                species_stats.append(s.average_fitness()*Config.youth_boost)
             elif s.age > Config.old_threshold:
-                #species_stats.append(s.average_fitness()*Config.old_penalty)       
-                species_stats.append(s.average_fitness())       
+                species_stats.append(s.average_fitness()*Config.old_penalty)                       
             else:
                 species_stats.append(s.average_fitness())
 
@@ -134,7 +146,7 @@ class Population:
                 print 'Species %d (age %s) will be removed (produced no offspring)' %(s.id, s.age)
                 
     def __log_species(self):
-        ''' Logging species data for visualizing speciation. '''
+        ''' Logging species data for visualizing speciation '''
         higher = max([s.id for s in self.__species])
         temp = []
         for i in xrange(1, higher+1):
@@ -149,7 +161,7 @@ class Population:
         self.__species_log.append(temp)
                     
     def epoch(self, n, stats=True, save_best=False):
-        ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
+        ''' Runs NEAT's genetic algorithm for n epochs '''
         
         for generation in xrange(n):
             if stats: print 'Running generation',generation
@@ -183,23 +195,28 @@ class Population:
                 file.close()
                 
             # saves all phenotypes - debugging!
-            for individual in self.__population:
-                #visualize.draw_net(chromosome, str(generation)+'_'+str(chromosome.id))
-                pass
-                        
+            #for chromosome in self.__population:
+            #    visualize.draw_net(chromosome, str(generation)+'_'+str(chromosome.id))
+            #    pass
+
+            #-----------------------------------------   
+            # Prints chromosome's parents id:  {dad_id, mon_id} -> child_id      
+            #for chromosome in self.__population:  
+            #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
+            #-----------------------------------------
             if stats:
                 print 'Population\'s average fitness', self.__avg_fitness[-1]
-                print 'Best fitness: %s - size: %s - species %s - id %s' \
+                print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
                 
                 # print some "debugging" information
                 print 'Species length: %d totalizing %d individuals' \
                         %(len(self.__species), sum([len(s) for s in self.__species]))
-                print 'Species ID :',[s.id for s in self.__species]
-                print 'Each species size:', [len(s) for s in self.__species]
-                print 'Amount to spawn:',[s.spawn_amount for s in self.__species]
-                print 'Species age:',[s.age for s in self.__species]
-                print 'Species imp:',[s.no_improvement_age for s in self.__species] # species no improvement age
+                print 'Species ID       : %s' % [s.id for s in self.__species]
+                print 'Each species size: %s' % [len(s) for s in self.__species]
+                print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
+                print 'Species age      : %s' % [s.age for s in self.__species]
+                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species] # species no improvement age
             
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
@@ -211,9 +228,8 @@ class Population:
             
             # Spawning new population
             for s in self.__species:
-                #print 'Species %s produced %s' %(s.id, len(temp))
                 new_population.extend(s.reproduce())
-                           
+                                        
 #            # Controls under or overflow
 #            # This is unnecessary since the population size is stable
 #            # due to the computed spawn levels for each species. No
@@ -260,13 +276,13 @@ class Population:
                               s.no_improvement_age > Config.max_stagnation and s.hasBest == True] 
             
             # Does it help in avoiding local minima?
-            for s in self.__species:
-                if s.no_improvement_age > 50:
-                    print 'Species %d is super-stagnated, removing it' %(s.id)
+            #for s in self.__species:
+                #if s.no_improvement_age > 50:
+                    #print 'Species %d is super-stagnated, removing it' %(s.id)
             
-            # Remove "super-stagnated" species (even if it has the best chromosome)
-            self.__species = [s for s in self.__species if \
-                              s.no_improvement_age < 50]
+            ## Remove "super-stagnated" species (even if it has the best chromosome)
+            #self.__species = [s for s in self.__species if \
+                              #s.no_improvement_age < 50]
 
 if __name__ ==  '__main__' :
     
