@@ -2,7 +2,7 @@ from math import exp, log, tanh, pi, sin
 import random
 from config import Config
 #random.seed(0)
-#from psyco.classes import *
+#import psyco; psyco.full()
 
 def sigmoid(x, response):
     " Sigmoidal type of activation function "

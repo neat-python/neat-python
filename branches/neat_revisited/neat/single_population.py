@@ -1,9 +1,12 @@
+# ------------------------------------------------------------#
+# A standard genetic algorithm - no speciation method is used #
+# ------------------------------------------------------------#
 from config import Config
 import chromosome
 import cPickle as pickle
 import visualize
 import random
-#from psyco.classes import *
+#import psyco; psyco.full()
 
 class SelecaoRank:
     def __init__(self, pop):
@@ -54,7 +57,7 @@ class Population:
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
                     
-    selecao = SelecaoRank
+    selecao = SelecaoTorneio
 
     def __init__(self):
         self.__popsize = Config.pop_size
@@ -116,7 +119,7 @@ class Population:
         return (num_nodes/total, num_conns/total, avg_weights/total)
     
     def epoch(self, n, stats=True, save_best=False):
-        ''' Runs NEAT's genetic algorithm for n epochs. All the speciation methods are handled here '''
+        ''' Runs the standard genetic algorithm for n epochs '''
         
         for generation in xrange(n):
             if stats: print 'Running generation',generation
@@ -177,7 +180,7 @@ class Population:
 #                child.mutate()
 #                offspring.append(child)
                 
-                    # selects two parents from the remaining population:
+            # selects two parents from the remaining population:
             selecionar = self.selecao(self)
             
             while (len(offspring) < Config.pop_size  - survivors):
@@ -188,5 +191,4 @@ class Population:
                 child = parent1.crossover(parent2)                
                 offspring.append(child.mutate())
                 
-            #print "Population size %d - offspring size %d" %(len(self.__population), len(offspring))
             self.__population.extend(offspring)
