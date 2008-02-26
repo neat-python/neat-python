@@ -1,12 +1,12 @@
 import math
-from neat import config, population, chromosome, genome2, nn, visualize
+from neat import config, population, chromosome, genome2, visualize
+from neat import nn
 #from psyco.classes import *
 
 config.load('xor2_config') 
 
 # Temporary workaround
 chromosome.node_gene_type = genome2.NodeGene
-chromosome.neuron_model = nn.Neuron
 
 # XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
@@ -14,7 +14,7 @@ OUTPUTS = (0, 1, 1, 0)
 
 def eval_fitness(population):
     for chromo in population:
-        brain = chromosome.create_ffphenotype(chromo)
+        brain = nn.create_ffphenotype(chromo)
         error = 0.0
         for i, input in enumerate(INPUTS):
             output = brain.activate(input) # serial activation
@@ -36,7 +36,7 @@ visualize.plot_stats(pop.stats)
 
 # Let's check if it's really solved the problem
 print 'Best network output'
-brain = chromosome.create_ffphenotype(pop.stats[0][-1])
+brain = nn.create_ffphenotype(pop.stats[0][-1])
 for i, input in enumerate(INPUTS):
     output = brain.activate(input) # serial activation
     print OUTPUTS[i], output[0]

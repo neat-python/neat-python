@@ -1,5 +1,5 @@
 import math
-from neat import config, population, genome_feedforward, genome, visualize
+from neat import config, population, genome_feedforward, genome, visualize, nn
 #from psyco.classes import *
 
 config.load('xor3_config') 
@@ -10,7 +10,7 @@ OUTPUTS = (0,1,1,0,1,0,0,1)
 
 def eval_fitness(population):
     for chromosome in population:
-        brain = genome_feedforward.create_phenotype(chromosome)
+        brain = nn.create_ffphenotype(chromosome)
         error = 0.0
         for i, input in enumerate(INPUTS):
             output = brain.sactivate(input) # serial activation
@@ -33,6 +33,6 @@ visualize.plot_stats(pop.stats)
 # Let's check if it's really solved the problem
 print 'Best network output'
 for i, input in enumerate(INPUTS):
-    brain = genome_feedforward.create_phenotype(pop.stats[0][-1])
+    brain = nn.create_ffphenotype(pop.stats[0][-1])
     output = brain.activate(input) # serial activation
     print OUTPUTS[i], output[0]

@@ -1,6 +1,6 @@
 from math import exp, log, tanh, pi, sin
 import random
-from config import Config
+from neat.config import Config
 #random.seed(0)
 #import psyco; psyco.full()
 
@@ -73,39 +73,7 @@ class Neuron(object):
     def __repr__(self):
         return '%d %s' %(self._id, self._type)   
 
-        
-class CTNeuron(Neuron):
-    ''' Continuous-time neuron model based on:
-    
-        Beer, R. D. and Gallagher, J.C. (1992). 
-        Evolving Dynamical Neural Networks for Adaptive Behavior. 
-        Adaptive Behavior 1(1):91-122. 
-    '''
-    def __init__(self, neurontype, id = None, bias=0, response=1, state=0, tau=1):
-        super(CTNeuron, self).__init__(neurontype, id, bias, response)
-
-        # decay rate
-        self.__decay  = 1.0/tau 
-        # needs to set the initial state (initial condition for the ODE)
-        self.__state = state
-        # fist output
-        self._output = sigmoid(self.__state + self._bias, self._response)
-
-    def activate(self):
-        "Updates neuron's state for a single time-step"
-        if(len(self._synapses) > 0):            
-            self.__update_state()
-            return sigmoid(self.__state + self._bias, self._response)
-        else:
-            return self._output # in case it's a sensor
-
-    def __update_state(self):
-        ''' Returns neuron's next state using Forward-Euler method.
-            Future: integrate using scipy.integrate.
-        '''
-        step_size = 0.01
-        self.__state += (step_size*self.__decay)*(-self.__state + self._update_activation())
-        
+                
 class Synapse(object):
     'A synapse indicates the connection strength between two neurons (or itself)'
     def __init__(self, source, destination, weight):        
@@ -250,6 +218,39 @@ class FeedForward(Network):
                 for o in self.neurons[-self.__output_layer:]:
                         self.add_synapse(Synapse(h, o, r(-1,1)))
 
+def create_phenotype(chromo, neuron_model=Neuron): 
+        """ Receives a chromosome and returns its phenotype (a neural network) """
+
+        #need to figure out how to do it - we need a general enough create_phenotype method
+        neurons_list = [neuron_model(ng._type, ng._id, ng._bias, ng._response, tau=ng.time_constant) \
+                        for ng in chromo._node_genes]
+        
+        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                     for cg in chromo.conn_genes if cg.enabled] 
+        
+        return Network(neurons_list, conn_list) 
+    
+def create_ffphenotype(chromo, neuron_model=Neuron):
+    """ Receives a chromosome and returns its phenotype (a neural network) """
+    
+    # first create inputs
+    neurons_list = [neuron_model('INPUT', ng.id, 0, 0) \
+                    for ng in chromo.node_genes if ng.type == 'INPUT']
+    
+    # Add hidden nodes in the right order
+    for id in chromo.node_order:
+        neurons_list.append(neuron_model('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
+        
+    # finally the output
+    neurons_list.extend(neuron_model('OUTPUT', ng.id, ng.bias, ng.response) \
+                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
+    
+    assert(len(neurons_list) == len(chromo.node_genes))
+    
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                 for cg in chromo.conn_genes if cg.enabled] 
+    
+    return Network(neurons_list, conn_list)        
 
 if __name__ == "__main__":
     # Example

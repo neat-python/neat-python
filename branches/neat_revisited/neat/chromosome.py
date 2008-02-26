@@ -5,7 +5,6 @@ import nn
 
 # Temporary workaround - default settings
 node_gene_type = genome2.NodeGene
-neuron_model = nn.Neuron
 conn_gene_type = genome2.ConnectionGene
 
 class Chromosome(object):
@@ -316,40 +315,6 @@ class FFChromosome(Chromosome):
         s = super(FFChromosome, self).__str__()
         s += '\nNode order: ' + str(self.__node_order)
         return s
-
-def create_phenotype(chromo): 
-        """ Receives a chromosome and returns its phenotype (a neural network) """
-
-        #need to figure out how to do it - we need a general enough create_phenotype method
-        neurons_list = [neuron_model(ng._type, ng._id, ng._bias, ng._response, tau=ng.time_constant) \
-                        for ng in chromo._node_genes]
-        
-        conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
-                     for cg in chromo.conn_genes if cg.enabled] 
-        
-        return nn.Network(neurons_list, conn_list) 
-    
-def create_ffphenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
-    
-    # first create inputs
-    neurons_list = [neuron_model('INPUT', ng.id, 0, 0) \
-                    for ng in chromo.node_genes if ng.type == 'INPUT']
-    
-    # Add hidden nodes in the right order
-    for id in chromo.node_order:
-        neurons_list.append(neuron_model('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
-        
-    # finally the output
-    neurons_list.extend(neuron_model('OUTPUT', ng.id, ng.bias, ng.response) \
-                        for ng in chromo.node_genes if ng.type == 'OUTPUT')
-    
-    assert(len(neurons_list) == len(chromo.node_genes))
-    
-    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
-                 for cg in chromo.conn_genes if cg.enabled] 
-    
-    return nn.Network(neurons_list, conn_list)        
     
 if __name__ == '__main__':
     
