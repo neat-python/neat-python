@@ -1,8 +1,9 @@
 # Installation script
-from distutils.core import setup
+from distutils.core import setup, Extension
 setup(
       name='neat-python',
       version='0.1',
       description='A NEAT (NeuroEvolution of Augmenting Topologies) implementation',
-      packages=['neat'],
+      packages=['neat', 'neat/iznn'],
+      ext_modules=[Extension('neat/iznn/iznn_cpp', ['neat/iznn/iznn.cpp'])],
 )

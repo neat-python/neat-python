@@ -1,21 +1,25 @@
 import math
+from neat import config, population, chromosome, genome2, iznn, visualize
+#from psyco.classes import *
 
+config.load('xor2_config')
 
-from neat import config, population, genome_feedforward, visualize, spiking_nn
+# Temporary workaround
+chromosome.node_gene_type = genome2.NodeGene
+
+# For spiking networks
 config.Config.output_nodes = 2
-config.Config.prob_addconn = 0.01
-config.Config.prob_addnode = 0.005
 
 # XOR-2
 INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
 OUTPUTS = (0, 1, 1, 0)
 
 # For how long are we going to wait for an answer from the network?
-MAX_TIME = 500 # in miliseconds of simulation time
+MAX_TIME = 100 # in miliseconds of simulation time
 
 def eval_fitness(population):
     for chromosome in population:
-        brain = spiking_nn.create_phenotype(chromosome)
+        brain = iznn.create_phenotype(chromosome)
         error = 0.0
         for i, input in enumerate(INPUTS):
             for j in range(MAX_TIME):
@@ -31,14 +35,19 @@ def eval_fitness(population):
         chromosome.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         if not chromosome.fitness:
             chromosome.fitness = 0.00001
-
+        
 population.Population.evaluate = eval_fitness
-pop = population.Population(30)
-pop.epoch(1500)
+pop = population.Population()
+pop.epoch(200, stats=1, save_best=0)
 
-# Requires: PyDot -  http://code.google.com/p/pydot/downloads/list
-# very, very, very draft solution for network visualizing
+# Draft solution for network visualizing
 visualize.draw_net(pop.stats[0][-1]) # best chromosome
-# visualize.draw_net(max(pop.stats[0])) # must be the same as pop.stats[-1]
-# Requires: biggles - http://biggles.sourceforge.net/
+# Plots the evolution of the best/average fitness
 visualize.plot_stats(pop.stats)
+# Visualizes speciation
+#visualize.plot_species(pop.species_log)
+
+# saves the winner
+#file = open('winner_chromosome', 'w')
+#pickle.dump(pop.stats[0][-1], file)
+#file.close()
