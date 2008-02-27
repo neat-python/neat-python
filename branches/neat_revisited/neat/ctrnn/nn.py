@@ -7,13 +7,13 @@ class CTNeuron(nn.Neuron):
         Evolving Dynamical Neural Networks for Adaptive Behavior. 
         Adaptive Behavior 1(1):91-122. 
     '''
-    def __init__(self, neurontype, id = None, bias=0, response=1, state=0, tau=1):
+    def __init__(self, neurontype, id = None, bias=0, response=1, tau=1):
         super(CTNeuron, self).__init__(neurontype, id, bias, response)
 
         # decay rate
         self.__decay  = 1.0/tau 
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = state
+        self.__state = 0.4 #TODO: Verify what's the "best" initial state
         # fist output
         self._output = nn.sigmoid(self.__state + self._bias, self._response)
 
@@ -33,9 +33,11 @@ class CTNeuron(nn.Neuron):
         self.__state += (step_size*self.__decay)*(-self.__state + self._update_activation())
 
 def create_phenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a neural network) """ 
-    return nn.create_phenotype(chromo, CTNeuron)
-    
-def create_ffphenotype(chromo):
-    """ Receives a chromosome and returns its phenotype (a neural network) """
-    return nn.create_ffphenotype(chromo, CTNeuron)
+    """ Receives a chromosome and returns its phenotype (a CTRNN) """ 
+    neurons_list = [CTNeuron(ng._type, ng._id, ng._bias, ng._response, ng._time_constant) \
+                    for ng in chromo._node_genes]
+        
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+                  for cg in chromo.conn_genes if cg.enabled] 
+                  
+    return nn.Network(neurons_list, conn_list)

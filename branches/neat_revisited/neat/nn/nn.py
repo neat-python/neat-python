@@ -126,7 +126,7 @@ class Network(object):
         else:
             return self.pactivate(inputs)
 
-    def sactivate(self, inputs=[]):	
+    def sactivate(self, inputs=[]):    
         '''Serial (asynchronous) network activation  method.  Mostly
            used  in  classification  tasks (supervised  learning) in
            feedforward  topologies.  All  neurons  must  be in their
@@ -218,11 +218,11 @@ class FeedForward(Network):
                 for o in self.neurons[-self.__output_layer:]:
                         self.add_synapse(Synapse(h, o, r(-1,1)))
 
-def create_phenotype(chromo, neuron_model=Neuron): 
+def create_phenotype(chromo): 
         """ Receives a chromosome and returns its phenotype (a neural network) """
 
         #need to figure out how to do it - we need a general enough create_phenotype method
-        neurons_list = [neuron_model(ng._type, ng._id, ng._bias, ng._response, tau=ng.time_constant) \
+        neurons_list = [Neuron(ng._type, ng._id, ng._bias, ng._response) \
                         for ng in chromo._node_genes]
         
         conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
@@ -230,19 +230,19 @@ def create_phenotype(chromo, neuron_model=Neuron):
         
         return Network(neurons_list, conn_list) 
     
-def create_ffphenotype(chromo, neuron_model=Neuron):
+def create_ffphenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a neural network) """
     
     # first create inputs
-    neurons_list = [neuron_model('INPUT', ng.id, 0, 0) \
+    neurons_list = [Neuron('INPUT', ng.id, 0, 0) \
                     for ng in chromo.node_genes if ng.type == 'INPUT']
     
     # Add hidden nodes in the right order
     for id in chromo.node_order:
-        neurons_list.append(neuron_model('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
+        neurons_list.append(Neuron('HIDDEN', id, chromo.node_genes[id - 1].bias, chromo.node_genes[id - 1].response))
         
     # finally the output
-    neurons_list.extend(neuron_model('OUTPUT', ng.id, ng.bias, ng.response) \
+    neurons_list.extend(Neuron('OUTPUT', ng.id, ng.bias, ng.response) \
                         for ng in chromo.node_genes if ng.type == 'OUTPUT')
     
     assert(len(neurons_list) == len(chromo.node_genes))
@@ -254,15 +254,15 @@ def create_ffphenotype(chromo, neuron_model=Neuron):
 
 if __name__ == "__main__":
     # Example
-    import visualize, config
-    config.Config.nn_activation = 'exp'
+    from neat import visualize
+    Config.nn_activation = 'exp'
     
     nn = FeedForward([2,2,1], False)
     ##visualize.draw_ff(nn)
     print 'Serial activation method: '
     for t in range(3):
-	    print nn.sactivate([1,1])
-	    
+        print nn.sactivate([1,1])
+
     #print 'Parallel activation method: '
     #for t in range(3):
         #print nn.pactivate([1,1])
