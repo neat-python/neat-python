@@ -6,7 +6,7 @@ output_nodes        = 1
 max_weight          = 500
 min_weight          = -500
 random_range        = 20.5
-nn_allow_recurrence = 0
+feedforward			= 1
 nn_activation       = exp
 
 [genetic]
