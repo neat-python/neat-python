@@ -1,8 +1,19 @@
+# ******************************** #
+# Single pole balancing experiment #
+# ******************************** #
+
 from neat import config, population, chromosome, genome2, visualize
 from neat import nn
-import math, random
+import math, random#; random.seed(854)
+import cPickle as pickle
 
-def cart_pole(action, x, x_dot, theta, theta_dot):
+rstate = random.getstate()
+
+save = open('rstate','w')
+pickle.dump(rstate, save)
+save.close()
+
+def cart_pole(net_output, x, x_dot, theta, theta_dot):
     ''' Directly copied from Stanley's C++ source code '''
     
     GRAVITY = 9.8
@@ -15,8 +26,12 @@ def cart_pole(action, x, x_dot, theta, theta_dot):
     TAU = 0.02  # seconds between state updates
     FOURTHIRDS = 1.3333333333333
 
-    #force = (action>0)? FORCE_MAG : -FORCE_MAG
-    force = FORCE_MAG if action > 0.5 else -FORCE_MAG
+       
+    #force = (net_output - 0.5) * FORCE_MAG * 2
+    if net_output > 0.5:
+        force = FORCE_MAG
+    else:
+        force = -FORCE_MAG
       
     costheta = math.cos(theta)
     sintheta = math.sin(theta)
@@ -38,31 +53,41 @@ def cart_pole(action, x, x_dot, theta, theta_dot):
     
 def evaluate_population(population):
     
-    twelve_degrees=0.2094384
-    num_steps = 100000
+    twelve_degrees = 0.2094384 #radians
+    num_steps = 10**5
     
     for chromo in population:
         
         net = nn.create_phenotype(chromo)
         
-        r = random.randint
         # initial conditions
-        x         = (r(0, 2**31)%4800)/1000.0 -2.4  # cart position, meters 
-        x_dot     = (r(0, 2**31)%2000)/1000.0 - 1   # cart velocity
-        theta     = (r(0, 2**31)%400)/1000.0 - .2   # pole angle, radians
-        theta_dot = (r(0, 2**31)%3000)/1000.0 - 1.5 # pole angular velocity
+        x         = random.uniform(-2.4, 2.4) # cart position, meters 
+        x_dot     = random.uniform(-1.0, 1.0) # cart velocity
+        theta     = random.uniform(-0.2, 0.2) # pole angle, radians
+        theta_dot = random.uniform(-1.5, 1.5) # pole angular velocity
+        #x = 0.0
+        #x_dot = 0.0
+        #theta = 0.0
+        #theta_dot = 0.0
         
         fitness = 0
         
+#        if chromo.id == 1096:
+#            print x, x_dot, theta, theta_dot
+        
         for trials in xrange(num_steps):
         
-            # map inputs into [0,1]
+            # maps into [0,1]
             inputs = [(x + 2.4)/4.8, 
-                      (x_dot + .75)/1.5,
+                      (x_dot + 0.75)/1.5,
                       (theta + twelve_degrees)/0.41,
-                      (theta_dot + 1.0) / 2.0]
+                      (theta_dot + 1.0)/2.0]
+            
+            # a normalizacao so acontece para estas condicoes iniciais
+            # nada garante que a evolucao do sistema leve a outros
+            # valores de x, x_dot e etc...
                       
-            action = net.sactivate(inputs)
+            action = net.pactivate(inputs)
             
             # Apply action to the simulated cart-pole
             x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
@@ -70,14 +95,18 @@ def evaluate_population(population):
             # Check for failure.  If so, return steps
             # the number of steps indicates the fitness: higher = better
             fitness += 1
-            if (x < -2.4 or x > 2.4 or theta < -twelve_degrees or theta > twelve_degrees):
+            if (abs(x) > 2.4 or abs(theta) > twelve_degrees):
+            #if abs(theta) > twelve_degrees: # Igel (p. 5) uses theta criteria only
                 # the cart/pole has run/inclined out of the limits
-                break;
+                break
             
+        #if fitness > num_steps-1:
+        #    print "Solution found! Number of evaluations: %d" %evals
+                
         chromo.fitness = fitness
 
 if __name__ == "__main__":
-    
+     
     config.load('spole_config') 
 
     # Temporary workaround
@@ -87,7 +116,14 @@ if __name__ == "__main__":
     pop = population.Population()
     pop.epoch(200, stats=1, save_best=0)
     
+    print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
+    
     # visualize the best topology
-    visualize.draw_net(pop.stats[0][-1]) # best chromosome
+    #visualize.draw_net(pop.stats[0][-1]) # best chromosome
     # Plots the evolution of the best/average fitness
-    visualize.plot_stats(pop.stats)
+    #visualize.plot_stats(pop.stats)
+    
+    # saves the winner
+    file = open('winner_chromosome', 'w')
+    pickle.dump(pop.stats[0][-1], file)
+    file.close()
