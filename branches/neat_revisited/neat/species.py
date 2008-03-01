@@ -17,6 +17,7 @@ class Species:
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
         self.no_improvement_age = 0                 # the age species has shown no improvements on average
+        
         self.__last_avg_fitness = 0     
         
         self.representant = first_individual
@@ -36,8 +37,12 @@ class Species:
         
     def add(self, individual):
         """ Add a new individual to the species """
-        individual.species_id = self.__id        # set member's species id
+        # set individual's species id
+        individual.species_id = self.__id
+        # add new individual
         self.__subpopulation.append(individual)        
+        # choose a new random representant for the species 
+        self.representant = random.choice(self.__subpopulation)
         
     def __iter__(self):
         return iter(self.__subpopulation)
@@ -46,8 +51,31 @@ class Species:
         """ Returns the total number of individuals in this species """
         return len(self.__subpopulation)
     
-    def __repr__(self):
-        return repr([c.fitness for c in self.__subpopulation])
+    #def __repr__(self):
+    #    return repr([c.fitness for c in self.__subpopulation])
+    
+    def __str__(self):
+        #s =  "\nId : %2d - Size : %3d \n" % (self.__id, len(self))
+        #s += "Age: %2d - Spawn: %3d \n" % (self.__age, self.spawn_amount)
+        #s += "No improvement : %d \n" % (self.no_improvement_age)
+        #s += "Avg. fitness   : %1.5f" % (self.__last_avg_fitness)
+        
+        s  = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " %(self.__id, len(self), self.__age, self.spawn_amount)
+        s += "\n   No improvement: %3d \t avg. fitness: %1.8f" % (self.no_improvement_age, self.__last_avg_fitness)
+        
+        return s
+    
+    def TournamentSelection(self, k=2):
+        ''' Tournament selection with size k (default k=2). 
+            Make sure the population has at least k individuals '''
+        random.shuffle(self.__subpopulation)        
+        #p1, p2 = self.__subpopulation[0], self.__subpopulation[1]
+        #if p1.fitness >= p2.fitness:
+        #    return p1
+        #else:
+        #    return p2
+        
+        return max(self.__subpopulation[:k])
     
     def average_fitness(self):
         """ Returns the raw average fitness for this species """
@@ -56,11 +84,18 @@ class Species:
             sum += c.fitness
                         
         try:
-            avg_fitness = sum/len(self)
+            current = sum/len(self)
         except ZeroDivisionError:
             print "Species %d, with length %d is empty! Why? " % (self.__id, len(self))
-        else:
-            return avg_fitness
+        else:  # controls species no improvement age
+            # if no_improvement_age > threshold, species will be removed
+            if current > self.__last_avg_fitness:
+                self.__last_avg_fitness = current
+                self.no_improvement_age = 0
+            else:
+                self.no_improvement_age += 1 
+                
+            return current 
     
     def reproduce(self):
         """ Returns a list of 'spawn_amount' new individuals """
@@ -70,41 +105,35 @@ class Species:
         
         #print "Reproducing species %d with %d members" %(self.id, len(self.__subpopulation))
         
-        # controls species no improvement age
-        avg = self.average_fitness()
-        # if no_improvement_age > threshold, species will be removed
-        if avg > self.__last_avg_fitness:
-            self.__last_avg_fitness = avg
-            self.no_improvement_age = 0
-        else:
-            self.no_improvement_age += 1 
-        
         # this condition is useless since no species with spawn_amount < 0 will
         # reach this point - at least it shouldn't happen.
-        if self.spawn_amount > 0:
+        #if self.spawn_amount > 0:
             
-            self.__subpopulation.sort()     # sort species's members by their fitness
-            self.__subpopulation.reverse()  # best members first
+        self.__subpopulation.sort()     # sort species's members by their fitness
+        self.__subpopulation.reverse()  # best members first
             
-            # keep the best               
-            offspring.append(self.__subpopulation[0])
-            self.spawn_amount -= 1
+        # always keep the best               
+        offspring.append(self.__subpopulation[0])
+        self.spawn_amount -= 1
  
-            survivors = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
+        survivors = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
    
-            if survivors > 0:
-                self.__subpopulation = self.__subpopulation[:survivors]
-            else:
-                # ensure that we have at least one individual 
-                self.__subpopulation = self.__subpopulation[:1]                  
+        if survivors > 0:
+            self.__subpopulation = self.__subpopulation[:survivors]
+        else:
+            # ensure that we have at least one chromosome to reproduce
+            self.__subpopulation = self.__subpopulation[:1]                  
        
         while(self.spawn_amount > 0):         
         
             if len(self) > 1:
                 
                 # Selects two parents from the remaining species and produces a single individual 
-                random.shuffle(self.__subpopulation) # remove shuffle (always select best: give better results?)
-                parent1, parent2 = self.__subpopulation[0], self.__subpopulation[1]
+                #random.shuffle(self.__subpopulation) # remove shuffle (always select best: give better results?)
+                #parent1, parent2 = self.__subpopulation[0], self.__subpopulation[1]
+                parent1 = self.TournamentSelection()
+                parent2 = self.TournamentSelection()
+                
                 assert parent1.species_id == parent2.species_id
                 child = parent1.crossover(parent2)
                 offspring.append(child.mutate())

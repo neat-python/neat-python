@@ -237,7 +237,8 @@ class Chromosome(object):
             # Connect it to all input nodes
             for input_node in c._node_genes[:num_input]:
                 #TODO: review the initial weights distribution
-                weight = random.uniform(-Config.random_range, Config.random_range)
+                weight = random.uniform(-1, 1)*Config.random_range
+                #weight = random.normalvariate(0, 5)
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg        
         return c
