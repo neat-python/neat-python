@@ -96,12 +96,11 @@ class Chromosome(object):
             else:
                 if cg2.is_same_innov(cg1): # Always true for *global* INs
                     # Homologous gene found
-                    # TODO: average both weights (Stanley, p. 38)
-                    new_gene = random.choice((cg1, cg2)).copy()
+                    new_gene = cg1.get_child(cg2)
                     #new_gene.enable() # avoids disconnected neurons
                 else:
-                    new_gene = child._connection_genes[cg1.key] = cg1.copy()
-                child._connection_genes[cg1.key] = new_gene
+                    new_gene = cg1.copy()
+                child._connection_genes[new_gene.key] = new_gene
                 
         # Crossover node genes
         for i, ng1 in enumerate(parent1._node_genes):
@@ -114,12 +113,8 @@ class Chromosome(object):
             
    
     def _mutate_add_node(self):
-            # Choose a random connection to split
-        try:
-            conn_to_split = random.choice(self._connection_genes.values())
-        except IndexError: # Empty list of genes
-            # TODO: this can't happen, do not fail silently
-            return
+        # Choose a random connection to split
+        conn_to_split = random.choice(self._connection_genes.values())
         ng = self._node_gene_type(len(self._node_genes) + 1, 'HIDDEN')
         self._node_genes.append(ng)
         new_conn1, new_conn2 = conn_to_split.split(ng.id)

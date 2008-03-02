@@ -177,3 +177,7 @@ class ConnectionGene(object):
     
     def is_same_innov(self, cg):
         return self.__innov_number == cg.__innov_number
+    
+    def get_child(self, cg):
+        # TODO: average both weights (Stanley, p. 38)
+        return random.choice((self, cg)).copy()
