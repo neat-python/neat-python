@@ -37,7 +37,7 @@ prob_togglelink       = 0.01
 #prob_togglelink       = 0.024390995616214557
 
 [genotype compatibility]
-compatibility_threshold = 5.0
+compatibility_threshold = 3.0
 compatibility_change    = 0.0
 excess_coeficient       = 1.0
 disjoint_coeficient     = 1.0

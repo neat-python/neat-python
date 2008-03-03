@@ -8,10 +8,14 @@ import math, random#; random.seed(854)
 import cPickle as pickle
 
 rstate = random.getstate()
-
 save = open('rstate','w')
 pickle.dump(rstate, save)
 save.close()
+
+#dumped = open('rstate','r')
+#rstate = pickle.load(dumped)
+#random.setstate(rstate)
+#dumped.close()
 
 def cart_pole(net_output, x, x_dot, theta, theta_dot):
     ''' Directly copied from Stanley's C++ source code '''
@@ -71,10 +75,7 @@ def evaluate_population(population):
         #theta_dot = 0.0
         
         fitness = 0
-        
-#        if chromo.id == 1096:
-#            print x, x_dot, theta, theta_dot
-        
+
         for trials in xrange(num_steps):
         
             # maps into [0,1]
@@ -87,7 +88,7 @@ def evaluate_population(population):
             # nada garante que a evolucao do sistema leve a outros
             # valores de x, x_dot e etc...
                       
-            action = net.pactivate(inputs)
+            action = net.sactivate(inputs)
             
             # Apply action to the simulated cart-pole
             x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
@@ -99,9 +100,6 @@ def evaluate_population(population):
             #if abs(theta) > twelve_degrees: # Igel (p. 5) uses theta criteria only
                 # the cart/pole has run/inclined out of the limits
                 break
-            
-        #if fitness > num_steps-1:
-        #    print "Solution found! Number of evaluations: %d" %evals
                 
         chromo.fitness = fitness
 
@@ -114,7 +112,7 @@ if __name__ == "__main__":
     
     population.Population.evaluate = evaluate_population
     pop = population.Population()
-    pop.epoch(200, stats=1, save_best=0)
+    pop.epoch(200, report=0, save_best=0)
     
     print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
     
