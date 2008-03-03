@@ -23,6 +23,7 @@ class Chromosome(object):
         self._node_genes = []
         
         self.fitness = None
+        self.fitness_stanley = None
         self.species_id = None
         
         # my parents id: helps in tracking chromosome's genealogy

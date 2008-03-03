@@ -47,9 +47,9 @@ class Population:
     def __getitem__(self, key):
         return self.__population[key]
     
-    def remove(self, chromo):
-        ''' Removes a chromosome from the population '''
-        self.__population.remove(chromo)      
+    #def remove(self, chromo):
+    #    ''' Removes a chromosome from the population '''
+    #    self.__population.remove(chromo)      
         
     def __speciate(self, report):
         """ Group chromosomes into species by similarity """ 
@@ -65,11 +65,14 @@ class Population:
             if not found: # create a new species for this lone chromosome
                 self.__species.append(species.Species(individual)) 
                 
-        
-        for s in self.__species:
+        # python technical note:
+        # we need a "working copy" list when removing elements while looping
+        # otherwise we might end up having sync issues
+        for s in self.__species[:]: 
             # this happens when no chromosomes are compatible with the species
             if len(s) == 0: 
-                if report: print "Removing species %d for being empty" % s.id
+                if report: 
+                    print "Removing species %d for being empty" % s.id
                 # remove empty species    
                 self.__species.remove(s)
                 
@@ -121,13 +124,10 @@ class Population:
         for s in self.__species:
             if s.age < Config.youth_threshold:
                 species_stats.append(s.average_fitness()*Config.youth_boost)
-                # once in a while it happens:
-                # TypeError: unsupported operand type(s) for *: 'NoneType' and 'float'
             elif s.age > Config.old_threshold:
                 species_stats.append(s.average_fitness()*Config.old_penalty)                       
             else:
                 species_stats.append(s.average_fitness())
-
                 
         # 2. Share fitness (only usefull for computing spawn amounts)       
         # More info: http://tech.groups.yahoo.com/group/neat/message/2203        
@@ -140,9 +140,6 @@ class Population:
          # 3. Compute spawn
         for i, s in enumerate(self.__species):
             s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
-            if s.spawn_amount == 0:
-                # This rarely happens
-                print 'Species %d (age %s) will be removed (produced no offspring)' %(s.id, s.age)
                 
     def __log_species(self):
         ''' Logging species data for visualizing speciation '''
@@ -171,7 +168,7 @@ class Population:
             # Speciates the population
             self.__speciate(report)       
             # Compute spawn levels for each remaining species
-            self.__compute_spawn_levels()                   
+            self.__compute_spawn_levels()     
             
                                     
             # Current generation's best chromosome 
@@ -205,7 +202,7 @@ class Population:
             #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
             #-----------------------------------------
             if report:
-                print 'Population\'s average fitness: %3.10f stdev: %3.10f' %(self.__avg_fitness[-1], self.stdeviation())
+                print 'Population\'s average fitness: %3.5f stdev: %3.5f' %(self.__avg_fitness[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
                 
@@ -220,6 +217,13 @@ class Population:
             
                 for s in self.__species:
                     print s
+                    
+                # Removing species with spawn amount = 0
+                for s in self.__species[:]:
+                    # This rarely happens
+                    if s.spawn_amount == 0:                    
+                        print '   Species %2d age %2s removed: produced no offspring' %(s.id, s.age)
+                        self.__species.remove(s)
              
             #for c in self.__population:
             #    print "%3d    %2d    %4d - %4d   %1.5f" %(c.id,c.species_id,c.parent1_id, c.parent2_id,c.fitness)   
@@ -227,10 +231,7 @@ class Population:
             if best.fitness > Config.max_fitness_threshold:
                 print '\nBest individual found in epoch %s - complexity: %s' %(generation, best.size())
                 break            
-                
-            # Removing species with spawn amount = 0
-            self.__species = [s for s in self.__species if s.spawn_amount > 0]
-            
+                    
             # -------------------------- Producing new offspring -------------------------- #
             new_population = [] # next generation's population
             
@@ -283,7 +284,7 @@ class Population:
             #                  s.no_improvement_age <= Config.max_stagnation or \
             #                  s.no_improvement_age > Config.max_stagnation and s.hasBest == True] 
             
-            for s in self.__species:
+            for s in self.__species[:]:
                 if s.no_improvement_age > Config.max_stagnation:
                     if s.hasBest == False:
                         if report: print "\n   Species %2d is stagnated: removing it" % s.id                        
@@ -291,9 +292,9 @@ class Population:
                         self.__species.remove(s)
                         # removing all the species' members
                         #TODO: can be optimized!
-                        for c in self.__population:
+                        for c in self.__population[:]:
                             if c.species_id == s.id:
-                                self.remove(c)
+                                self.__population.remove(c)
                                 
                  
             # Does it help in avoiding local minima?
