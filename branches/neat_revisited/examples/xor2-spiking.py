@@ -38,7 +38,7 @@ def eval_fitness(population):
         
 population.Population.evaluate = eval_fitness
 pop = population.Population()
-pop.epoch(200, stats=1, save_best=0)
+pop.epoch(200, report=True, save_best=0)
 
 # Draft solution for network visualizing
 visualize.draw_net(pop.stats[0][-1]) # best chromosome
