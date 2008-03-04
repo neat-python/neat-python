@@ -31,7 +31,8 @@ class NodeGene(object):
         return ng
     
     def __mutate_bias(self):
-        self._bias += random.uniform(-1, 1) * Config.bias_mutation_power
+        #self._bias += random.uniform(-1, 1) * Config.bias_mutation_power
+        self._bias += random.gauss(0,1)*Config.bias_mutation_power
         if self._bias > Config.max_weight:
             self._bias = Config.max_weight
         elif self._bias < Config.min_weight:
@@ -39,7 +40,8 @@ class NodeGene(object):
     
     def __mutate_response(self):
     	''' Mutates the neuron's firing response. '''
-        self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
+        #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
+        self._response += random.gauss(0,1)*Config.bias_mutation_power
     
     def copy(self):
         return NodeGene(self._id, self._type, self._bias, self._response)
@@ -54,7 +56,7 @@ class NodeGene(object):
 
 class CTNodeGene(NodeGene):
     '''Continuous-time node gene - used in CTRNNs '''
-    def __init__(self, id, nodetype, bias=random.uniform(-1,1), response=4.924273, time_constant=1.0):
+    def __init__(self, id, nodetype, bias=random.gauss(0,0.5), response=random.gauss(0,0.5), time_constant=random.gauss(0.7,0.5)):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response)
         
         self._time_constant = time_constant
@@ -68,7 +70,7 @@ class CTNodeGene(NodeGene):
             self.__mutate_time_constant()
         
     def __mutate_time_constant(self):
-        self._time_constant += random.uniform(-1, 1)
+        self._time_constant += random.gauss(0, 1)
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
@@ -138,7 +140,8 @@ class ConnectionGene(object):
         self.__enabled = True
 
     def __mutate_weight(self):
-        self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
+        #self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
+        self.__weight += random.gauss(0,1)* Config.weight_mutation_power
         
         if self.__weight > Config.max_weight:
             self.__weight = Config.max_weight
@@ -146,7 +149,8 @@ class ConnectionGene(object):
             self.__weight = Config.min_weight
         
     def __weight_replaced(self):
-        self.__weight = random.uniform(-Config.random_range, Config.random_range)
+        #self.__weight = random.uniform(-Config.random_range, Config.random_range)
+        self.__weight = random.gauss(0,1)*Config.random_range
     
     @classmethod
     def __get_new_innov_number(cls):

@@ -124,10 +124,11 @@ class Species:
             # ensure that we have at least one chromosome to reproduce
             self.__subpopulation = self.__subpopulation[:1]                  
        
-        while(self.spawn_amount > 0):         
+        while(self.spawn_amount > 0):   
+            
+            self.spawn_amount -= 1      
         
-            if len(self) > 1:
-                
+            if len(self) > 1:                
                 # Selects two parents from the remaining species and produces a single individual 
                 #random.shuffle(self.__subpopulation) # remove shuffle (always select best: give better results?)
                 #parent1, parent2 = self.__subpopulation[0], self.__subpopulation[1]
@@ -136,18 +137,14 @@ class Species:
                 
                 assert parent1.species_id == parent2.species_id
                 child = parent1.crossover(parent2)
-                offspring.append(child.mutate())
-                    
-                self.spawn_amount -= 1 
-                
+                offspring.append(child.mutate())                
             else:                
                 # mutate only
                 parent1 = self.__subpopulation[0]
                 # TODO: temporary hack - the child needs a new id (not the father's)
                 child = parent1.crossover(parent1)
                 offspring.append(child.mutate())
-                
-                self.spawn_amount -= 1
+
 
         # reset species (new members will be added again when speciating)
         self.__subpopulation = []

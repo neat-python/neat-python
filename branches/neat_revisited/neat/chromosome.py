@@ -23,7 +23,6 @@ class Chromosome(object):
         self._node_genes = []
         
         self.fitness = None
-        self.fitness_stanley = None
         self.species_id = None
         
         # my parents id: helps in tracking chromosome's genealogy
@@ -47,14 +46,15 @@ class Chromosome(object):
         if r() < Config.prob_addnode:
             self._mutate_add_node()
             
-        if  r() < Config.prob_addconn:
+        elif r() < Config.prob_addconn:
             self._mutate_add_connection()
-
-        for cg in self._connection_genes.values():
-            cg.mutate() # mutate weights
-        for ng in self._node_genes[self._input_nodes:]:
-            ng.mutate() # mutate bias, response, and etc...
             
+        else:
+            for cg in self._connection_genes.values():
+                cg.mutate() # mutate weights
+            for ng in self._node_genes[self._input_nodes:]:
+                ng.mutate() # mutate bias, response, and etc...
+                
         return self
     
     
@@ -233,8 +233,9 @@ class Chromosome(object):
             # Connect it to all input nodes
             for input_node in c._node_genes[:num_input]:
                 #TODO: review the initial weights distribution
-                weight = random.uniform(-1, 1)*Config.random_range
-                #weight = random.normalvariate(0, 5)
+                #weight = random.uniform(-1, 1)*Config.random_range
+                weight = random.gauss(0,1)
+                
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg        
         return c
@@ -296,7 +297,8 @@ class FFChromosome(Chromosome):
                         self.__is_connection_feedforward(in_node, out_node):
                         # Free connection
                         if count == n: # Connection to create
-                            weight = random.uniform(-Config.random_range, Config.random_range)
+                            #weight = random.uniform(-Config.random_range, Config.random_range)
+                            weight = random.gauss(0,1)
                             cg = self._conn_gene_type(in_node.id, out_node.id, weight, True)
                             self._connection_genes[cg.key] = cg
                             return

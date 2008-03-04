@@ -105,16 +105,7 @@ class Population:
         for c in self:
             error += (u - c.fitness)**2
         return math.sqrt(error/len(self))
-    
-    def TournamentSelection(self):
-        ''' Tournament selection with k = 2 '''
-        random.shuffle(self.__population)        
-        p1, p2 = self.__population[0], self.__population[1]
-        if p1.fitness >= p2.fitness:
-            return p1
-        else:
-            return p2   
-    
+       
     def __compute_spawn_levels(self):
         """ Compute each species' spawn amount (Stanley, p. 40) """
         
@@ -140,6 +131,13 @@ class Population:
          # 3. Compute spawn
         for i, s in enumerate(self.__species):
             s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
+            
+    def __tournament_selection(self, k=2):
+        ''' Tournament selection with size k (default k=2). 
+            Make sure the population has at least k individuals '''
+        random.shuffle(self.__population)   
+        
+        return max(self.__population[:k])     
                 
     def __log_species(self):
         ''' Logging species data for visualizing speciation '''
@@ -175,8 +173,7 @@ class Population:
             self.__best_fitness.append(max(self.__population))
             # Current population's average fitness
             self.__avg_fitness.append(self.average_fitness()) 
-            # Logging speciation stats    
-            self.__log_species()
+
             # Print some statistics
             best = self.__best_fitness[-1] 
             # Which species has the best chromosome?
@@ -185,7 +182,7 @@ class Population:
                 if best.species_id == s.id:
                     s.hasBest = True
           
-            # saves the best chromo from current generation
+            # saves the best chromo from the current generation
             if save_best:
                 file = open('best_chromo_'+str(generation),'w')
                 pickle.dump(best, file)
@@ -217,13 +214,6 @@ class Population:
             
                 for s in self.__species:
                     print s
-                    
-                # Removing species with spawn amount = 0
-                for s in self.__species[:]:
-                    # This rarely happens
-                    if s.spawn_amount == 0:                    
-                        print '   Species %2d age %2s removed: produced no offspring' %(s.id, s.age)
-                        self.__species.remove(s)
              
             #for c in self.__population:
             #    print "%3d    %2d    %4d - %4d   %1.5f" %(c.id,c.species_id,c.parent1_id, c.parent2_id,c.fitness)   
@@ -232,58 +222,28 @@ class Population:
                 print '\nBest individual found in epoch %s - complexity: %s' %(generation, best.size())
                 break            
                     
+            # Removing species with spawn amount = 0
+            for s in self.__species[:]:
+                # This rarely happens
+                if s.spawn_amount == 0:                    
+                    if report: print '   Species %2d age %2s removed: produced no offspring' %(s.id, s.age)                    
+                    for c in self.__population[:]:
+                        if c.species_id == s.id:
+                            self.__population.remove(c)
+                                #self.remove(c)                                
+                    self.__species.remove(s)
+                        
+            # Logging speciation stats    
+            self.__log_species()
+            
             # -------------------------- Producing new offspring -------------------------- #
             new_population = [] # next generation's population
             
             # Spawning new population
             for s in self.__species:
                 new_population.extend(s.reproduce())
-                                        
-#            # Controls under or overflow
-#            # This is unnecessary since the population size is stable
-#            # due to the computed spawn levels for each species. No
-#            # performance gain is noticed whether we use it or not.
-#
-#            fill = (self.__popsize) - len(new_population)
-#            if fill < 0: # overflow
-#                print 'Removing %d excess individual(s) from the new population' %-fill
-#                # This is dangerous! I can't remove a species' representative!
-#                new_population = new_population[:fill] # Removing the last added members
-#                
-#            if fill > 0: # underflow
-#                print 'Selecting %d more individual(s) to fill up the new population' %fill
-#                # Apply tournament selection in the whole population
-#                # or select a random species to reproduce?
-#                for i in range(fill):
-##                    parent1 = self.TournamentSelection() 
-##                    parent2 = self.TournamentSelection()
-##                    child = parent1.crossover(parent2)
-##                    # child = max(self.__population) - only apply mutations (give better results?)
-##                    new_population.append(child.mutate())                    
-#
-#                    # Selects a random chromosome from population                    
-#                    parent1 = random.choice(self.__population)                    
-#                    # Search for a mate within the same species
-#                    found = False
-#                    for c in self.__population:
-#                        if c.species_id == parent1.species_id:
-#                            child = parent1.crossover(c)
-#                            new_population.append(child.mutate())
-#                            found = True
-#                            break
-#                    # If found no mate, just mutate it.
-#                    if not found:
-#                        new_population.append(parent1.mutate())
-#                    
-#            # Updates current population
-#            assert self.__popsize == len(new_population), 'Different population sizes!'
-            self.__population = new_population[:]
-                    
-            # Remove stagnated species and its members (except if it has the best chromosome)
-            #self.__species = [s for s in self.__species if \
-            #                  s.no_improvement_age <= Config.max_stagnation or \
-            #                  s.no_improvement_age > Config.max_stagnation and s.hasBest == True] 
-            
+                
+            # Remove stagnated species and its members (except if it has the best chromosome)            
             for s in self.__species[:]:
                 if s.no_improvement_age > Config.max_stagnation:
                     if s.hasBest == False:
@@ -292,9 +252,47 @@ class Population:
                         self.__species.remove(s)
                         # removing all the species' members
                         #TODO: can be optimized!
-                        for c in self.__population[:]:
+                        for c in new_population[:]:
                             if c.species_id == s.id:
-                                self.__population.remove(c)
+                                #self.__population.remove(c)
+                                new_population.remove(c)
+                                        
+#            # Controls under or overflow
+#            # This is unnecessary since the population size is stable
+#            # due to the computed spawn levels for each species. No
+#            # performance gain is noticed whether we use it or not.
+#
+            fill = (self.__popsize) - len(new_population)
+#            if fill < 0: # overflow
+#                print 'Removing %d excess individual(s) from the new population' %-fill
+#                # This is dangerous! I can't remove a species' representative!
+#                new_population = new_population[:fill] # Removing the last added members
+#                
+            if fill > 0: # underflow
+                if report: print 'Selecting %d more individual(s) to fill up the new population' %fill
+                
+                while fill > 0:
+                    # Selects a random chromosome from population                    
+                    parent1 = random.choice(self.__population)                    
+                    # Search for a mate within the same species
+                    found = False
+                    for c in self:
+                        # what if c is parent1 itself?
+                        if c.species_id == parent1.species_id:
+                            child = parent1.crossover(c)
+                            new_population.append(child.mutate())
+                            found = True
+                            break
+                        # If no mate was found, just mutate it
+                    if not found:
+                        new_population.append(parent1.mutate())
+                    fill -= 1
+                                        
+#            # Updates current population
+#            assert self.__popsize == len(new_population), 'Different population sizes!'
+            self.__population = new_population[:]
+                    
+
                                 
                  
             # Does it help in avoiding local minima?
