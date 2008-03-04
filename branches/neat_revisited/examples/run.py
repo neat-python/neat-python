@@ -49,8 +49,12 @@ if __name__ == '__main__':
     print "\t N. \tGen. \t Nodes \t Conn."
         
     for i in xrange(int(sys.argv[2])):
-        output = os.popen('python '+sys.argv[1]).read()     
-        gens, nodes, conns = p.findall(output)
+        output = os.popen('python '+sys.argv[1]).read()   
+        
+        try:  
+            gens, nodes, conns = p.findall(output)
+        except ValueError: # if anything goes wrong
+            print output            
 
         total_gens.append(float(gens))
         total_nodes.append(float(nodes))

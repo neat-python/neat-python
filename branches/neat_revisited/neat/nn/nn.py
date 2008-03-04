@@ -2,7 +2,10 @@ from math import exp, log, tanh, pi, sin
 import random
 from neat.config import Config
 #random.seed(0)
-#import psyco; psyco.full()
+try: 
+    import psyco; psyco.full()
+except ImportError:
+    pass
 
 def sigmoid(x, response):
     " Sigmoidal type of activation function "
