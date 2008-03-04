@@ -8,8 +8,8 @@
 [phenotype]
 input_nodes         = 2
 output_nodes        = 1
-max_weight          = 500
-min_weight          = -500
+max_weight          = 50
+min_weight          = -50
 random_range        = 0.5
 feedforward         = 1
 nn_activation       = exp
@@ -21,10 +21,10 @@ max_fitness_threshold = 0.9
 # Human reasoning
 prob_addconn          = 0.05
 prob_addnode          = 0.03    
-prob_mutatebias       = 0.2
+prob_mutatebias       = 0.5
 bias_mutation_power   = 0.5    
-prob_mutate_weight    = 0.25
-weight_mutation_power = 1.5    
+prob_mutate_weight    = 0.9
+weight_mutation_power = 2.5    
 prob_togglelink       = 0.01
 
 # Parameters obtained with a meta-SGA
@@ -45,11 +45,11 @@ weight_coeficient       = 0.4
 
 [species]
 species_size        = 10
-survival_threshold  = 0.1
+survival_threshold  = 0.2
 old_threshold       = 80
 youth_threshold     = 10
 old_penalty         = 0.2
-youth_boost         = 1.7
+youth_boost         = 1.2
 max_stagnation      = 15
 
 

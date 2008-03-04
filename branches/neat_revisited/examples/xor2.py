@@ -1,8 +1,6 @@
-import math
-from neat import config, population, chromosome, genome2, visualize
-from neat import nn
+import math, random, pickle
+from neat import config, population, chromosome, genome2, nn, visualize
 
-import random, pickle
 rstate = random.getstate()
 
 save = open('rstate','w')
@@ -15,6 +13,8 @@ save.close()
 #dumped.close()
 
 config.load('xor2_config') 
+
+config.Config.max_fitness_threshold = 15.9
 
 # Temporary workaround
 chromosome.node_gene_type = genome2.NodeGene
@@ -30,16 +30,15 @@ def eval_fitness(population):
         error_stanley = 0.0
         for i, input in enumerate(INPUTS):
             output = brain.sactivate(input) # serial activation
-            error += (output[0] - OUTPUTS[i])**2
+            #error += (output[0] - OUTPUTS[i])**2
             error_stanley += math.fabs(output[0] - OUTPUTS[i])
-        #chromo.fitness = (4.0 - error_stanley)**2 # (Stanley p. 43)        
-        chromo.fitness = 1 - math.sqrt(error/len(OUTPUTS))
-        chromo.fitness_stanley = (4.0 - error_stanley)**2
+        chromo.fitness = (4.0 - error_stanley)**2 # (Stanley p. 43)        
+        #chromo.fitness = 1 - math.sqrt(error/len(OUTPUTS))
         
 population.Population.evaluate = eval_fitness
 
 pop = population.Population()
-pop.epoch(200, report=True, save_best=0)
+pop.epoch(200, report=True, save_best=False)
 
 # Draft solution for network visualizing
 #visualize.draw_net(pop.stats[0][-1]) # best chromosome
