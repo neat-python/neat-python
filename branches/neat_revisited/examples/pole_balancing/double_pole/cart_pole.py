@@ -1,195 +1,216 @@
 # Cart pole module
-from neat import nn
-from math import cos, sin
+from dpole_integrate import performAction as integrate # wrapped from C++
 from random import randint
+from neat import nn
 
 class CartPole(object):
-    def __init__(self, network, markov):
+    def __init__(self, population, markov):
         
-        self.__network = network
-        
+        self.__population = population # individuals to be evaluated        
         # there are two types of double balancing experiment: 
         # 1. markovian: velocity information is provided to the network input
         # 2. non-markovian: no velocity is provided
         self.__markov = markov
         
-        self.__dydx = []
         self.__state = []
+        
+        
+    state = property(lambda self: self.__state)
                
-    def evaluate(self, num_steps, test=False):
+    def run(self, testing=False):
+        ''' Runs the cart-pole experiment and evaluates the population '''
         
-        steps = 0
-        
-        if(self.__markov):            
-            self.__initial_state()    
+        if(self.__markov):  
+             # markov experiment: full system's information is provided to the network
+            for chromo in self.__population:
+                # chromosome to phenotype
+                assert chromo.sensors == 6, "There must be 6 inputs to the network"
+                net = nn.create_phenotype(chromo)                
+               
+                self.__initial_state()   
             
-            if test:
-                # cart's position, first pole's angle, second pole's angle
-                print "\nInitial conditions:"
-                print "%f \t %f \t %f" %(self.__state[0], self.__state[2], self.__state[4]) 
+                if testing:
+                    # cart's position, first pole's angle, second pole's angle
+                    #print "\nInitial conditions:"
+                    #print "%f \t %f \t %f" %(self.__state[0], self.__state[2], self.__state[4]) 
+                    pass
                     
-            while(steps < num_steps):            
-                inputs = [self.__state[0]/4.80,
-                          self.__state[1]/2.00,
-                          self.__state[2]/0.52,
-                          self.__state[3]/2.00,
-                          self.__state[4]/0.52,
-                          self.__state[5]/2.00]
+                steps = 0    
                 
-                output = self.__network.sactivate(inputs)    
-                self.__perform_action(output[0], steps)   
-                
-                if(self.__outside_bounds()):
-                    # network failed to solve the task
-                    if test: 
-                        import sys
-                        sys.stderr.write('\nFailed at step %d \n' %steps)
-                        print "\n%f \t %f \t %f" %(self.__state[0], self.__state[2], self.__state[4]) 
-                        sys.exit(0)
-                    else:
-                        break                          
-                steps += 1
+                while(steps < 1000):            
+                    inputs = [self.__state[0]/4.80, # cart's initial position
+                              self.__state[1]/2.00, # cart's initial speed
+                              self.__state[2]/0.52, # pole_1 initial angle
+                              self.__state[3]/2.00, # pole_1 initial angular velocity
+                              self.__state[4]/0.52, # pole_2 initial angle 
+                              self.__state[5]/2.00] # pole_2 initial angular velocity
+                    
+                    # activate the neural network
+                    output = net.pactivate(inputs)    
+                                   
+                    # advances one time step 
+                    self.__state = integrate(output[0], self.__state, 1)
+                    
+                    if(self.__outside_bounds()):
+                        # network failed to solve the task
+                        if testing: 
+                            import sys
+                            #sys.stderr.write('Failed at step %d \n' %steps)
+                            print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" %(steps, self.__state[0], self.__state[2], self.__state[4]) 
+                            sys.exit(0)
+                        else:
+                            break                          
+                    steps += 1
+            
+                chromo.fitness = float(steps) # the higher the better
+                print "Chromosome %3d evaluated with score: %d " %(chromo.id, chromo.fitness)
                 
         else:
-            # non-markovian
-            pass
-            
-            
-        return float(steps) # higher number of steps = better fitness
-        
-    def __step(self, net_output, state):
-        
-        GRAVITY = 9.8
-        MASSCART = 1.0
-
-        FORCE_MAG = 10.0
-        
-        LENGTH_1 = 0.5
-        MASSPOLE_1 = 0.1
-
-        LENGTH_2 = 0.05;
-        MASSPOLE_2 = 0.01;
-        
-        MUP = 0.000002
-        
-        dydx = [0 for i in xrange(6)]
-        
-        force = (net_output - 0.5) * FORCE_MAG * 2
-        costheta_1 = cos(state[2])
-        sintheta_1 = sin(state[2])
-        gsintheta_1 = GRAVITY * sintheta_1
-        costheta_2 = cos(state[4])
-        sintheta_2 = sin(state[4])
-        gsintheta_2 = GRAVITY * sintheta_2
-        
-        ml_1 = LENGTH_1 * MASSPOLE_1
-        ml_2 = LENGTH_2 * MASSPOLE_2
-        
-        temp_1 = MUP * state[3] / ml_1
-        temp_2 = MUP * state[5] / ml_2
-        
-        fi_1 = (ml_1 * state[3] * state[3] * sintheta_1) + \
-                (0.75 * MASSPOLE_1 * costheta_1 * (temp_1 + gsintheta_1))
+            # non-markovian: no velocity information is provided (only 3 inputs)
+            for chromo in self.__population:
                 
-        fi_2 = (ml_2 * state[5] * state[5] * sintheta_2) + \
-                (0.75 * MASSPOLE_2 * costheta_2 * (temp_2 + gsintheta_2))
-               
-        mi_1 = MASSPOLE_1 * (1 - (0.75 * costheta_1 * costheta_1))
-        mi_2 = MASSPOLE_2 * (1 - (0.75 * costheta_2 * costheta_2))
-        
-        
-        dydx[0] = state[1]
-        dydx[1] = (force + fi_1 + fi_2) / (mi_1 + mi_2 + MASSCART)
-        dydx[2] = state[3]
-        dydx[3] = -0.75 * (dydx[1] * costheta_1 + gsintheta_1 + temp_1) / LENGTH_1
-        dydx[4] = state[5]            
-        dydx[5] = -0.75 * (dydx[1] * costheta_2 + gsintheta_2 + temp_2) / LENGTH_2
-                      
-        return dydx
-        
-    def __rk4(self, net_output, state, dydx):
-        
-        TAU = 0.02
+                assert chromo.sensors == 3, "There must be 3 inputs to the network"
+                net = nn.create_phenotype(chromo)                
+                self.__initial_state()
+                
+                chromo.fitness = self.__non_markov(net, 1000, testing)[0]                
 
-        hh = TAU*0.5
-        h6 = TAU/6.0
-        
-        yt = [0 for i in xrange(6)]
-        next_state = [0 for i in xrange(6)]
-        
-        for i in xrange(6): 
-            yt[i] = state[i] + hh*dydx[i]
-        
-        dyt = self.__step(net_output, yt)
-        
-        #dyt[0] = yt[1]
-        #dyt[2] = yt[3]
-        #dyt[4] = yt[5]
-        
-        for i in xrange(6):
-            yt[i] = state[i] + hh*dyt[i]
+                #print "Chromosome %3d evaluated with score: %f" %(chromo.id, chromo.fitness)
             
-        dym = self.__step(net_output, yt)
-        
-        #dym[0] = yt[1]
-        #dym[2] = yt[3]
-        #dym[4] = yt[5]
-        
-        for i in xrange(6):
-            yt[i] = state[i] + TAU*dym[i]
-            dym[i] += dyt[i]
+            # we need to make sure that the found solution is robust enough and good at
+            # generalizing for several different initial conditions, so the champion 
+            # from each generation (i.e., the one with the highest F) passes for a
+            # generalization test (the criteria here was defined by Gruau)
             
-        dyt = self.__step(net_output,yt)
-        
-        #dyt[0] = yt[1]
-        #dyt[2] = yt[3]
-        #dyt[4] = yt[5]
-        
-        for i in xrange(6):
-            next_state[i] = state[i] + h6*(dydx[i] + dyt[i] + 2.0*dym[i])
+            best = max(self.__population) # selects the best network
+            print "\tBest chromosome of generation: %d" %best.id
             
-        return next_state
+            # ** *******************#
+            #  GENERALIZATION TEST  #
+            # **********************#
+            
+            # first: can it balance for at least 100k steps?            
+            best_net = nn.create_phenotype(best)   
+            
+            # long non-markovian test
+            self.__initial_state()
+            score = self.__non_markov(best_net, 100000, testing)[1]
+            
+            if(score) > 100000-1:
+                print "\tWinner passed the 100k test!"
+                # second: now let's try 625 different initial conditions
+                balanced = self.__generalization_test(best_net, testing)       
+                
+                if balanced > 200:
+                    print "\tPassed the generalization test with score: ", balanced
+                    # set chromosome's fitness to 100k (and ceases the simulation)
+                    best.fitness = 100000
+                else:
+                    print "\tFailed the generalization test with score: ", balanced             
+                    
+            else:
+                print "\tWinner failed at the 100k test with score: ", score
+            
+            
+            
+         
+    def __non_markov(self, network, max_steps, testing):
+        den = 0.0
+        f1 = 0.0
+        f2 = 0.0
+        F = 0.0
+        last_values = []
+               
+        steps = 0
+        while(steps < max_steps):            
+            inputs = [self.__state[0]/4.80, # cart's initial position
+                      self.__state[2]/0.52, # pole_1 initial angle
+                      self.__state[4]/0.52] # pole_2 initial angle
+                      
+            # activate the neural network
+            output = network.pactivate(inputs)    
+                           
+            # advances one time step 
+            self.__state = integrate(output[0], self.__state, 1)
+            
+            if(self.__outside_bounds()):
+                # network failed to solve the task
+                if testing: 
+                    print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" %(steps, self.__state[0], self.__state[2], self.__state[4]) 
+                    break
+                else:
+                    #print "Failed at step %d" %steps
+                    break       
+                    
+            f1 += steps/1000.0
+            
+            if steps > 100:
+                # the denominator is computed only for the last 100 time steps
+                den = abs(self.__state[0]) + abs(self.__state[1]) + abs(self.__state[2]) + abs(self.__state[3])                        
+                
+                last_values.append(den)
+                
+                try:               
+                    f2 = 0.75/sum(last_values)
+                except ZeroDivisionError:
+                    #TODO: Not sure why this happens! Need to check it out.
+                    f2 = 0.0
+                
+                if len(last_values) == 100:
+                    last_values.pop(0) # remove the first element so that we always sum the last 100 steps
+                                    
+            F += 0.1*f1 + 0.9*f2
+                                                                              
+            steps += 1   
         
+        return (F, steps)
+    
+    def __generalization_test(self, best_net, testing):
+        values = [0.05, 0.25, 0.5, 0.75, 0.95]
+        
+        balanced = 0
+        
+        for x in values:
+            for x_dot in values:
+                for theta in values:
+                    for theta_dot in values:    
+                        #TODO: review this values!                    
+                        self.__state = [x * 4.32 - 2.16,                      # set cart's position
+                                        x_dot * 2.70 - 1.35,                  # set cart's velocity
+                                        theta * 0.12566304 - 0.06283152,      # set pole_1 angle
+                                        theta_dot * 0.30019504 - 0.15009752,  # set pole_1 angular velocity
+                                        0.0,
+                                        0.0]
+                                        
+                        if(self.__non_markov(best_net, 1000, testing)[1] > 1000-1):
+                            balanced += 1            
+        return balanced
+    
+    def __initial_state(self):
+        ''' Sets the initial state of the system '''
+          
+        rand = False
+        
+        if rand:                          
+            self.__state = [randint(0,4799)/1000.0 - 2.4,  # cart's initial position
+                            randint(0,1999)/1000.0 - 1.0,  # cart's initial speed
+                            randint(0, 399)/1000.0 - 0.2,  # pole_1 initial angle
+                            randint(0, 399)/1000.0 - 0.2,  # pole_1 initial angular velocity
+                            randint(0,2999)/1000.0 - 0.4,  # pole_2 initial angle 
+                            randint(0,2999)/1000.0 - 0.4]  # pole_2 initial angular velocity
+        else:
+            self.__state = [0.0,
+                            0.0,
+                            0.07, # set pole_1 to one_degree
+                            0.0,
+                            0.0,
+                            0.0]
+                            
     def __outside_bounds(self):
+        ''' Check if outside the bounds '''
 
         failureAngle = 0.628329 #thirty_six_degrees
-
-        #return self.__state[0] < -2.4 or self.__state[0] > 2.4 or \
-        #       self.__state[2] < -failureAngle  or self.__state[2] > failureAngle or \
-        #       self.__state[4] < -failureAngle  or self.__state[4] > failureAngle
         
         return  abs(self.__state[0]) > 2.4 or \
                 abs(self.__state[2]) > failureAngle or \
                 abs(self.__state[4]) > failureAngle
-                
-
-            
-    def __initial_state(self):
-          
-        self.__dydx = [0, 0, 0, 0, 0, 0]
-
-        # initial state (conditions)
-        self.__state = [0,
-                        0,
-                        0.07, # one_degree
-                        0,
-                        0,
-                        0]
-                        
-        if(False):
-            r = randint
-            self.__state = [(r(0, 2**31)%4800)/1000.0 - 2.4,
-                            (r(0, 2**31)%2000)/1000.0 - 1,
-                            (r(0, 2**31)%400)/1000.0 - 0.2,
-                            (r(0, 2**31)%400)/1000.0 - 0.2,
-                            (r(0, 2**31)%3000)/1000.0 - 1.5,
-                            (r(0, 2**31)%3000)/1000.0 - 1.5]
-        
-        
-    def __perform_action(self, net_output, stepnum):
-                
-        # Apply action to the simulated cart-pole
-        for i in xrange(2):
-            # next step   
-            self.__dxdy  = self.__step(net_output, self.__state)        
-            self.__state = self.__rk4(net_output, self.__state, self.__dydx)

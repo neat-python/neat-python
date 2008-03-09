@@ -1,11 +1,10 @@
 # ******************************** #
 # Single pole balancing experiment #
 # ******************************** #
-
 from neat import config, population, chromosome, genome2, visualize
 from neat import nn
-import math, random#; random.seed(854)
 import cPickle as pickle
+import math, random
 
 rstate = random.getstate()
 save = open('rstate','w')
@@ -30,7 +29,6 @@ def cart_pole(net_output, x, x_dot, theta, theta_dot):
     TAU = 0.02  # seconds between state updates
     FOURTHIRDS = 1.3333333333333
 
-       
     #force = (net_output - 0.5) * FORCE_MAG * 2
     if net_output > 0.5:
         force = FORCE_MAG
@@ -64,16 +62,11 @@ def evaluate_population(population):
         
         net = nn.create_phenotype(chromo)
         
-        # initial conditions (as used by Stanley)
-        #x         = random.gauss(0,1.4)
-        #x_dot     = random.gauss(0,0.58)
-        #theta     = random.gauss(0,0.12)
-        #theta_dot = random.gauss(0,0.87)
-        
-        x         = (random.randint(0, 2**31)%4800)/1000.0 - 2.4
-        x_dot     = (random.randint(0, 2**31)%2000)/1000.0 - 1;
-        theta     = (random.randint(0, 2**31)%400)/1000.0 - .2
-        theta_dot = (random.randint(0, 2**31)%3000)/1000.0 - 1.5
+        # initial conditions (as used by Stanley)        
+        x         = random.randint(0, 4799)/1000.0 - 2.4
+        x_dot     = random.randint(0, 1999)/1000.0 - 1.0
+        theta     = random.randint(0,  399)/1000.0 - 0.2
+        theta_dot = random.randint(0, 2999)/1000.0 - 1.5
         #x = 0.0
         #x_dot = 0.0
         #theta = 0.0
@@ -93,7 +86,7 @@ def evaluate_population(population):
             # nada garante que a evolucao do sistema leve a outros
             # valores de x, x_dot e etc...
                       
-            action = net.sactivate(inputs)
+            action = net.pactivate(inputs)
             
             # Apply action to the simulated cart-pole
             x, x_dot, theta, theta_dot = cart_pole(action[0], x, x_dot, theta, theta_dot)
@@ -117,12 +110,12 @@ if __name__ == "__main__":
     
     population.Population.evaluate = evaluate_population
     pop = population.Population()
-    pop.epoch(200, report=0, save_best=0)
+    pop.epoch(200, report=1, save_best=0)
     
     print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
     
     # visualize the best topology
-    #visualize.draw_net(pop.stats[0][-1]) # best chromosome
+    visualize.draw_net(pop.stats[0][-1]) # best chromosome
     # Plots the evolution of the best/average fitness
     #visualize.plot_stats(pop.stats)
     

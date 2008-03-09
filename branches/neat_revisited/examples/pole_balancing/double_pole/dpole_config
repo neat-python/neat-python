@@ -10,8 +10,8 @@ feedforward         = 0
 nn_activation       = exp
 
 [genetic]
-pop_size              = 150
-max_fitness_threshold = 1400
+pop_size              = 1000
+max_fitness_threshold = 99999
 
 # Human reasoning
 prob_addconn          = 0.05

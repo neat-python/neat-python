@@ -2,7 +2,7 @@
 
 from neat import config, chromosome, genome2
 from neat import nn
-import random
+from random import randint
 import cPickle as pickle
 import single_pole
 
@@ -26,15 +26,10 @@ net = nn.create_phenotype(c)
 #theta_dot = 0.0
 
 # initial conditions (as used by Stanley)
-#x         = random.gauss(0,1.4)     # cart position, meters 
-#x_dot     = random.gauss(0,0.58)    # cart velocity
-#theta     = random.gauss(0,0.12)    # pole angle, radians
-#theta_dot = random.gauss(0,0.87)    # pole angular velocity
-
-x         = (random.randint(0, 2**31)%4800)/1000.0 - 2.4
-x_dot     = (random.randint(0, 2**31)%2000)/1000.0 - 1;
-theta     = (random.randint(0, 2**31)%400)/1000.0 - .2
-theta_dot = (random.randint(0, 2**31)%3000)/1000.0 - 1.5
+x         = randint(0, 4799)/1000.0 - 2.4
+x_dot     = randint(0, 1999)/1000.0 - 1.0
+theta     = randint(0,  399)/1000.0 - 0.2
+theta_dot = randint(0, 2999)/1000.0 - 1.5
         
 print "\nInitial conditions:"
 print "%2.4f   %2.4f   %2.4f   %2.4f" %(x, x_dot, theta, theta_dot)
