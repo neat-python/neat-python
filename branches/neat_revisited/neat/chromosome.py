@@ -4,7 +4,7 @@ import genome2
 import nn
 
 # Temporary workaround - default settings
-node_gene_type = genome2.NodeGene
+#node_gene_type = genome2.NodeGene
 conn_gene_type = genome2.ConnectionGene
 
 class Chromosome(object):
@@ -31,8 +31,8 @@ class Chromosome(object):
         
     conn_genes = property(lambda self: self._connection_genes.values())
     node_genes = property(lambda self: self._node_genes)
-    
-    id = property(lambda self: self._id)
+    sensors    = property(lambda self: self._input_nodes)    
+    id         = property(lambda self: self._id)
     
     @classmethod
     def __get_new_id(cls):
@@ -196,9 +196,12 @@ class Chromosome(object):
         
         return (num_hidden, conns_enabled)
     
-    # sort chromosomes by their fitness
     def __cmp__(self, other):
-        return cmp(self.fitness, other.fitness)
+        ''' First compare chromosomes by their fitness and then by their id.
+            Older chromosomes (small ids) should be prefered if newer ones
+            performs the same.
+        '''
+        return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
     
     def __str__(self):
         s = "Nodes:"
