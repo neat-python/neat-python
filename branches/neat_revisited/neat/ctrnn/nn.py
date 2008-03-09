@@ -1,4 +1,5 @@
 from neat import nn
+#from scipy import integrate
 
 class CTNeuron(nn.Neuron):
     ''' Continuous-time neuron model based on:
@@ -13,9 +14,15 @@ class CTNeuron(nn.Neuron):
         # decay rate
         self.__decay  = 1.0/tau 
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = 0.4 #TODO: Verify what's the "best" initial state
+        self.__state = 0.4 #TODO: Verify what's the "best" initial state?
         # fist output
         self._output = nn.sigmoid(self.__state + self._bias, self._response)
+        
+        #self.__r = integrate.ode(self.neuron_state)
+        #self.__r.set_initial_value([0.4],0)
+        
+#    def neuron_state(self, Y, t):     
+#        return self.__decay*(-Y + self._update_activation())
 
     def activate(self):
         "Updates neuron's state for a single time-step"
@@ -29,8 +36,11 @@ class CTNeuron(nn.Neuron):
         ''' Returns neuron's next state using Forward-Euler method.
             Future: integrate using scipy.integrate.
         '''
-        step_size = 0.01
-        self.__state += (step_size*self.__decay)*(-self.__state + self._update_activation())
+        dt = 0.01
+        self.__state += (dt*self.__decay)*(-self.__state + self._update_activation())
+        
+        #self.__state = self.__r.integrate(self.__r.t+dt)[0]
+               
 
 def create_phenotype(chromo):
     """ Receives a chromosome and returns its phenotype (a CTRNN) """ 

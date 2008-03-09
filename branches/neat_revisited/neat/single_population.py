@@ -109,7 +109,7 @@ class Population:
         num_conns = 0
         avg_weights = 0.0
         
-        for c in self.__population:
+        for c in self:
             num_nodes += len(c.node_genes)
             num_conns += len(c.conn_genes)
             for cg in c.conn_genes:
@@ -144,6 +144,8 @@ class Population:
                 print 'Population\'s average fitness', self.__avg_fitness[-1]
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
+                    
+                print 'Population divirsity: ', self.__population_diversity()
                 
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:

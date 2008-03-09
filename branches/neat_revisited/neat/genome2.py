@@ -56,7 +56,7 @@ class NodeGene(object):
 
 class CTNodeGene(NodeGene):
     '''Continuous-time node gene - used in CTRNNs '''
-    def __init__(self, id, nodetype, bias=random.gauss(0,0.5), response=random.gauss(0,0.5), time_constant=random.gauss(0.7,0.5)):
+    def __init__(self, id, nodetype, bias=random.gauss(0,0.01), response=random.gauss(0,0.05), time_constant=random.gauss(1.0,0.5)):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response)
         
         self._time_constant = time_constant
@@ -66,11 +66,11 @@ class CTNodeGene(NodeGene):
     def mutate(self):
         super(CTNodeGene, self).mutate()
         
-        if random.random() < 0.02:
+        if random.random() < 0.1:
             self.__mutate_time_constant()
         
     def __mutate_time_constant(self):
-        self._time_constant += random.gauss(0, 1)
+        self._time_constant += random.gauss(1.0,0.5)
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
@@ -141,7 +141,7 @@ class ConnectionGene(object):
 
     def __mutate_weight(self):
         #self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
-        self.__weight += random.gauss(0,1)* Config.weight_mutation_power
+        self.__weight += random.gauss(0,1)*Config.weight_mutation_power
         
         if self.__weight > Config.max_weight:
             self.__weight = Config.max_weight
