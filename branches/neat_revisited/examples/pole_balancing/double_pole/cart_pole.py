@@ -73,9 +73,9 @@ class CartPole(object):
                 net = nn.create_phenotype(chromo)                
                 self.__initial_state()
                 
-                chromo.fitness = self.__non_markov(net, 1000, testing)[0]                
+                chromo.fitness, score = self.__non_markov(net, 1000, testing)
 
-                #print "Chromosome %3d evaluated with score: %f" %(chromo.id, chromo.fitness)
+                #print "Chromosome %3d evaluated with fitness %2.5f and score: %s" %(chromo.id, chromo.fitness, score)
             
             # we need to make sure that the found solution is robust enough and good at
             # generalizing for several different initial conditions, so the champion 
@@ -83,7 +83,7 @@ class CartPole(object):
             # generalization test (the criteria here was defined by Gruau)
             
             best = max(self.__population) # selects the best network
-            print "\tBest chromosome of generation: %d" %best.id
+            print "\t\nBest chromosome of generation: %d" %best.id
             
             # ** *******************#
             #  GENERALIZATION TEST  #
@@ -94,27 +94,27 @@ class CartPole(object):
             
             # long non-markovian test
             self.__initial_state()
-            score = self.__non_markov(best_net, 100000, testing)[1]
+            score = self.__non_markov(best_net, 100000, testing, generalizing=False)[1]
             
-            if(score) > 100000-1:
+            if(score) > 99999:
                 print "\tWinner passed the 100k test!"
                 # second: now let's try 625 different initial conditions
                 balanced = self.__generalization_test(best_net, testing)       
                 
                 if balanced > 200:
-                    print "\tPassed the generalization test with score: ", balanced
+                    print "\tPassed the generalization test with score: %d\n"%balanced
                     # set chromosome's fitness to 100k (and ceases the simulation)
                     best.fitness = 100000
                 else:
-                    print "\tFailed the generalization test with score: ", balanced             
+                    print "\tFailed the generalization test with score: %d\n"%balanced                                 
                     
             else:
-                print "\tWinner failed at the 100k test with score: ", score
+                print "\tWinner failed at the 100k test with score %d\n "%score
             
             
             
          
-    def __non_markov(self, network, max_steps, testing):
+    def __non_markov(self, network, max_steps, testing, generalizing=False):
         den = 0.0
         f1 = 0.0
         f2 = 0.0
@@ -141,27 +141,22 @@ class CartPole(object):
                 else:
                     #print "Failed at step %d" %steps
                     break       
-                    
-            f1 += steps/1000.0
             
-            if steps > 100:
-                # the denominator is computed only for the last 100 time steps
-                den = abs(self.__state[0]) + abs(self.__state[1]) + abs(self.__state[2]) + abs(self.__state[3])                        
+            den = abs(self.__state[0]) + abs(self.__state[1]) + abs(self.__state[2]) + abs(self.__state[3])                                            
+            last_values.append(den)
+            
+            if len(last_values) == 100:
+                last_values.pop(0) # we only need to keep the last 100 values
                 
-                last_values.append(den)
-                
-                try:               
-                    f2 = 0.75/sum(last_values)
-                except ZeroDivisionError:
-                    #TODO: Not sure why this happens! Need to check it out.
-                    f2 = 0.0
-                
-                if len(last_values) == 100:
-                    last_values.pop(0) # remove the first element so that we always sum the last 100 steps
-                                    
-            F += 0.1*f1 + 0.9*f2
-                                                                              
-            steps += 1   
+            steps += 1 
+            
+        # compute Gruau's fitness
+        if steps > 100:
+            # the denominator is computed only for the last 100 time steps
+            jiggle = sum(last_values)
+            F = 0.1*steps/1000.0 + 0.9*0.75/(jiggle)            
+        else:
+            F = 0.1*steps/1000.0
         
         return (F, steps)
     
@@ -173,8 +168,7 @@ class CartPole(object):
         for x in values:
             for x_dot in values:
                 for theta in values:
-                    for theta_dot in values:    
-                        #TODO: review this values!                    
+                    for theta_dot in values:                   
                         self.__state = [x * 4.32 - 2.16,                      # set cart's position
                                         x_dot * 2.70 - 1.35,                  # set cart's velocity
                                         theta * 0.12566304 - 0.06283152,      # set pole_1 angle
