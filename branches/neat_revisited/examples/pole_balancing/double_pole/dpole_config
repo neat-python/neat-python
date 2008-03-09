@@ -18,24 +18,24 @@ prob_addconn          = 0.3
 prob_addnode          = 0.01    
 prob_mutatebias       = 0.2
 bias_mutation_power   = 0.5    
-prob_mutate_weight    = 0.25
-weight_mutation_power = 1.5    
-prob_togglelink       = 0.01
+prob_mutate_weight    = 0.8
+weight_mutation_power = 1.8    
+prob_togglelink       = 0.05
 
 [genotype compatibility]
-compatibility_threshold = 4.0
+compatibility_threshold = 6.0
 compatibility_change    = 0.0
 excess_coeficient       = 1.0
 disjoint_coeficient     = 1.0
-weight_coeficient       = 0.4
+weight_coeficient       = 3.0
 
 [species]
 species_size        = 10
 survival_threshold  = 0.4
 old_threshold       = 80
 youth_threshold     = 10
-old_penalty         = 0.2
-youth_boost         = 1.7
+old_penalty         = 1.0
+youth_boost         = 1.0
 max_stagnation      = 15
 
 

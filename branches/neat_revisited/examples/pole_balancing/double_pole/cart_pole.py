@@ -97,7 +97,7 @@ class CartPole(object):
             score = self.__non_markov(best_net, 100000, testing, generalizing=False)[1]
             
             if(score) > 99999:
-                print "\tWinner passed the 100k test!"
+                print "\tWinner passed the 100k test! Starting the generalization test..."
                 # second: now let's try 625 different initial conditions
                 balanced = self.__generalization_test(best_net, testing)       
                 
@@ -164,7 +164,7 @@ class CartPole(object):
         values = [0.05, 0.25, 0.5, 0.75, 0.95]
         
         balanced = 0
-        
+        test_number = 0
         for x in values:
             for x_dot in values:
                 for theta in values:
@@ -175,9 +175,15 @@ class CartPole(object):
                                         theta_dot * 0.30019504 - 0.15009752,  # set pole_1 angular velocity
                                         0.0,
                                         0.0]
-                                        
-                        if(self.__non_markov(best_net, 1000, testing)[1] > 1000-1):
+                        
+                        test_number += 1
+                        
+                        score = self.__non_markov(best_net, 1000, testing)[1]
+                        if(score > 999):
                             balanced += 1            
+                            print "Test %d succeeded with score: %d" %(test_number, score)
+                        else:
+                            print "Test %d failed with score...: %d" %(test_number, score)
         return balanced
     
     def __initial_state(self):
