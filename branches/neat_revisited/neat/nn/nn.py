@@ -21,6 +21,12 @@ def sigmoid(x, response):
             
     except OverflowError:
         print 'Overflow error: x = ', x
+        import sys; sys.exit(0)
+        # Although overflow errors should not occur, here's a trick:
+        # ftp://ftp.sas.com/pub/neural/FAQ2.html#A_overflow
+        # if x*response < -45: output = 0
+        # if x*response > +45: output = 1
+        # else: output = 1.0/(1.0 + exp(-x*response))
 
     return output
     
@@ -81,8 +87,8 @@ class Synapse(object):
     'A synapse indicates the connection strength between two neurons (or itself)'
     def __init__(self, source, destination, weight):        
         self._weight = weight
-        self._source = source
-        self._destination = destination
+        self._source = source            # a 'pointer' to the source neuron
+        self._destination = destination  # a 'pointer' to the destination neuron
         destination.create_synapse(self) # adds the synapse to the destination neuron
         
     # for external access
@@ -130,11 +136,12 @@ class Network(object):
             return self.pactivate(inputs)
 
     def sactivate(self, inputs=[]):    
-        '''Serial (asynchronous) network activation  method.  Mostly
-           used  in  classification  tasks (supervised  learning) in
-           feedforward  topologies.  All  neurons  must  be in their
-           right order of activation, so if you're defining your own
-           feedforward topology, make sure you got them ordered.
+        '''Serial (asynchronous) network activation method. Mostly
+           used  in classification tasks (supervised learning) in
+           feedforward topologies. All neurons are updated (activated)
+           one at a time following their order of importance, so if
+           you're defining your own feedforward topology, make sure 
+           you got them in the right order of activation.
         '''
         # assign "input neurons'" output values (sensor readings)
         k=0
@@ -153,9 +160,10 @@ class Network(object):
         return net_output
         
     def pactivate(self, inputs=[]):
-        '''Parallel  (synchronous)  network  activation  method. Mostly 
-           used for control and unsupervised learning (i.e., artificial 
-           life) in recurrent networks
+        '''Parallel (synchronous) network activation method. Mostly used
+           for control and unsupervised learning (i.e., artificial life) 
+           in recurrent networks. All neurons are updated (activated)
+           simultaneously.
         '''
         # the current state is like a "photograph" taken at each time step 
         # reresenting all neuron's state at that time (think of it as a clock)
@@ -176,10 +184,8 @@ class Network(object):
             n._output = current_state[i]
             if(n._type == 'OUTPUT'): 
                 net_output.append(n._output)
-
                 
         return net_output
-
 
 class FeedForward(Network):
     'A feedforward network is a particular class of neural network'
