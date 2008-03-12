@@ -22,7 +22,16 @@ PyObject* sigmoid(PyObject *self, PyObject *args) {
 		return 0;
 	}
 	if (std::strcmp(nn_activation, "exp") == 0) {
-		return Py_BuildValue("d", 1.0 / (1.0 + std::exp(-x * response)));
+		double xtimesr = x * response;
+		if (xtimesr < -45) {
+			return Py_BuildValue("d", 0.0);
+		}
+		else if (xtimesr > +45) {
+			return Py_BuildValue("d", 1.0);
+		}
+		else {
+			return Py_BuildValue("d", 1.0/(1.0 + exp(-xtimesr)));
+		}
 	}
     else {
     	return Py_BuildValue("d", std::tanh(x * response));
