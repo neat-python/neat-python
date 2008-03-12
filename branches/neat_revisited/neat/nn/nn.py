@@ -2,82 +2,8 @@ from math import log, pi, sin
 import random
 from neat.config import Config
 
-from nn_cpp import sigmoid, set_nn_activation
+from nn_cpp import Neuron, Synapse, set_nn_activation
     
-class Neuron(object):
-    " A simple sigmoidal neuron "
-    __id = 0
-    def __init__(self, neurontype, id = None, bias = 0, response = 1):
-        
-        self._id = self.__get_new_id(id) # every neuron has an ID
-        
-        self._synapses = []
-        
-        self._bias = bias
-        self._type = neurontype  
-        assert(self._type in ('INPUT', 'OUTPUT', 'HIDDEN')) 
-        
-        self._response = response # default = 4.924273 (Stanley, p. 146)
-        self._output = 0.0  # for recurrent networks all neurons must have an "initial state"
-    
-    # for external access    
-    type = property(lambda self: self._type, "Returns neuron's type: INPUT, OUTPUT, or HIDDEN")
-    id = property(lambda self: self._id, "Returns neuron's id")
-
-    @classmethod
-    def __get_new_id(cls, id):
-        if id is None:
-            cls.__id += 1
-            return cls.__id
-        else:
-            return id
-            
-    def activate(self):
-        "Activates the neuron"
-        if(len(self._synapses) > 0):           
-            return sigmoid(self._update_activation() + self._bias, self._response)
-        else:
-            return self._output # for input neurons (sensors)
-
-    def _update_activation(self):
-        soma = 0.0
-        for s in self._synapses:
-            soma += s.incoming()
-        return soma
-        
-    def current_output(self):
-        "Prints neuron's current state"
-        #print "state: %f - output: %f" %(self.state, self.output)
-        return self._output
-            
-    def create_synapse(self, s):
-        self._synapses.append(s)
-        
-    def __repr__(self):
-        return '%d %s' %(self._id, self._type)   
-
-                
-class Synapse(object):
-    'A synapse indicates the connection strength between two neurons (or itself)'
-    def __init__(self, source, destination, weight):        
-        self._weight = weight
-        self._source = source            # a 'pointer' to the source neuron
-        self._destination = destination  # a 'pointer' to the destination neuron
-        destination.create_synapse(self) # adds the synapse to the destination neuron
-        
-    # for external access
-    source = property(lambda self: self._source)
-    destination = property(lambda self: self._destination)
-
-    def incoming(self):
-        ''' Receives the incoming signal from a sensor or another neuron
-            and returns the value to the neuron it belongs to. '''
-        return self._weight*self._source._output
-    
-    def __repr__(self):
-        return '%s -> %s -> %s' %(self._source._id, self._weight, self._destination._id)
-
-
 class Network(object):
     'A neural network has a list of neurons linked by synapses'
     def __init__(self, neurons=[], links=None):
@@ -87,7 +13,7 @@ class Network(object):
         if links is not None:        
             N = {} # a temporary dictionary to create the network connections
             for n in self.__neurons: 
-                N[n._id] = n        
+                N[n.id] = n        
             for c in links: 
                 self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
         
@@ -150,9 +76,9 @@ class Network(object):
 
         k=0        
         for n in self.__neurons:
-            if(n._type == 'INPUT'): 
-                n._output = inputs[k]   
-                current_state.append(n._output)
+            if(n.type == 'INPUT'): 
+                n.output = inputs[k]   
+                current_state.append(n.output)
                 k+=1
             else:
                 current_state.append(n.activate())
@@ -160,9 +86,9 @@ class Network(object):
         # updates all neurons at once                
         net_output = []
         for i, n in enumerate(self.__neurons):
-            n._output = current_state[i]
-            if(n._type == 'OUTPUT'): 
-                net_output.append(n._output)
+            n.output = current_state[i]
+            if(n.type == 'OUTPUT'): 
+                net_output.append(n.output)
                 
         return net_output
 
