@@ -1,5 +1,9 @@
 from neat.nn import nn_pure as nn
 #from scipy import integrate
+try: 
+    import psyco; psyco.full()
+except ImportError:
+    pass
 
 class CTNeuron(nn.Neuron):
     ''' Continuous-time neuron model based on:
@@ -8,13 +12,13 @@ class CTNeuron(nn.Neuron):
         Evolving Dynamical Neural Networks for Adaptive Behavior. 
         Adaptive Behavior 1(1):91-122. 
     '''
-    def __init__(self, neurontype, id = None, bias=0, response=1, tau=1):
+    def __init__(self, neurontype, id = None, bias = 0, response = 0, tau = 1.0):
         super(CTNeuron, self).__init__(neurontype, id, bias, response)
 
         # decay rate
         self.__decay  = 1.0/tau 
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = 0.4 #TODO: Verify what's the "best" initial state?
+        self.__state = 0.3 #TODO: Verify what's the "best" initial state?
         # fist output
         self._output = nn.sigmoid(self.__state + self._bias, self._response)
         
@@ -23,6 +27,10 @@ class CTNeuron(nn.Neuron):
         
 #    def neuron_state(self, Y, t):     
 #        return self.__decay*(-Y + self._update_activation())
+
+    def set_init_state(self, state):
+        self.__state = state
+        self._output = nn.sigmoid(self.__state + self._bias, self._response)
 
     def activate(self):
         "Updates neuron's state for a single time-step"
@@ -51,3 +59,26 @@ def create_phenotype(chromo):
                   for cg in chromo.conn_genes if cg.enabled] 
                   
     return nn.Network(neurons_list, conn_list)
+
+if __name__ == "__main__":
+    # This example follows from Beer's C++ source code available at: 
+    # http://mypage.iu.edu/~rdbeer/
+    from neat import config
+    config.Config.nn_activation = 'exp'  # using exponential sigmoid
+    config.Config.feedforward = 0        # allow for recurrent topologies
+
+    # create two output neurons (they won't receive any external inputs)
+    N1 = CTNeuron('OUTPUT', id = 1, bias = -2.75, response = 1.0, tau = 1.0)
+    N2 = CTNeuron('OUTPUT', id = 2, bias = -1.75, response = 1.0, tau = 1.0)
+    N1.set_init_state(-0.0840006)
+    N2.set_init_state(-0.408035)    
+    neurons_list = [N1, N2]    
+    # create some synapses
+    conn_list = [(1, 1, 4.5), (1, 2, -1.0), (2, 1, 1.0), (2, 2, 4.5)]    
+    # create the network
+    net = nn.Network(neurons_list, conn_list)
+    # activates the network
+    for i in xrange(10):
+        print net.activate()
+    
+    
