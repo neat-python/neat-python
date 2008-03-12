@@ -2,6 +2,14 @@
 #include "neuron.hpp"
 #include "synapse.hpp"
 
+namespace {
+
+PyMethodDef methods[] = {
+		{0}
+};
+
+}
+
 PyMODINIT_FUNC initiznn_cpp(void)
 {	
 	PyObject* module = Py_InitModule("iznn_cpp", methods);

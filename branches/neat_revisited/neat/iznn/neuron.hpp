@@ -149,10 +149,6 @@ PyTypeObject NeuronType = {
 		reinterpret_cast<initproc>(Neuron_init),	/* tp_init */
 };
 
-PyMethodDef methods[] = {
-		{0}
-};
-
 }
 
 #endif

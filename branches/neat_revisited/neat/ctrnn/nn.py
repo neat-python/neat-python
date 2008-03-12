@@ -1,4 +1,4 @@
-from neat import nn
+from neat.nn import nn_pure as nn
 #from scipy import integrate
 
 class CTNeuron(nn.Neuron):

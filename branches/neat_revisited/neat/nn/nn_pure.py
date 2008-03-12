@@ -1,8 +1,29 @@
-from math import log, pi, sin
+from math import exp, log, tanh, pi, sin
 import random
 from neat.config import Config
 
-from nn_cpp import sigmoid, set_nn_activation
+def sigmoid(x, response):
+    " Sigmoidal type of activation function "
+    output = 0
+    try:
+        if Config.nn_activation == 'exp':
+            output = 1.0/(1.0 + exp(-x*response))
+        elif Config.nn_activation == 'tanh':
+            output = tanh(x*response)
+        else:
+            # raise exception
+            print 'Invalid activation type selected:', Config.nn_activation
+            
+    except OverflowError:
+        print 'Overflow error: x = ', x
+        import sys; sys.exit(0)
+        # Although overflow errors should not occur, here's a trick:
+        # ftp://ftp.sas.com/pub/neural/FAQ2.html#A_overflow
+        # if x*response < -45: output = 0
+        # if x*response > +45: output = 1
+        # else: output = 1.0/(1.0 + exp(-x*response))
+
+    return output
     
 class Neuron(object):
     " A simple sigmoidal neuron "
@@ -90,11 +111,6 @@ class Network(object):
                 N[n._id] = n        
             for c in links: 
                 self.__synapses.append(Synapse(N[c[0]], N[c[1]], c[2]))
-        
-        if Config.nn_activation == 'exp' or Config.nn_activation == 'tanh':
-            set_nn_activation(Config.nn_activation)
-        else:
-            raise Exception, 'Invalid activation type selected: ' + str(Config.nn_activation)
                 
     neurons = property(lambda self: self.__neurons)
     synapses = property(lambda self: self.__synapses)

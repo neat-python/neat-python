@@ -1,7 +1,6 @@
 import random, math, copy
 from config import Config
 import genome2
-import nn
 
 # Temporary workaround - default settings
 #node_gene_type = genome2.NodeGene
