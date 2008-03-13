@@ -16,9 +16,9 @@ class CTNeuron(nn.Neuron):
         super(CTNeuron, self).__init__(neurontype, id, bias, response)
 
         # decay rate
-        self.__decay  = 1.0/tau 
+        self.__tau  = tau 
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = 0.3 #TODO: Verify what's the "best" initial state?
+        self.__state = 0.51 #TODO: Verify what's the "best" initial state
         # fist output
         self._output = nn.sigmoid(self.__state + self._bias, self._response)
         
@@ -44,8 +44,10 @@ class CTNeuron(nn.Neuron):
         ''' Returns neuron's next state using Forward-Euler method.
             Future: integrate using scipy.integrate.
         '''
-        dt = 0.01
-        self.__state += (dt*self.__decay)*(-self.__state + self._update_activation())
+        dt = 0.001 # depending on the tau constant, the integration step must be adjusted
+                   # accordingly to avoid numerical instability
+                   
+        self.__state += dt*(1.0/self.__tau)*(-self.__state + self._update_activation())
         
         #self.__state = self.__r.integrate(self.__r.t+dt)[0]
                
