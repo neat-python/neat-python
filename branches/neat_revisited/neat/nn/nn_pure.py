@@ -11,7 +11,7 @@ def sigmoid(x, response):
             elif x > 30: output = 1.0
             else: output = 1.0/(1.0 + exp(-x*response))
         elif Config.nn_activation == 'tanh':
-			if x < - 20: output = -1.0
+            if x < - 20: output = -1.0
             elif x > 20: output = +1.0
             else: output = tanh(x*response)
         else:

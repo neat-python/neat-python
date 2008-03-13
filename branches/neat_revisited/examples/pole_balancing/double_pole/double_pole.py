@@ -31,14 +31,14 @@ if __name__ == "__main__":
     pop = population.Population()
     pop.epoch(200, report=1, save_best=0)
     
+    winner = pop.stats[0][-1]
+    
     # visualize the best topology
-    visualize.draw_net(pop.stats[0][-1]) # best chromosome
+    visualize.draw_net(winner) # best chromosome
     # Plots the evolution of the best/average fitness
     #visualize.plot_stats(pop.stats)
     # Visualizes speciation
     #visualize.plot_species(pop.species_log)
-
-    winner = pop.stats[0][-1]
     
     print 'Number of evaluations: %d' %winner.id
     from time import strftime
