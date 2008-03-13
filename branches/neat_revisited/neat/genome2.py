@@ -19,7 +19,7 @@ class NodeGene(object):
     response = property(lambda self: self._response)
         
     def __str__(self):
-        return "Node %2d %6s, bias %+2.5s, response %+2.5s"% (self._id, self._type, self._bias, self._response)
+        return "Node %2d %6s, bias %+2.10s, response %+2.10s"% (self._id, self._type, self._bias, self._response)
     
     def get_child(self, other):
         ''' Creates a new NodeGene ramdonly inheriting its attributes from parents '''
@@ -39,7 +39,7 @@ class NodeGene(object):
             self._bias = Config.min_weight
     
     def __mutate_response(self):
-    	''' Mutates the neuron's firing response. '''
+    	''' Mutates the neuron's average firing response. '''
         #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
         self._response += random.gauss(0,1)*Config.bias_mutation_power
     
@@ -56,7 +56,7 @@ class NodeGene(object):
 
 class CTNodeGene(NodeGene):
     '''Continuous-time node gene - used in CTRNNs '''
-    def __init__(self, id, nodetype, bias=random.gauss(0,0.01), response=random.gauss(0,0.05), time_constant=random.gauss(1.0,0.5)):
+    def __init__(self, id, nodetype, bias = 0.1, response = 1.0, time_constant = 0.001):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response)
         
         self._time_constant = time_constant
@@ -65,12 +65,13 @@ class CTNodeGene(NodeGene):
         
     def mutate(self):
         super(CTNodeGene, self).mutate()
-        
-        if random.random() < 0.1:
-            self.__mutate_time_constant()
+               
+        #if random.random() < 0.1:
+        #    self.__mutate_time_constant()
         
     def __mutate_time_constant(self):
-        self._time_constant += random.gauss(1.0,0.5)
+        ''' Warning: pertubing the time constant (tau) may result in numerical instability '''
+        self._time_constant += random.gauss(1.0,0.5)*0.001
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
@@ -88,7 +89,7 @@ class CTNodeGene(NodeGene):
         return ng
         
     def __str__(self):
-        return "Node %2d %6s, bias %+2.5s, response %+2.5s, time constant %+2.5s" \
+        return "Node %2d %6s, bias %+2.10s, response %+2.10s, time constant %+2.5s" \
                 % (self._id, self._type, self._bias, self._response, self._time_constant)
                 
     def copy(self):
@@ -171,7 +172,7 @@ class ConnectionGene(object):
     def split(self, node_id):
         """Splits a connection, creating two new connections and disabling this one"""
         self.__enabled = False
-        new_conn1 = ConnectionGene(self.__in, node_id, 1, True)
+        new_conn1 = ConnectionGene(self.__in, node_id, 1.0, True)
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
         return new_conn1, new_conn2
     

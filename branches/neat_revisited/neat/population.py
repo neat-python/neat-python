@@ -4,7 +4,6 @@ import chromosome
 import cPickle as pickle
 import visualize
 import random, math
-#from psyco.classes import *
 
 class Population:
     ''' Manages all the species  '''
@@ -71,8 +70,8 @@ class Population:
         for s in self.__species[:]: 
             # this happens when no chromosomes are compatible with the species
             if len(s) == 0: 
-                if report: 
-                    print "Removing species %d for being empty" % s.id
+                #if report: 
+                #    print "Removing species %d for being empty" % s.id
                 # remove empty species    
                 self.__species.remove(s)
                 
@@ -153,6 +152,23 @@ class Population:
             if not found_specie:                     
                 temp.append(0)                            
         self.__species_log.append(temp)
+        
+    def __population_diversity(self):
+        ''' Calculates the diversity of population: total average weights, 
+            number of connections, nodes '''
+            
+        num_nodes = 0
+        num_conns = 0
+        avg_weights = 0.0
+        
+        for c in self:
+            num_nodes += len(c.node_genes)
+            num_conns += len(c.conn_genes)
+            for cg in c.conn_genes:
+                avg_weights += cg.weight
+            
+        total = len(self)
+        return (num_nodes/total, num_conns/total, avg_weights/total)
                     
     def epoch(self, n, report=True, save_best=False):
         ''' Runs NEAT's genetic algorithm for n epochs '''
@@ -199,6 +215,7 @@ class Population:
             #    print '{%3d; %3d} -> %3d' %(chromosome.parent1_id, chromosome.parent2_id, chromosome.id)
             #-----------------------------------------
             if report:
+                #print 'Poluation size: %d \t Divirsity: %s' %(len(self), self.__population_diversity())
                 print 'Population\'s average fitness: %3.5f stdev: %3.5f' %(self.__avg_fitness[-1], self.stdeviation())
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
@@ -212,8 +229,8 @@ class Population:
 #                print 'Species age      : %s' % [s.age for s in self.__species]
 #                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species] # species no improvement age
             
-                for s in self.__species:
-                    print s
+                #for s in self.__species:
+                    #print s
              
             #for c in self.__population:
             #    print "%3d    %2d    %4d - %4d   %1.5f" %(c.id,c.species_id,c.parent1_id, c.parent2_id,c.fitness)   
@@ -226,7 +243,7 @@ class Population:
             for s in self.__species[:]:
                 # This rarely happens
                 if s.spawn_amount == 0:                    
-                    if report: print '   Species %2d age %2s removed: produced no offspring' %(s.id, s.age)                    
+                    #if report: print '   Species %2d age %2s removed: produced no offspring' %(s.id, s.age)                    
                     for c in self.__population[:]:
                         if c.species_id == s.id:
                             self.__population.remove(c)

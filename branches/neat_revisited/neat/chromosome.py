@@ -200,7 +200,8 @@ class Chromosome(object):
             Older chromosomes (small ids) should be prefered if newer ones
             performs the same.
         '''
-        return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
+        #return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
+        return cmp(self.fitness, other.fitness) 
     
     def __str__(self):
         s = "Nodes:"
@@ -236,7 +237,7 @@ class Chromosome(object):
             for input_node in c._node_genes[:num_input]:
                 #TODO: review the initial weights distribution
                 #weight = random.uniform(-1, 1)*Config.random_range
-                weight = random.gauss(0,1)
+                weight = random.gauss(0,0.9)
                 
                 cg = c._conn_gene_type(input_node.id, node_gene.id, weight, True)
                 c._connection_genes[cg.key] = cg        

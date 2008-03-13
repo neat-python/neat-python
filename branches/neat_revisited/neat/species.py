@@ -2,7 +2,6 @@
 from neat import *
 import random, math
 from config import Config
-#from psyco.classes import *
 
 class Species:
     """ A subpopulation containing similar individiduals """
@@ -10,9 +9,9 @@ class Species:
     
     def __init__(self, first_individual, previous_id=None):
         """ A species requires at least one individual to come to existence """
-        self.__id = self.__get_new_id(previous_id)              # species's id 
+        self.__id = self.__get_new_id(previous_id)    # species's id 
         self.__age = 0                                # species's age
-        self.__subpopulation = []                   # species's individuals
+        self.__subpopulation = []                     # species's individuals
         self.add(first_individual)
         self.hasBest = False                        # Does this species has the best individual of the population?
         self.spawn_amount = 0
@@ -54,12 +53,7 @@ class Species:
     #def __repr__(self):
     #    return repr([c.fitness for c in self.__subpopulation])
     
-    def __str__(self):
-        #s =  "\nId : %2d - Size : %3d \n" % (self.__id, len(self))
-        #s += "Age: %2d - Spawn: %3d \n" % (self.__age, self.spawn_amount)
-        #s += "No improvement : %d \n" % (self.no_improvement_age)
-        #s += "Avg. fitness   : %1.5f" % (self.__last_avg_fitness)
-        
+    def __str__(self):      
         s  = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " %(self.__id, len(self), self.__age, self.spawn_amount)
         s += "\n   No improvement: %3d \t avg. fitness: %1.8f" % (self.no_improvement_age, self.__last_avg_fitness)
         
@@ -112,9 +106,12 @@ class Species:
         self.__subpopulation.sort()     # sort species's members by their fitness
         self.__subpopulation.reverse()  # best members first
             
+        # No elitism: avoids local minima for the DPNV problem
         # always keep the best               
-        offspring.append(self.__subpopulation[0])
-        self.spawn_amount -= 1
+        #offspring.append(self.__subpopulation[0])
+        #self.spawn_amount -= 1
+        
+        # Wouldn't it be better if we set elitism=2,3,4...depending on the size of each species?
  
         survivors = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
    
