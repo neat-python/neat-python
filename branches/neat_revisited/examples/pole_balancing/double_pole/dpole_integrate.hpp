@@ -18,7 +18,7 @@ using namespace std;
 void step(double action, const vector<double> &st, vector<double> &derivs) {
     
     double FORCE_MAG = 10.0;
-    double GRAVITY = 9.8;
+    double GRAVITY = -9.8;
     double LENGTH_1 = 0.5;
     double LENGTH_2 = 0.05;
     double MASSPOLE_1 = 0.1;
@@ -42,10 +42,12 @@ void step(double action, const vector<double> &st, vector<double> &derivs) {
     ml_2 = LENGTH_2 * MASSPOLE_2;
     temp_1 = MUP * st[3] / ml_1;
     temp_2 = MUP * st[5] / ml_2;
+    
     fi_1 = (ml_1 * st[3] * st[3] * sintheta_1) +
            (0.75 * MASSPOLE_1 * costheta_1 * (temp_1 + gsintheta_1));
     fi_2 = (ml_2 * st[5] * st[5] * sintheta_2) +
            (0.75 * MASSPOLE_2 * costheta_2 * (temp_2 + gsintheta_2));
+           
     mi_1 = MASSPOLE_1 * (1 - (0.75 * costheta_1 * costheta_1));
     mi_2 = MASSPOLE_2 * (1 - (0.75 * costheta_2 * costheta_2));
     
@@ -56,7 +58,6 @@ void step(double action, const vector<double> &st, vector<double> &derivs) {
                  / LENGTH_1;
     derivs[5] = -0.75 * (derivs[1] * costheta_2 + gsintheta_2 + temp_2)
                   / LENGTH_2;
-
 }
 
 void rk4(double f, const vector<double> y, const vector<double> &dydx, vector<double> &yout) {
