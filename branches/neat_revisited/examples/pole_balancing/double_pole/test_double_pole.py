@@ -26,9 +26,9 @@ else:
         file.close()
     
 # load settings file
-config.load('dpole_config')
+config.load('dpole_config_ctrnn')
 # set node gene type
-chromosome.node_gene_type = genome2.NodeGene
+chromosome.node_gene_type = genome2.CTNodeGene
 print "Loaded genome:"
 print c
 # starts the simulation

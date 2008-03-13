@@ -1,3 +1,5 @@
+# requires python-dev and swig
+
 LIBTYPE = so
 TARGETS = _dpole_integrate.$(LIBTYPE)
 
