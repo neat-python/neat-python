@@ -1,7 +1,8 @@
 # Cart pole module
 from dpole_integrate import performAction as integrate # wrapped from C++
 from random import randint
-from neat import nn
+#from neat.nn import nn_pure as nn
+from neat import ctrnn as nn
 
 class CartPole(object):
     def __init__(self, population, markov):
@@ -10,10 +11,8 @@ class CartPole(object):
         # there are two types of double balancing experiment: 
         # 1. markovian: velocity information is provided to the network input
         # 2. non-markovian: no velocity is provided
-        self.__markov = markov
-        
-        self.__state = []
-        
+        self.__markov = markov        
+        self.__state = []        
         
     state = property(lambda self: self.__state)
                
@@ -75,7 +74,7 @@ class CartPole(object):
                 
                 chromo.fitness, score = self.__non_markov(net, 1000, testing)
 
-                #print "Chromosome %3d evaluated with fitness %2.5f and score: %s" %(chromo.id, chromo.fitness, score)
+                #print "Chromosome %3d %s evaluated with fitness %2.5f and score: %s" %(chromo.id, chromo.size(), chromo.fitness, score)
             
             # we need to make sure that the found solution is robust enough and good at
             # generalizing for several different initial conditions, so the champion 
@@ -90,31 +89,28 @@ class CartPole(object):
             # **********************#
             
             # first: can it balance for at least 100k steps?            
-            best_net = nn.create_phenotype(best)   
-            
+            best_net = nn.create_phenotype(best)            
+            self.__initial_state() # reset initial state
             # long non-markovian test
-            self.__initial_state()
-            score = self.__non_markov(best_net, 100000, testing, generalizing=False)[1]
+            print "Starting the 100k test..."            
+            score = self.__non_markov(best_net, 100000, testing)[1]
             
-            if(score) > 99999:
+            if score > 99999:
                 print "\tWinner passed the 100k test! Starting the generalization test..."
                 # second: now let's try 625 different initial conditions
                 balanced = self.__generalization_test(best_net, testing)       
                 
                 if balanced > 200:
-                    print "\tPassed the generalization test with score: %d\n"%balanced
+                    print "\tWinner passed the generalization test with score: %d\n"%balanced
                     # set chromosome's fitness to 100k (and ceases the simulation)
                     best.fitness = 100000
                 else:
-                    print "\tFailed the generalization test with score: %d\n"%balanced                                 
+                    print "\tWinner failed the generalization test with score: %d\n"%balanced                                 
                     
             else:
                 print "\tWinner failed at the 100k test with score %d\n "%score
-            
-            
-            
          
-    def __non_markov(self, network, max_steps, testing, generalizing=False):
+    def __non_markov(self, network, max_steps, testing):
         den = 0.0
         f1 = 0.0
         f2 = 0.0
@@ -129,9 +125,9 @@ class CartPole(object):
                       
             # activate the neural network
             output = network.pactivate(inputs)    
-                           
             # advances one time step 
-            self.__state = integrate(output[0], self.__state, 1)
+            action = 0.5*(output[0]+1) #maps [-1,1] onto [0,1]
+            self.__state = integrate(action, self.__state, 1)
             
             if(self.__outside_bounds()):
                 # network failed to solve the task

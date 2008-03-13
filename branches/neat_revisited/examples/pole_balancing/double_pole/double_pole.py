@@ -14,17 +14,18 @@ def evaluate_population(population):
 
 if __name__ == "__main__":
     
-    config.load('dpole_config') 
+    #config.load('dpole_config') 
+    config.load('dpole_config_ctrnn')
     
     # change the number of inputs accordingly to the type
     # of experiment: markov (6) or non-markov (3)
     # you can also set the configs in dpole_config as long
     # as you have two config files for each type of experiment
     config.Config.input_nodes = 3
-    config.Config.pop_size = 100
 
     # Temporary workaround
-    chromosome.node_gene_type = genome2.NodeGene
+    #chromosome.node_gene_type = genome2.NodeGene
+    chromosome.node_gene_type = genome2.CTNodeGene
     
     population.Population.evaluate = evaluate_population
     pop = population.Population()
@@ -33,11 +34,19 @@ if __name__ == "__main__":
     # visualize the best topology
     visualize.draw_net(pop.stats[0][-1]) # best chromosome
     # Plots the evolution of the best/average fitness
-    visualize.plot_stats(pop.stats)
+    #visualize.plot_stats(pop.stats)
+    # Visualizes speciation
+    #visualize.plot_species(pop.species_log)
+
+    winner = pop.stats[0][-1]
     
-    print 'Number of evaluations: %d' %(pop.stats[0][-1]).id
-    
+    print 'Number of evaluations: %d' %winner.id
+    from time import strftime
     # saves the winner
-    file = open('winner_chromosome', 'w')
-    pickle.dump(pop.stats[0][-1], file)
+    date = strftime("%Y_%m_%d_%Hh%Mm%Ss")
+    # saves the winner
+    file = open('winner_'+date, 'w')
+    pickle.dump(winner, file)
     file.close()
+    
+    #print winner
