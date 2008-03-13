@@ -7,9 +7,13 @@ def sigmoid(x, response):
     output = 0
     try:
         if Config.nn_activation == 'exp':
-            output = 1.0/(1.0 + exp(-x*response))
+            if x < - 30: output = 0.0
+            elif x > 30: output = 1.0
+            else: output = 1.0/(1.0 + exp(-x*response))
         elif Config.nn_activation == 'tanh':
-            output = tanh(x*response)
+			if x < - 20: output = -1.0
+            elif x > 20: output = +1.0
+            else: output = tanh(x*response)
         else:
             # raise exception
             print 'Invalid activation type selected:', Config.nn_activation
