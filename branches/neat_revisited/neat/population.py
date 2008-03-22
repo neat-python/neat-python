@@ -23,7 +23,7 @@ class Population:
         self.__best_fitness = []
         
         self.__create_population()
-        self.__generation = 0
+        self.__generation = -1
         
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     species_log = property(lambda self: self.__species_log)
@@ -175,6 +175,8 @@ class Population:
         ''' Runs NEAT's genetic algorithm for n epochs '''
         
         for g in xrange(n):
+            self.__generation += 1
+            
             if report: print '\n ****** Running generation %d ****** \n' % self.__generation
             
             # Evaluate individuals
@@ -321,8 +323,6 @@ class Population:
             ## Remove "super-stagnated" species (even if it has the best chromosome)
             #self.__species = [s for s in self.__species if \
                               #s.no_improvement_age < 50]
-            
-            self.__generation += 1
 
 if __name__ ==  '__main__' :
     
