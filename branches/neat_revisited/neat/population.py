@@ -23,6 +23,7 @@ class Population:
         self.__best_fitness = []
         
         self.__create_population()
+        self.__generation = 0
         
     stats = property(lambda self: (self.__best_fitness, self.__avg_fitness))   
     species_log = property(lambda self: self.__species_log)
@@ -173,8 +174,8 @@ class Population:
     def epoch(self, n, report=True, save_best=False):
         ''' Runs NEAT's genetic algorithm for n epochs '''
         
-        for generation in xrange(n):
-            if report: print '\n ****** Running generation %d ****** \n' %generation
+        for g in xrange(n):
+            if report: print '\n ****** Running generation %d ****** \n' % self.__generation
             
             # Evaluate individuals
             self.evaluate()     
@@ -200,13 +201,13 @@ class Population:
           
             # saves the best chromo from the current generation
             if save_best:
-                file = open('best_chromo_'+str(generation),'w')
+                file = open('best_chromo_'+str(self.__generation),'w')
                 pickle.dump(best, file)
                 file.close()
                                
             # saves all phenotypes - debugging!
             #for chromosome in self.__population:
-            #    visualize.draw_net(chromosome, str(generation)+'_'+str(chromosome.id))
+            #    visualize.draw_net(chromosome, str(self.__generation)+'_'+str(chromosome.id))
             #    pass
 
             #-----------------------------------------   
@@ -236,7 +237,7 @@ class Population:
             #    print "%3d    %2d    %4d - %4d   %1.5f" %(c.id,c.species_id,c.parent1_id, c.parent2_id,c.fitness)   
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
-                print '\nBest individual found in epoch %s - complexity: %s' %(generation, best.size())
+                print '\nBest individual found in epoch %s - complexity: %s' %(self.__generation, best.size())
                 break            
                     
             # Removing species with spawn amount = 0
@@ -320,6 +321,8 @@ class Population:
             ## Remove "super-stagnated" species (even if it has the best chromosome)
             #self.__species = [s for s in self.__species if \
                               #s.no_improvement_age < 50]
+            
+            self.__generation += 1
 
 if __name__ ==  '__main__' :
     
