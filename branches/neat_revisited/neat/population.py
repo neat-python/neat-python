@@ -6,7 +6,7 @@ import visualize
 import random, math
 
 class Population:
-    ''' Manages all the species  '''
+    """ Manages all the species  """
     evaluate = None # Evaluates the entire population. You need to override 
                     # this method in your experiments    
 
@@ -89,7 +89,7 @@ class Population:
                 print 'Compatibility threshold cannot be changed (minimum value has been reached)'
                 
     def average_fitness(self):
-        ''' Returns the average raw fitness of population '''
+        """ Returns the average raw fitness of population """
         sum = 0.0
         for c in self:
             sum += c.fitness
@@ -97,7 +97,7 @@ class Population:
         return sum/len(self)
     
     def stdeviation(self):
-        ''' Returns the population standard deviation '''
+        """ Returns the population standard deviation """
         # first compute the average
         u = self.average_fitness()
         error = 0.0
@@ -133,14 +133,14 @@ class Population:
             s.spawn_amount = int(round((species_stats[i]*self.__popsize/total_average)))
             
     def __tournament_selection(self, k=2):
-        ''' Tournament selection with size k (default k=2). 
-            Make sure the population has at least k individuals '''
+        """ Tournament selection with size k (default k=2). 
+            Make sure the population has at least k individuals """
         random.shuffle(self.__population)   
         
         return max(self.__population[:k])     
                 
     def __log_species(self):
-        ''' Logging species data for visualizing speciation '''
+        """ Logging species data for visualizing speciation """
         higher = max([s.id for s in self.__species])
         temp = []
         for i in xrange(1, higher+1):
@@ -155,8 +155,8 @@ class Population:
         self.__species_log.append(temp)
         
     def __population_diversity(self):
-        ''' Calculates the diversity of population: total average weights, 
-            number of connections, nodes '''
+        """ Calculates the diversity of population: total average weights, 
+            number of connections, nodes """
             
         num_nodes = 0
         num_conns = 0
@@ -172,7 +172,7 @@ class Population:
         return (num_nodes/total, num_conns/total, avg_weights/total)
                     
     def epoch(self, n, report=True, save_best=False):
-        ''' Runs NEAT's genetic algorithm for n epochs '''
+        """ Runs NEAT's genetic algorithm for n epochs """
         
         for g in xrange(n):
             self.__generation += 1
@@ -207,11 +207,6 @@ class Population:
                 pickle.dump(best, file)
                 file.close()
                                
-            # saves all phenotypes - debugging!
-            #for chromosome in self.__population:
-            #    visualize.draw_net(chromosome, str(self.__generation)+'_'+str(chromosome.id))
-            #    pass
-
             #-----------------------------------------   
             # Prints chromosome's parents id:  {dad_id, mon_id} -> child_id      
             #for chromosome in self.__population:  
@@ -223,20 +218,18 @@ class Population:
                 print 'Best fitness: %2.12s - size: %s - species %s - id %s' \
                     %(best.fitness, best.size(), best.species_id, best.id)
                 
-#                # print some "debugging" information
-#                print 'Species length: %d totalizing %d individuals' \
-#                        %(len(self.__species), sum([len(s) for s in self.__species]))
-#                print 'Species ID       : %s' % [s.id for s in self.__species]
-#                print 'Each species size: %s' % [len(s) for s in self.__species]
-#                print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
-#                print 'Species age      : %s' % [s.age for s in self.__species]
-#                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species] # species no improvement age
+                # print some "debugging" information
+                print 'Species length: %d totalizing %d individuals' \
+                        %(len(self.__species), sum([len(s) for s in self.__species]))
+                print 'Species ID       : %s' % [s.id for s in self.__species]
+                print 'Each species size: %s' % [len(s) for s in self.__species]
+                print 'Amount to spawn  : %s' % [s.spawn_amount for s in self.__species]
+                print 'Species age      : %s' % [s.age for s in self.__species]
+                print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species] # species no improvement age
             
-                #for s in self.__species:
-                    #print s
+                for s in self.__species:
+                    print s
              
-            #for c in self.__population:
-            #    print "%3d    %2d    %4d - %4d   %1.5f" %(c.id,c.species_id,c.parent1_id, c.parent2_id,c.fitness)   
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
                 print '\nBest individual found in epoch %s - complexity: %s' %(self.__generation, best.size())
@@ -274,14 +267,9 @@ class Population:
                         #TODO: can be optimized!
                         for c in new_population[:]:
                             if c.species_id == s.id:
-                                #self.__population.remove(c)
                                 new_population.remove(c)
                                         
 #            # Controls under or overflow
-#            # This is unnecessary since the population size is stable
-#            # due to the computed spawn levels for each species. No
-#            # performance gain is noticed whether we use it or not.
-#
             fill = (self.__popsize) - len(new_population)
 #            if fill < 0: # overflow
 #                print 'Removing %d excess individual(s) from the new population' %-fill
@@ -303,8 +291,8 @@ class Population:
                             new_population.append(child.mutate())
                             found = True
                             break
-                        # If no mate was found, just mutate it
                     if not found:
+                        # If no mate was found, just mutate it
                         new_population.append(parent1.mutate())
                     fill -= 1
                                         
@@ -312,9 +300,6 @@ class Population:
 #            assert self.__popsize == len(new_population), 'Different population sizes!'
             self.__population = new_population[:]
                     
-
-                                
-                 
             # Does it help in avoiding local minima?
             #for s in self.__species:
                 #if s.no_improvement_age > 50:
