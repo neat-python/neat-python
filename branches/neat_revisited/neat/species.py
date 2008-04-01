@@ -20,7 +20,6 @@ class Species:
         
         self.representant = first_individual
         
-    #representative = property(lambda self: self.__subpopulation[0])
     members = property(lambda self: self.__subpopulation)
     age = property(lambda self: self.__age)
     id  = property(lambda self: self.__id)
@@ -43,30 +42,24 @@ class Species:
         self.representant = random.choice(self.__subpopulation)
         
     def __iter__(self):
+        """ Iterates over individuals """
         return iter(self.__subpopulation)
         
     def __len__(self):
         """ Returns the total number of individuals in this species """
         return len(self.__subpopulation)
     
-    #def __repr__(self):
-    #    return repr([c.fitness for c in self.__subpopulation])
-    
     def __str__(self):      
-        s  = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " %(self.__id, len(self), self.__age, self.spawn_amount)
-        s += "\n   No improvement: %3d \t avg. fitness: %1.8f" % (self.no_improvement_age, self.__last_avg_fitness)
-        
+        s  = "\n   Species %2d   size: %3d   age: %3d   spawn: %3d   " \
+                %(self.__id, len(self), self.__age, self.spawn_amount)
+        s += "\n   No improvement: %3d \t avg. fitness: %1.8f" \
+                %(self.no_improvement_age, self.__last_avg_fitness)
         return s
     
     def TournamentSelection(self, k=2):
-        ''' Tournament selection with size k (default k=2). 
-            Make sure the population has at least k individuals '''
+        """ Tournament selection with size k (default k=2). 
+            Make sure the population has at least k individuals """
         random.shuffle(self.__subpopulation)        
-        #p1, p2 = self.__subpopulation[0], self.__subpopulation[1]
-        #if p1.fitness >= p2.fitness:
-        #    return p1
-        #else:
-        #    return p2
         
         return max(self.__subpopulation[:k])
     
@@ -100,7 +93,7 @@ class Species:
         
         # this condition is useless since no species with spawn_amount < 0 will
         # reach this point - at least it shouldn't happen.
-        #if self.spawn_amount > 0:
+        assert self.spawn_amount > 0, "Species %d with zero spawn amount!" % (self.__id)
             
         self.__subpopulation.sort()     # sort species's members by their fitness
         self.__subpopulation.reverse()  # best members first
@@ -110,7 +103,7 @@ class Species:
         offspring.append(self.__subpopulation[0])
         self.spawn_amount -= 1
         
-        # Wouldn't it be better if we set elitism=2,3,4...depending on the size of each species?
+        #TODO: Wouldn't it be better if we set elitism=2,3,4...depending on the size of each species?
  
         survivors = int(round(len(self)*Config.survival_threshold)) # keep a % of the best individuals
    
@@ -126,12 +119,12 @@ class Species:
         
             if len(self) > 1:                
                 # Selects two parents from the remaining species and produces a single individual 
-                #random.shuffle(self.__subpopulation) # remove shuffle (always select best: give better results?)
-                #parent1, parent2 = self.__subpopulation[0], self.__subpopulation[1]
+                # Stanley selects at random, here we use tournament selection (although it is not
+                # clear if has any advantages)
                 parent1 = self.TournamentSelection()
                 parent2 = self.TournamentSelection()
                 
-                assert parent1.species_id == parent2.species_id
+                assert parent1.species_id == parent2.species_id, "Parents has different species id."
                 child = parent1.crossover(parent2)
                 offspring.append(child.mutate())                
             else:                
@@ -140,8 +133,7 @@ class Species:
                 # TODO: temporary hack - the child needs a new id (not the father's)
                 child = parent1.crossover(parent1)
                 offspring.append(child.mutate())
-
-
+                
         # reset species (new members will be added again when speciating)
         self.__subpopulation = []
         

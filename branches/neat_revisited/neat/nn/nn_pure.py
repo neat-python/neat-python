@@ -2,13 +2,18 @@ from math import exp, log, tanh, pi, sin
 import random
 from neat.config import Config
 
+try: 
+    import psyco; psyco.full()
+except ImportError:
+    pass
+    
 def sigmoid(x, response):
     " Sigmoidal type of activation function "
     output = 0
     try:
         if Config.nn_activation == 'exp':
             if x < - 30: output = 0.0
-            elif x > 30: output = 1.0
+            elif x > 30: output = 1.0            
             else: output = 1.0/(1.0 + exp(-x*response))
         elif Config.nn_activation == 'tanh':
             if x < - 20: output = -1.0
@@ -118,6 +123,10 @@ class Network(object):
                 
     neurons = property(lambda self: self.__neurons)
     synapses = property(lambda self: self.__synapses)
+    
+    def flush(self):
+        for neuron in self.__neurons:
+            neuron._output = 0.0
             
     def add_neuron(self, neuron):
         self.__neurons.append(neuron)

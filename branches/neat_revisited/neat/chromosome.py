@@ -1,10 +1,10 @@
 import random, math
 from config import Config
-import genome2
+import genome
 
 # Temporary workaround - default settings
-#node_gene_type = genome2.NodeGene
-conn_gene_type = genome2.ConnectionGene
+#node_gene_type = genome.NodeGene
+conn_gene_type = genome.ConnectionGene
 
 class Chromosome(object):
     ''' A chromosome for general recurrent neural networks '''
@@ -146,7 +146,7 @@ class Chromosome(object):
                         else:
                             count += 1
     
-# compatibility function        
+    # compatibility function        
     def distance(self, other):
         ''' Returns the distance between this chromosome and the other '''
         if len(self._connection_genes) > len(other._connection_genes):
@@ -198,10 +198,10 @@ class Chromosome(object):
         return (num_hidden, conns_enabled)
     
     def __cmp__(self, other):
-        ''' First compare chromosomes by their fitness and then by their id.
-            Older chromosomes (small ids) should be prefered if newer ones
+        """ First compare chromosomes by their fitness and then by their id.
+            Older chromosomes (lower ids) should be prefered if newer ones
             performs the same.
-        '''
+        """
         #return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
         return cmp(self.fitness, other.fitness) 
     
@@ -253,7 +253,6 @@ class FFChromosome(Chromosome):
     def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         super(FFChromosome, self).__init__(parent1_id, parent2_id, node_gene_type, conn_gene_type)
         self.__node_order = [] # hidden node order (for feedforward networks)
-        #self.__node_order = [4, 5] # used only in fixed-topology experiments (using a pre-defined topology in genome2.py)
         
     node_order = property(lambda self: self.__node_order)
     
