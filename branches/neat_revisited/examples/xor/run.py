@@ -4,7 +4,7 @@
 # same experiment for a number of times.           #
 # Please kindly note: THIS IS FAR FROM FINISHED!   #
 #**************************************************#
-import math, sys
+import math, sys, random, pickle
 import re, os
 
 p = re.compile('\d*\d')
@@ -50,11 +50,11 @@ if __name__ == '__main__':
         
     for i in xrange(int(sys.argv[2])):
         output = os.popen('python '+sys.argv[1]).read()   
-        
         try:  
             gens, nodes, conns = p.findall(output)
         except ValueError: # if anything goes wrong
-            print output            
+            if len(output) == 0:       
+                print "Maximum number of generations reached - got stuck"  
 
         total_gens.append(float(gens))
         total_nodes.append(float(nodes))

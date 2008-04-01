@@ -24,7 +24,7 @@ prob_addnode          = 0.03
 prob_mutatebias       = 0.5
 bias_mutation_power   = 0.5    
 prob_mutate_weight    = 0.9
-weight_mutation_power = 2.5    
+weight_mutation_power = 1.5    
 prob_togglelink       = 0.01
 
 # Parameters obtained with a meta-SGA
@@ -37,7 +37,7 @@ prob_togglelink       = 0.01
 #prob_togglelink       = 0.024390995616214557
 
 [genotype compatibility]
-compatibility_threshold = 5.0
+compatibility_threshold = 3.0
 compatibility_change    = 0.0
 excess_coeficient       = 1.0
 disjoint_coeficient     = 1.0
