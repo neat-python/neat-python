@@ -1,4 +1,4 @@
-import random, math, copy
+import random, math
 from config import Config
 import genome2
 
@@ -12,7 +12,8 @@ class Chromosome(object):
     def __init__(self, parent1_id, parent2_id, node_gene_type, conn_gene_type):
         
         self._id = self.__get_new_id()
-        self._input_nodes = 0        
+        self._input_nodes  = Config.input_nodes
+        self._output_nodes = Config.output_nodes      
         
         # the type of NodeGene and ConnectionGene the chromosome carries
         self._node_gene_type = node_gene_type 
@@ -30,7 +31,8 @@ class Chromosome(object):
         
     conn_genes = property(lambda self: self._connection_genes.values())
     node_genes = property(lambda self: self._node_genes)
-    sensors    = property(lambda self: self._input_nodes)    
+    sensors    = property(lambda self: self._input_nodes) 
+    actuators  = property(lambda self: self._output_nodes) 
     id         = property(lambda self: self._id)
     
     @classmethod
@@ -78,7 +80,7 @@ class Chromosome(object):
         child._inherit_genes(parent1, parent2)        
         
         child.species_id = parent1.species_id
-        child._input_nodes = parent1._input_nodes
+        #child._input_nodes = parent1._input_nodes
         
         return child
          
@@ -189,7 +191,7 @@ class Chromosome(object):
             # Neuron's bias is not considered
            
         # number of hidden nodes
-        num_hidden = len(self._node_genes) - Config.input_nodes - Config.output_nodes
+        num_hidden = len(self._node_genes) - self._input_nodes - self._output_nodes
         # number of enabled connections
         conns_enabled = sum([1 for cg in self._connection_genes.values() if cg.enabled is True])
         
@@ -226,7 +228,7 @@ class Chromosome(object):
         for i in range(num_input):
             c._node_genes.append(c._node_gene_type(id, 'INPUT'))
             id += 1
-        c._input_nodes += num_input
+        #c._input_nodes += num_input
         
         for i in range(num_output):
             node_gene = c._node_gene_type(id, 'OUTPUT')

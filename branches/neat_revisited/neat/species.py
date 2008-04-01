@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-from neat import *
 import random, math
 from config import Config
 
@@ -108,8 +107,8 @@ class Species:
             
         # No elitism: avoids local minima for the DPNV problem
         # always keep the best               
-        #offspring.append(self.__subpopulation[0])
-        #self.spawn_amount -= 1
+        offspring.append(self.__subpopulation[0])
+        self.spawn_amount -= 1
         
         # Wouldn't it be better if we set elitism=2,3,4...depending on the size of each species?
  

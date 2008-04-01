@@ -2,7 +2,6 @@
 import random
 import math
 from config import Config
-import copy
 
 class NodeGene(object):    
     def __init__(self, id, nodetype, bias=0, response=4.924273):
@@ -39,7 +38,7 @@ class NodeGene(object):
             self._bias = Config.min_weight
     
     def __mutate_response(self):
-    	''' Mutates the neuron's average firing response. '''
+        ''' Mutates the neuron's average firing response. '''
         #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
         self._response += random.gauss(0,1)*Config.bias_mutation_power
     
@@ -131,12 +130,12 @@ class ConnectionGene(object):
         if r() < Config.prob_mutate_weight: 
             self.__mutate_weight()
         if r() <  Config.prob_togglelink:
-            self.__enable()
+            self.enable()
         #TODO: Remove weight_replaced?
         #if r() < 0.001:
         #    self.__weight_replaced()
    
-    def __enable(self):
+    def enable(self):
         '''For the "enable link" mutation'''
         self.__enabled = True
 
