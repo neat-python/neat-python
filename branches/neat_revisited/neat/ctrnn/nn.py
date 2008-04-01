@@ -1,5 +1,5 @@
 from neat.nn import nn_pure as nn
-#from scipy import integrate
+
 try: 
     import psyco; psyco.full()
 except ImportError:
@@ -44,12 +44,10 @@ class CTNeuron(nn.Neuron):
         ''' Returns neuron's next state using Forward-Euler method.
             Future: integrate using scipy.integrate.
         '''
-        dt = 0.001 # depending on the tau constant, the integration step must be adjusted
-                   # accordingly to avoid numerical instability
-                   
+        dt = 0.01 # depending on the tau constant, the integration step must be adjusted
+                  # accordingly to avoid numerical instability
+
         self.__state += dt*(1.0/self.__tau)*(-self.__state + self._update_activation())
-        
-        #self.__state = self.__r.integrate(self.__r.t+dt)[0]
                
 
 def create_phenotype(chromo):

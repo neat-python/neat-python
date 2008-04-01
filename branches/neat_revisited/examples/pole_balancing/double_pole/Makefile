@@ -14,6 +14,7 @@ all: $(TARGETS)
 	
 _%.$(LIBTYPE): dpole_integrate_wrap.o
 	$(CC) $(LIBS) -fPIC -shared $^ -o $@
+	rm dpole_integrate_wrap.cxx 
 
 %.o: %.cxx 
 	g++ $(CFLAGS) -c dpole_integrate.hpp $< -I/usr/include/$(PYTHON)/

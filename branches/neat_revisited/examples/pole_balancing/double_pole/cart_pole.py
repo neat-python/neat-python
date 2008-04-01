@@ -89,7 +89,8 @@ class CartPole(object):
             # **********************#
             
             # first: can it balance for at least 100k steps?            
-            best_net = nn.create_phenotype(best)            
+            best_net = nn.create_phenotype(best)           
+            best_net.flush() 
             self.__initial_state() # reset initial state
             # long non-markovian test
             print "Starting the 100k test..."            
@@ -132,7 +133,7 @@ class CartPole(object):
             if(self.__outside_bounds()):
                 # network failed to solve the task
                 if testing: 
-                    print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" %(steps, self.__state[0], self.__state[2], self.__state[4]) 
+                    #print "Failed at step %d \t %+1.2f \t %+1.2f \t %+1.2f" %(steps, self.__state[0], self.__state[2], self.__state[4]) 
                     break
                 else:
                     #print "Failed at step %d" %steps
@@ -173,7 +174,7 @@ class CartPole(object):
                                         0.0]
                         
                         test_number += 1
-                        
+                        best_net.flush() 
                         score = self.__non_markov(best_net, 1000, testing)[1]
                         if(score > 999):
                             balanced += 1            
