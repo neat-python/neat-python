@@ -1,11 +1,12 @@
 # -*- coding: UTF-8 -*-
-import random
-import math
+import random, math
 from config import Config
 
 class NodeGene(object):    
     def __init__(self, id, nodetype, bias=0, response=4.924273):
-        '''nodetype should be "INPUT", "HIDDEN", or "OUTPUT"'''
+        """ A node gene encodes the basic artificial neuron model.
+            nodetype should be "INPUT", "HIDDEN", or "OUTPUT" 
+        """
         self._id = id
         self._type = nodetype
         self._bias = bias
@@ -21,7 +22,7 @@ class NodeGene(object):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s"% (self._id, self._type, self._bias, self._response)
     
     def get_child(self, other):
-        ''' Creates a new NodeGene ramdonly inheriting its attributes from parents '''
+        """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
         assert(self._id == other._id)
         
         ng = NodeGene(self._id, self._type,
@@ -38,7 +39,7 @@ class NodeGene(object):
             self._bias = Config.min_weight
     
     def __mutate_response(self):
-        ''' Mutates the neuron's average firing response. '''
+        """ Mutates the neuron's average firing response. """
         #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
         self._response += random.gauss(0,1)*Config.bias_mutation_power
     
@@ -54,7 +55,10 @@ class NodeGene(object):
     
 
 class CTNodeGene(NodeGene):
-    '''Continuous-time node gene - used in CTRNNs '''
+    """ Continuous-time node gene - used in CTRNNs.
+        The main difference here is the addition of
+        a decay rate given by the time constant.
+    """
     def __init__(self, id, nodetype, bias = 0.1, response = 1.0, time_constant = 0.001):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response)
         
@@ -64,12 +68,13 @@ class CTNodeGene(NodeGene):
         
     def mutate(self):
         super(CTNodeGene, self).mutate()
-               
+        # mutating the time constant could bring numerical instability
+        # do it with caution
         #if random.random() < 0.1:
         #    self.__mutate_time_constant()
         
     def __mutate_time_constant(self):
-        ''' Warning: pertubing the time constant (tau) may result in numerical instability '''
+        """ Warning: pertubing the time constant (tau) may result in numerical instability """
         self._time_constant += random.gauss(1.0,0.5)*0.001
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
@@ -78,7 +83,7 @@ class CTNodeGene(NodeGene):
         return self
     
     def get_child(self, other):
-        ''' Creates a new NodeGene ramdonly inheriting its attributes from parents '''
+        """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
         assert(self._id == other._id)
         
         ng = CTNodeGene(self._id, self._type,
@@ -136,7 +141,7 @@ class ConnectionGene(object):
         #    self.__weight_replaced()
    
     def enable(self):
-        '''For the "enable link" mutation'''
+        """ Enables a link. """
         self.__enabled = True
 
     def __mutate_weight(self):
@@ -169,7 +174,7 @@ class ConnectionGene(object):
         return cmp(self.__innov_number, other.__innov_number)
     
     def split(self, node_id):
-        """Splits a connection, creating two new connections and disabling this one"""
+        """ Splits a connection, creating two new connections and disabling this one """
         self.__enabled = False
         new_conn1 = ConnectionGene(self.__in, node_id, 1.0, True)
         new_conn2 = ConnectionGene(node_id, self.__out, self.__weight, True)
