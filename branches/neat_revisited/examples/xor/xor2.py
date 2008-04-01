@@ -1,6 +1,5 @@
 import math, random
 import cPickle as pickle
-
 from neat import config, population, chromosome, genome, visualize
 #from neat import nn_cpp as nn
 from neat.nn import nn_pure as nn
@@ -44,7 +43,7 @@ def eval_fitness(population):
 population.Population.evaluate = eval_fitness
 
 pop = population.Population()
-pop.epoch(300, report=0, save_best=False)
+pop.epoch(300, report=True, save_best=False)
 
 winner = pop.stats[0][-1]
 
