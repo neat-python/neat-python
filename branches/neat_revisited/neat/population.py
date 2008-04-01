@@ -227,8 +227,8 @@ class Population:
                 print 'Species age      : %s' % [s.age for s in self.__species]
                 print 'Species no improv: %s' % [s.no_improvement_age for s in self.__species] # species no improvement age
             
-                for s in self.__species:
-                    print s
+                #for s in self.__species:
+                #    print s
              
             # Stops the simulation
             if best.fitness > Config.max_fitness_threshold:
