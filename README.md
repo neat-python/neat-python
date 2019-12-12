@@ -1,4 +1,4 @@
-# Neat-Python
+# NEAT-Python
 The basic idea behind NEAT is to evolve both network topology (structural adaptation) and weights/biases (parametrical adaptation).
 
 As a starting point, you can check the XOR experiment in the examples folder.
