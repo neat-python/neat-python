@@ -1,11 +1,6 @@
 import math
 import random
 
-try:
-    import psyco; psyco.full()
-except ImportError:
-    pass
-
 def sigmoid(x, response, activation_type):
     " Sigmoidal type of activation function "
     output = 0
@@ -20,11 +15,11 @@ def sigmoid(x, response, activation_type):
             else: output = math.tanh(x*response)
         else:
             # raise exception
-            print 'Invalid activation type selected:', activation_type
+            print('Invalid activation type selected:', activation_type)
             #raise NameError('Invalid activation type selected:', activation_type)
 
     except OverflowError:
-        print 'Overflow error: x = ', x
+        print('Overflow error: x = ', x)
 
     return output
 
@@ -210,15 +205,15 @@ class FeedForward(Network):
         else:
             r = lambda a,b: 0
 
-        for i in xrange(self.__input_layer):
+        for i in range(self.__input_layer):
             self.add_neuron(Neuron('INPUT'))
 
-        for i in xrange(self.__hidden_layers[0]):
+        for i in range(self.__hidden_layers[0]):
             self.add_neuron(Neuron('HIDDEN', bias = r(-1,1),
                                    response = 1,
                                    activation_type = activation_type))
 
-        for i in xrange(self.__output_layer):
+        for i in range(self.__output_layer):
             self.add_neuron(Neuron('OUTPUT', bias = r(-1,1),
                                    response = 1,
                                    activation_type = activation_type))
@@ -272,15 +267,18 @@ def create_ffphenotype(chromo):
 
     return Network(neurons_list, conn_list, chromo.sensors)
 
+
 if __name__ == "__main__":
     # Example
     #from neat import visualize
 
     nn = FeedForward([2,10,3], use_bias=False, activation_type = 'exp')
     ##visualize.draw_ff(nn)
-    print 'Serial activation method: '
+    print('Serial activation method:')
     for t in range(3):
-        print nn.sactivate([1,1])
+        print(nn.sactivate([1,1]))
+
+
 
     #print 'Parallel activation method: '
     #for t in range(3):

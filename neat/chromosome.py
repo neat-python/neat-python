@@ -204,7 +204,9 @@ class Chromosome(object):
             performs the same.
         """
         #return cmp(self.fitness, other.fitness) or cmp(other.id, self.id)
-        return cmp(self.fitness, other.fitness)
+        a, b = self.fitness, other.fitness
+        return (a > b) - (a < b)
+        # return cmp(self.fitness, other.fitness)
 
     def __str__(self):
         s = "Nodes:"
@@ -427,4 +429,4 @@ if __name__ == '__main__':
     #visualize.draw_net(c1) # for recurrent nets
     visualize.draw_ff(c2)   # for feedforward nets
     # print the chromosome
-    print  c2
+    print(c2)

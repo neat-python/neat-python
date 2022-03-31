@@ -1,7 +1,7 @@
 import math
 import random
-import cPickle as pickle
-from neat import config, population, chromosome, genome, visualize
+import pickle
+from neat import config, population, chromosome, genome
 from neat.nn import nn_pure as nn
 #from neat.nn import nn_cpp as nn # C++ extension
 
@@ -36,7 +36,7 @@ pop = population.Population()
 pop.epoch(300, report=True, save_best=False)
 
 winner = pop.stats[0][-1]
-print 'Number of evaluations: %d' %winner.id
+print('Number of evaluations: %d' %winner.id)
 
 # Visualize the winner network (requires PyDot)
 #visualize.draw_net(winner) # best chromosome
@@ -47,11 +47,11 @@ print 'Number of evaluations: %d' %winner.id
 #visualize.plot_species(pop.species_log)
 
 # Let's check if it's really solved the problem
-print '\nBest network output:'
+print('\nBest network output:')
 brain = nn.create_ffphenotype(winner)
 for i, inputs in enumerate(INPUTS):
     output = brain.sactivate(inputs) # serial activation
-    print "%1.5f \t %1.5f" %(OUTPUTS[i], output[0])
+    print("%1.5f \t %1.5f" %(OUTPUTS[i], output[0]))
 
 # saves the winner
 #file = open('winner_chromosome', 'w')

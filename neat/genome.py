@@ -180,7 +180,9 @@ class ConnectionGene(object):
         return s + "Innov %d" % (self.__innov_number,)
 
     def __cmp__(self, other):
-        return cmp(self.__innov_number, other.__innov_number)
+        a, b = self.__innov_number, other.__innov_number
+        return (a > b) - (a < b)
+        # return cmp(self.__innov_number, other.__innov_number)
 
     def split(self, node_id):
         """ Splits a connection, creating two new connections and disabling this one """

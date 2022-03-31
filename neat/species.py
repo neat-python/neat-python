@@ -72,7 +72,7 @@ class Species(object):
         try:
             current = sum/len(self)
         except ZeroDivisionError:
-            print "Species %d, with length %d is empty! Why? " % (self.__id, len(self))
+            print("Species %d, with length %d is empty! Why? " % (self.__id, len(self)))
         else:  # controls species no improvement age
             # if no_improvement_age > threshold, species will be removed
             if current > self.__last_avg_fitness:

@@ -1,14 +1,16 @@
 # sets the configuration parameters for NEAT
-from ConfigParser import ConfigParser
+import configparser
+
+config = configparser.ConfigParser()
 
 def load(file):
     try:
         config_file = open(file,'r')
     except IOError:
-        print 'Error: file %s not found!' %file
+        print('Error: file %s not found!' %file)
         raise
     else:
-        parameters = ConfigParser()#{'phenotype':{'fully_connected': True}})
+        parameters = config()#{'phenotype':{'fully_connected': True}})
         parameters.readfp(config_file)
 
         # set class attributes

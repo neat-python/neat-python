@@ -14,7 +14,11 @@ Currently this version is only compatible with Python <= 2.7
 
 ### Things TODO:
 
-* Update to support Python 3 
+* Update to support Python 3 - WIP
 * Create a pip package to facilitate the compilation for the C code.
 * Probably use PyTorch or TensorFlow, with a slightly different genome encoding to accommodate these changes. I'm aware of some approaches in the same direction by the NEAT community.
 * Add more activation functions and expand the ability to each neuron to adapt its own activation function.
+
+# Changelog
+
+v0.2 - After 14+ years, I decided to make it compatiple with Python 3+ :)
