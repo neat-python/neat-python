@@ -1,12 +1,10 @@
-# -*- coding: UTF-8 -*-
-"""
-This module implements a spiking neural network.
-Neurons are based on the model described by:
-    
-Izhikevich, E. M.
-Simple Model of Spiking Neurons
-IEEE TRANSACTIONS ON NEURAL NETWORKS, VOL. 14, NO. 6, NOVEMBER 2003
-"""
+"""Izhikevich spiking networks. Uses the C++ extension when available."""
 
-from iznn_cpp import *
-from network import *
+try:
+    from neat.iznn.iznn_cpp import Neuron, Synapse
+except ImportError:
+    from neat.iznn.iznn_pure import Neuron, Synapse
+
+from neat.iznn.network import Network, create_phenotype
+
+__all__ = ['Neuron', 'Synapse', 'Network', 'create_phenotype']

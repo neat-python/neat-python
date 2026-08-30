@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 # ----------------------------------------------------------------------#
-# A parallel version of XOR using the nice Parallel Python module       #
-#                http://www.parallelpython.com/                         #
+# A parallel version of XOR using concurrent.futures.                   #
 #                                                                       #
 # Since XOR is a simple experiment, a parallel version won't actually   #
 # take any advantages of it due to overhead and transfer-communication. #
@@ -9,12 +8,11 @@
 # parallel experiment in neat-python.                                   #
 # ----------------------------------------------------------------------#
 import math
-import random
-import zlib
-import cPickle as pickle
-from neat import config, population, chromosome, genome, visualize
+import os
+from concurrent.futures import ProcessPoolExecutor
 
-#random.seed(5465)
+from neat import config, population, chromosome, genome
+
 config.load('xor2_config')
 
 config.Config.max_fitness_threshold = 0.9
@@ -22,74 +20,33 @@ config.Config.pop_size = 150
 # Temporary workaround
 chromosome.node_gene_type = genome.NodeGene
 
-import pp
-# list of available servers
-#servers = ("server1:port1, "server2:port2", "server3:port3")
-servers = () # empty: run local
-# you can set the number of CPUs the local machine will use
-# if you set ncpus = 0, then only distributed workers will
-# receive and do the job
-job_server = pp.Server(ncpus=1, ppservers=servers, loglevel=20)
-print "Starting pp with", job_server.get_ncpus(), "workers"
+NUM_CHUNKS = 2
+
 
 def eval_fitness(population):
+    size = config.Config.pop_size // NUM_CHUNKS
+    assert config.Config.pop_size % NUM_CHUNKS == 0, "Population size is not multiple of num_chunks"
 
-    # number of chunks (jobs)
-    num_chunks = 2
-    # size for each subpopulation
-    size = config.Config.pop_size/num_chunks
-    # make sure we have a proper number of chunks
-    assert config.Config.pop_size % num_chunks == 0, "Population size is not multiple of num_chunks"
+    chunks = []
+    for k in range(NUM_CHUNKS):
+        print('Chunk %d:  [%3d:%3d]' % (k, size * k, size * (k + 1)))
+        chunks.append(list(population[size * k:size * (k + 1)]))
 
-    jobs = []
-    for k in xrange(num_chunks):
-        # divide the population in chunks and evaluate each chunk on a
-        # different processor or machine
-        print 'Chunk %d:  [%3d:%3d]' %(k, size*k, size*(k+1))
+    with ProcessPoolExecutor(max_workers=NUM_CHUNKS) as executor:
+        results = list(executor.map(parallel_evaluation, chunks, range(NUM_CHUNKS)))
 
-        # compressing the population is useful when running
-        # on a network of machines over the internet
-        # It drastically reduces the lag at minimal cost
-        # zlib compression (for small chromosomes)
-        #           ratio             ratio
-        # level   protocol=0 (note that protocol 1 or 2 are even better)
-        #   1       74.06%
-        #   3       77.21%
-        #   6       79.68%
-        #   9       80.58%
-
-        # first pickles the population object
-        pickle_pop = pickle.dumps(population[size*k:size*(k+1)], 2)
-        # then compress the pickled object
-        compressed_pop = zlib.compress(pickle_pop, 3)
-        #print "Ratio: ", len(pickle_pop), len(compressed_pop)
-        # submit the job
-        jobs.append(job_server.submit(parallel_evaluation,
-                                      args=(compressed_pop, k),
-                                      depfuncs=(),
-                                      modules=('neat','zlib','math')))
-
-    all_jobs =[] # the results for all jobs
-    for k in xrange(num_chunks):
-        all_jobs += (jobs[k]())
-    # assign the fitness back to each chromosome
+    all_jobs = []
+    for chunk_fitness in results:
+        all_jobs += chunk_fitness
     for i, fitness in enumerate(all_jobs):
         population[i].fitness = fitness
 
-def parallel_evaluation(compressed_pop, chunk):
-    # This function will run in parallel
+
+def parallel_evaluation(sub_pop, chunk):
     from neat.nn import nn_pure as nn
 
-    # don't print OS calls to stdout:
-    #http://www.parallelpython.com/component/option,com_smf/Itemid,29/topic,103.0
-    print "Evaluating chunk %d at %s" %(chunk, os.popen("hostname").read())
+    print("Evaluating chunk %d at %s" % (chunk, os.popen("hostname").read().strip()))
 
-    # decompress the pickled object
-    decompress_pop = zlib.decompress(compressed_pop)
-    # unpickle it
-    sub_pop = pickle.loads(decompress_pop)
-
-    # XOR-2
     INPUTS = ((0, 0), (0, 1), (1, 0), (1, 1))
     OUTPUTS = (0, 1, 1, 0)
 
@@ -99,18 +56,15 @@ def parallel_evaluation(compressed_pop, chunk):
 
         error = 0.0
         for i, input in enumerate(INPUTS):
-            output = net.sactivate(input) # serial activation
-            error += (output[0] - OUTPUTS[i])**2
+            output = net.sactivate(input)  # serial activation
+            error += (output[0] - OUTPUTS[i]) ** 2
 
-        fitness.append(1 - math.sqrt(error/len(OUTPUTS)))
+        fitness.append(1 - math.sqrt(error / len(OUTPUTS)))
 
-    # when finished, return the list of fitness values
     return fitness
 
 
-population.Population.evaluate = eval_fitness
-
-pop = population.Population()
-pop.epoch(400, report=1, save_best=False)
-#visualize.draw_ff(pop.stats[0][-1])
-job_server.print_stats()
+if __name__ == '__main__':
+    population.Population.evaluate = eval_fitness
+    pop = population.Population()
+    pop.epoch(400, report=1, save_best=False)

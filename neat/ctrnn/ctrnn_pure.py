@@ -6,10 +6,6 @@
 """
 from neat.nn import nn_pure as nn
 
-try:
-    import psyco; psyco.full()
-except ImportError:
-    pass
 
 class CTNeuron(nn.Neuron):
     """ Continuous-time neuron model based on:
@@ -18,18 +14,18 @@ class CTNeuron(nn.Neuron):
         Evolving Dynamical Neural Networks for Adaptive Behavior.
         Adaptive Behavior 1(1):91-122.
     """
-    def __init__(self, neurontype, id = None, bias = 0.0, response = 1.0, activation_type = 'exp', tau = 1.0):
+    def __init__(self, neurontype, id=None, bias=0.0, response=1.0, activation_type='exp', tau=1.0):
         super(CTNeuron, self).__init__(neurontype, id, bias, response, activation_type)
 
         # decay rate
-        self.__tau  = tau
+        self.__tau = tau
         # needs to set the initial state (initial condition for the ODE)
-        self.__state = 0.1 #TODO: Verify what's the "best" initial state
+        self.__state = 0.1  # TODO: Verify what's the "best" initial state
         # fist output
         self._output = nn.sigmoid(self.__state + self._bias, self._response, self._activation_type)
         # integration step
-        self.__dt = 0.05 # depending on the tau constant, the integration step must
-                         # be adjusted accordingly to avoid numerical instability
+        self.__dt = 0.05  # depending on the tau constant, the integration step must
+                          # be adjusted accordingly to avoid numerical instability
 
     def set_integration_step(self, step):
         self.__dt = step
@@ -40,13 +36,13 @@ class CTNeuron(nn.Neuron):
 
     def activate(self):
         """ Updates neuron's state for a single time-step. . """
-        assert self._type is not 'INPUT'
+        assert self._type != 'INPUT'
         self.__update_state()
         return nn.sigmoid(self.__state + self._bias, self._response, self._activation_type)
 
     def __update_state(self):
         """ Returns neuron's next state using Forward-Euler method. """
-        self.__state += self.__dt*(1.0/self.__tau)*(-self.__state + self._update_activation())
+        self.__state += self.__dt * (1.0 / self.__tau) * (-self.__state + self._update_activation())
 
 
 def create_phenotype(chromo):
@@ -56,13 +52,14 @@ def create_phenotype(chromo):
                              ng._bias,
                              ng._response,
                              ng._activation_type,
-                             ng._time_constant) \
+                             ng._time_constant)
                     for ng in chromo._node_genes]
 
-    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight) \
+    conn_list = [(cg.innodeid, cg.outnodeid, cg.weight)
                   for cg in chromo.conn_genes if cg.enabled]
 
     return nn.Network(neurons_list, conn_list, chromo.sensors)
+
 
 if __name__ == "__main__":
     # This example follows from Beer's C++ source code available at:
@@ -80,10 +77,7 @@ if __name__ == "__main__":
     # create the network
     net = nn.Network(neurons_list, conn_list)
     # activates the network
-    print "%.17f %.17f" %(N1._output, N2._output)
-    for i in xrange(1000):
-        #print net.pactivate()
+    print("%.17f %.17f" % (N1._output, N2._output))
+    for i in range(1000):
         output = net.pactivate()
-        print "%.17f %.17f" %(output[0], output[1])
-
-
+        print("%.17f %.17f" % (output[0], output[1]))
