@@ -1,18 +1,20 @@
 # ******************************** #
 # Double pole balancing experiment #
 # ******************************** #
-import math
-import random
-import cPickle as pickle
-from neat import config, population, chromosome, genome, visualize
+import pickle
+from time import strftime
+
+from neat import config, population, chromosome, genome
 from cart_pole import CartPole
+
 
 def evaluate_population(population):
 
-    simulation = CartPole(population, markov = False)
+    simulation = CartPole(population, markov=False)
     # comment this line to print the status
     simulation.print_status = False
     simulation.run()
+
 
 if __name__ == "__main__":
 
@@ -26,7 +28,6 @@ if __name__ == "__main__":
 
     # neuron model type
     chromosome.node_gene_type = genome.NodeGene
-    #chromosome.node_gene_type = genome.CTNodeGene
 
     population.Population.evaluate = evaluate_population
     pop = population.Population()
@@ -34,20 +35,10 @@ if __name__ == "__main__":
 
     winner = pop.stats[0][-1]
 
-    # visualize the best topology
-    #visualize.draw_net(winner) # best chromosome
-    # Plots the evolution of the best/average fitness
-    #visualize.plot_stats(pop.stats)
-    # Visualizes speciation
-    #visualize.plot_species(pop.species_log)
-
-    print 'Number of evaluations: %d' %winner.id
-    print 'Winner score: %d' %winner.score
-    from time import strftime
+    print('Number of evaluations: %d' % winner.id)
+    print('Winner score: %d' % winner.score)
     date = strftime("%Y_%m_%d_%Hh%Mm%Ss")
     # saves the winner
-    file = open('winner_'+date, 'w')
-    pickle.dump(winner, file)
-    file.close()
-
-    #print winner
+    fp = open('winner_' + date, 'wb')
+    pickle.dump(winner, fp)
+    fp.close()

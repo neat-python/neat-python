@@ -1,9 +1,9 @@
-# Compile the C++ Python extension for the
-# cart-pole experiment:
+# Optional C++ extension for the cart-pole experiment.
+# The default is the pure-Python integrator in dpole.py.
 # python setup.py build_ext -i
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 setup(
       name='Cart-pole experiment',
       ext_modules=[
-               Extension('dpole', ['dpole.cpp'])]               
+               Extension('dpole', ['dpole.cpp'])]
 )

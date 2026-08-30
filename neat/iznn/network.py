@@ -1,8 +1,12 @@
-from iznn_cpp import *
+try:
+    from neat.iznn.iznn_cpp import Neuron, Synapse
+except ImportError:
+    from neat.iznn.iznn_pure import Neuron, Synapse
+
 
 class Network(object):
     """ A neural network has a list of neurons linked by synapses """
-    def __init__(self, neurons=[], input_neurons = [], output_neurons = [], synapses=[]):
+    def __init__(self, neurons=[], input_neurons=[], output_neurons=[], synapses=[]):
         self.__neurons = neurons
         self.__input_neurons = input_neurons
         self.__output_neurons = output_neurons
@@ -26,7 +30,8 @@ class Network(object):
         for n in self.__neurons.values():
             n.reset()
 
-    neurons = property(lambda self: self.__neurons.values())
+    neurons = property(lambda self: list(self.__neurons.values()))
+
 
 def create_phenotype(chromosome):
     """ Receives a chromosome and returns its phenotype (a neural network) """
@@ -41,10 +46,11 @@ def create_phenotype(chromosome):
         elif ng.type == 'OUTPUT':
             output_neurons.append(neurons[ng.id])
 
-    synapses = [Synapse(neurons[cg.innodeid], neurons[cg.outnodeid], cg.weight) \
+    synapses = [Synapse(neurons[cg.innodeid], neurons[cg.outnodeid], cg.weight)
                  for cg in chromosome.conn_genes if cg.enabled]
 
     return Network(neurons, input_neurons, output_neurons, synapses)
+
 
 if __name__ == '__main__':
     from neat import visualize
@@ -52,7 +58,7 @@ if __name__ == '__main__':
     spike_train = []
     for i in range(1000):
         spike_train.append(n.potential)
-        print '%d\t%f' % (i, n.potential)
+        print('%d\t%f' % (i, n.potential))
         n.advance()
-        
+
     visualize.plot_spikes(spike_train)

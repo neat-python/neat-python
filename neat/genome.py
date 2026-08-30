@@ -1,6 +1,9 @@
 # -*- coding: UTF-8 -*-
 import random
-from config import Config
+from functools import total_ordering
+
+from neat.config import Config
+
 
 class NodeGene(object):
     def __init__(self, id, nodetype, bias=0, response=4.924273, activation_type=None):
@@ -23,7 +26,7 @@ class NodeGene(object):
 
     def __str__(self):
         return "Node %2d %6s, bias %+2.10s, response %+2.10s" \
-                %(self._id, self._type, self._bias, self._response)
+                % (self._id, self._type, self._bias, self._response)
 
     def get_child(self, other):
         """ Creates a new NodeGene ramdonly inheriting its attributes from parents """
@@ -36,8 +39,7 @@ class NodeGene(object):
         return ng
 
     def __mutate_bias(self):
-        #self._bias += random.uniform(-1, 1) * Config.bias_mutation_power
-        self._bias += random.gauss(0,1)*Config.bias_mutation_power
+        self._bias += random.gauss(0, 1) * Config.bias_mutation_power
         if self._bias > Config.max_weight:
             self._bias = Config.max_weight
         elif self._bias < Config.min_weight:
@@ -45,8 +47,7 @@ class NodeGene(object):
 
     def __mutate_response(self):
         """ Mutates the neuron's average firing response. """
-        #self._response += random.uniform(-0.2, 0.2) * Config.bias_mutation_power
-        self._response += random.gauss(0,1)*Config.bias_mutation_power
+        self._response += random.gauss(0, 1) * Config.bias_mutation_power
 
     def copy(self):
         return NodeGene(self._id, self._type, self._bias,
@@ -65,7 +66,7 @@ class CTNodeGene(NodeGene):
         The main difference here is the addition of
         a decay rate given by the time constant.
     """
-    def __init__(self, id, nodetype, bias = 1.0, response = 1.0, activation_type = 'exp', time_constant = 1.0):
+    def __init__(self, id, nodetype, bias=1.0, response=1.0, activation_type='exp', time_constant=1.0):
         super(CTNodeGene, self).__init__(id, nodetype, bias, response, activation_type)
 
         self._time_constant = time_constant
@@ -81,7 +82,7 @@ class CTNodeGene(NodeGene):
 
     def __mutate_time_constant(self):
         """ Warning: pertubing the time constant (tau) may result in numerical instability """
-        self._time_constant += random.gauss(1.0,0.5)*0.001
+        self._time_constant += random.gauss(1.0, 0.5) * 0.001
         if self._time_constant > Config.max_weight:
             self._time_constant = Config.max_weight
         elif self._time_constant < Config.min_weight:
@@ -109,16 +110,16 @@ class CTNodeGene(NodeGene):
                           self._response, self._activation_type, self._time_constant)
 
 
+@total_ordering
 class ConnectionGene(object):
     __global_innov_number = 0
-    __innovations = {} # A list of innovations.
-    # Should it be global? Reset at every generation? Who knows?
+    __innovations = {}  # A list of innovations.
 
     @classmethod
     def reset_innovations(cls):
         cls.__innovations = {}
 
-    def __init__(self, innodeid, outnodeid, weight, enabled, innov = None):
+    def __init__(self, innodeid, outnodeid, weight, enabled, innov=None):
         self.__in = innodeid
         self.__out = outnodeid
         self.__weight = weight
@@ -132,10 +133,10 @@ class ConnectionGene(object):
         else:
             self.__innov_number = innov
 
-    weight    = property(lambda self: self.__weight)
-    innodeid  = property(lambda self: self.__in)
+    weight = property(lambda self: self.__weight)
+    innodeid = property(lambda self: self.__in)
     outnodeid = property(lambda self: self.__out)
-    enabled   = property(lambda self: self.__enabled)
+    enabled = property(lambda self: self.__enabled)
     # Key for dictionaries, avoids two connections between the same nodes.
     key = property(lambda self: (self.__in, self.__out))
 
@@ -143,19 +144,15 @@ class ConnectionGene(object):
         r = random.random
         if r() < Config.prob_mutate_weight:
             self.__mutate_weight()
-        if r() <  Config.prob_togglelink:
+        if r() < Config.prob_togglelink:
             self.enable()
-        #TODO: Remove weight_replaced?
-        #if r() < 0.001:
-        #    self.__weight_replaced()
 
     def enable(self):
         """ Enables a link. """
         self.__enabled = True
 
     def __mutate_weight(self):
-        #self.__weight += random.uniform(-1,1) * Config.weight_mutation_power
-        self.__weight += random.gauss(0,1)*Config.weight_mutation_power
+        self.__weight += random.gauss(0, 1) * Config.weight_mutation_power
 
         if self.__weight > Config.max_weight:
             self.__weight = Config.max_weight
@@ -163,7 +160,6 @@ class ConnectionGene(object):
             self.__weight = Config.min_weight
 
     def __weight_replaced(self):
-        #self.__weight = random.uniform(-Config.random_range, Config.random_range)
         self.__weight = random.gauss(0, Config.weight_stdev)
 
     @classmethod
@@ -179,8 +175,13 @@ class ConnectionGene(object):
             s += "Disabled, "
         return s + "Innov %d" % (self.__innov_number,)
 
-    def __cmp__(self, other):
-        return cmp(self.__innov_number, other.__innov_number)
+    def __eq__(self, other):
+        if other is None:
+            return False
+        return self.__innov_number == other.__innov_number
+
+    def __lt__(self, other):
+        return self.__innov_number < other.__innov_number
 
     def split(self, node_id):
         """ Splits a connection, creating two new connections and disabling this one """
